@@ -11,6 +11,10 @@ LIEXING_DAMAGE_REDUCTION = 4
 LIEXING_DAMAGE_INCREASE = 4
 
 
+def normalize_value(v: float) -> float:
+    return max(0, min(1, v))
+
+
 # TODO Shenbin calculation is not included
 
 def get_element_multiplier(is_attacker: bool, context: Context, is_basic: bool = False) -> float:
@@ -19,9 +23,11 @@ def get_element_multiplier(is_attacker: bool, context: Context, is_basic: bool =
     return get_level2_modifier(hero_instance, is_attacker, attr_name, context)
 
 
-def get_penetration_multiplier(hero_instance: Hero, is_attacker: bool, is_magic: bool, context: Context, is_basic: bool = False) -> float:
+def get_penetration_multiplier(hero_instance: Hero, is_attacker: bool, is_magic: bool, context: Context,
+                               is_basic: bool = False) -> float:
     attr_name = ma.magic_penetration_percentage if is_magic else ma.penetration_percentage
-    return get_level2_modifier(hero_instance, is_attacker, attr_name, context)
+    leve2_modifier = get_level2_modifier(hero_instance, is_attacker, attr_name, context)
+    return normalize_value(leve2_modifier)
 
 
 def get_defense_with_penetration(attacker_instance: Hero, defender_instance: Hero, is_magic: bool,
@@ -29,7 +35,7 @@ def get_defense_with_penetration(attacker_instance: Hero, defender_instance: Her
     penetration = get_penetration_multiplier(attacker_instance, True, is_magic, context, is_basic)
     # calculate buffs
     basic_defense = get_defense(defender_instance, False, is_magic, context, is_basic)
-    return basic_defense * (1 - penetration)
+    return basic_defense * (1 - normalize_value(penetration))
 
 
 # TODO, calculate 先攻和反击上限，范围加成
@@ -56,7 +62,8 @@ def get_max_life(hero_instance: Hero, target_instance: Hero, context: Context, i
     return basic_life * (1 + get_level2_modifier(hero_instance, target_instance, ma.life_percentage, context, is_basic))
 
 
-def get_defense(hero_instance: Hero, counter_instance: Hero, is_magic: bool, context: Context, is_basic: bool = False) -> float:
+def get_defense(hero_instance: Hero, counter_instance: Hero, is_magic: bool, context: Context,
+                is_basic: bool = False) -> float:
     # calculate buffs
     attr_name = ma.magic_defense if is_magic else ma.defense
     defense_attribute = hero_instance.initial_attributes.defense if is_magic else hero_instance.initial_attribute.magic_defense
@@ -65,7 +72,8 @@ def get_defense(hero_instance: Hero, counter_instance: Hero, is_magic: bool, con
     return basic_defense * (1 + get_level2_modifier(hero_instance, counter_instance, attr_name, context, is_basic))
 
 
-def get_attack(actor_instance: Hero, target_instance: Hero, context: Context, is_magic_input=None, is_basic: bool = False) -> float:
+def get_attack(actor_instance: Hero, target_instance: Hero, context: Context, is_magic_input=None,
+               is_basic: bool = False) -> float:
     action = context.get_last_action()
     if is_magic_input is not None:
         is_magic = is_magic_input
@@ -79,25 +87,48 @@ def get_attack(actor_instance: Hero, target_instance: Hero, context: Context, is
             1 + get_level2_modifier(actor_instance, target_instance, attr_name, context, is_basic))
 
 
-def get_action_type_damage_modifier(is_attacker: bool, context: Context) -> float:
+def get_action_type_damage_modifier(actor: Hero, target: Hero, context: Context) -> float:
     current_action = context.get_last_action()
     action_type = current_action.type
-    actor = context.get_actor_by_side_in_battle(is_attacker)
     action_type_modifier = 0
     if action_type == ActionTypes.SKILL_ATTACK:
-        action_type_modifier += get_level2_modifier(actor, is_attacker, ma.skill_damage_percentage, context)
+        action_type_modifier += get_level2_modifier(actor, target, ma.skill_damage_percentage, context)
         skill_target_type = context.get_last_action().skill.target_type
         if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
-            action_type_modifier += get_level2_modifier(actor, is_attacker, ma.single_target_skill_damage_percentage,
+            action_type_modifier += get_level2_modifier(actor, target, ma.single_target_skill_damage_percentage,
                                                         context)
         elif skill_target_type == SkillTargetTypes.ENEMY_RANGE:
-            action_type_modifier += get_level2_modifier(actor, is_attacker, ma.multi_target_skill_damage_percentage,
+            action_type_modifier += get_level2_modifier(actor, target, ma.range_skill_damage_percentage,
                                                         context)
     elif action_type == ActionTypes.NORMAL_ATTACK:
-        action_type_modifier += get_level2_modifier(actor, is_attacker, ma.normal_attack_damage_percentage, context)
+        action_type_modifier += get_level2_modifier(actor, target, ma.normal_attack_damage_percentage, context)
 
     if current_action.is_in_battle:
-        action_type_modifier += get_level2_modifier(actor, is_attacker, ma.battle_damage_percentage, context)
+        action_type_modifier += get_level2_modifier(actor, target, ma.battle_damage_percentage, context)
+
+    return action_type_modifier
+
+
+def get_action_type_damage_reduction_modifier(defender: Hero, attacker: Hero, context: Context) -> float:
+    current_action = context.get_last_action()
+    action_type = current_action.type
+    action_type_modifier = 0
+    if action_type == ActionTypes.SKILL_ATTACK:
+        action_type_modifier += get_level2_modifier(defender, attacker, ma.skill_damage_reduction_percentage, context)
+        skill_target_type = context.get_last_action().skill.target_type
+        if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
+            action_type_modifier += get_level2_modifier(defender, attacker,
+                                                        ma.single_target_skill_damage_reduction_percentage,
+                                                        context)
+        elif skill_target_type == SkillTargetTypes.ENEMY_RANGE:
+            action_type_modifier += get_level2_modifier(defender, attacker, ma.range_skill_damage_reduction_percentage,
+                                                        context)
+    elif action_type == ActionTypes.NORMAL_ATTACK:
+        action_type_modifier += get_level2_modifier(defender, attacker, ma.normal_attack_damage_reduction_percentage,
+                                                    context)
+
+    if current_action.is_in_battle:
+        action_type_modifier += get_level2_modifier(defender, attacker, ma.battle_damage_reduction_percentage, context)
 
     return action_type_modifier
 
@@ -122,7 +153,8 @@ def get_damage_modifier(attacker_instance: Hero, is_attacker: bool, is_magic: bo
     return level1_damage_modifier * level2_damage_modifier
 
 
-def get_damage_reduction_modifier(defense_instance: Hero, counter_instance: Hero, is_magic: bool, context: Context, is_basic: bool = False) -> float:
+def get_damage_reduction_modifier(defense_instance: Hero, counter_instance: Hero, is_magic: bool, context: Context,
+                                  is_basic: bool = False) -> float:
     attr_name = ma.magic_damage_reduction_percentage if is_magic else ma.damage_reduction_percentage
     accumulated_passives_damage_reduction_modifier = accumulate_attribute(defense_instance.temp.passives,
                                                                           attr_name)
@@ -133,6 +165,7 @@ def get_damage_reduction_modifier(defense_instance: Hero, counter_instance: Hero
     # A-type damage increase (Additive)
     a_type_damage_reduction = 1 - (
             get_level2_modifier(defense_instance, counter_instance, attr_name, context, is_basic)
+            + get_action_type_damage_reduction_modifier(defense_instance, counter_instance, context)
             + accumulated_passives_damage_reduction_modifier
             + formation_damage_reduction_modifier) / 100
 
@@ -142,7 +175,8 @@ def get_damage_reduction_modifier(defense_instance: Hero, counter_instance: Hero
     return a_type_damage_reduction * b_type_damage_reduction
 
 
-def get_critical_hit_probability(hero_instance: Hero, is_attacker: bool, context: Context, is_basic: bool = False) -> float:
+def get_critical_hit_probability(hero_instance: Hero, is_attacker: bool, context: Context,
+                                 is_basic: bool = False) -> float:
     critical_stones_percentage_modifier = accumulate_attribute(hero_instance.stones.percentage,
                                                                ma.critical_percentage)
 
@@ -154,9 +188,11 @@ def get_critical_hit_probability(hero_instance: Hero, is_attacker: bool, context
     return total_critical / 100
 
 
-def get_critical_hit_resistance(hero_instance: Hero, is_attacker: bool, context: Context, is_basic: bool = False) -> float:
+def get_critical_hit_resistance(hero_instance: Hero, is_attacker: bool, context: Context,
+                                is_basic: bool = False) -> float:
     # Calculate buffs
-    level_2_hit_resistance = get_level2_modifier(hero_instance, is_attacker, ma.critical_percentage_reduction, context, is_basic)
+    level_2_hit_resistance = get_level2_modifier(hero_instance, is_attacker, ma.critical_percentage_reduction, context,
+                                                 is_basic)
     critical_stones_percentage_modifier = accumulate_attribute(hero_instance.stones.percentage,
                                                                ma.critical_percentage_reduction)
 

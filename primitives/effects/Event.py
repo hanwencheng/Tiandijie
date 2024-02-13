@@ -11,6 +11,8 @@ class EventTypes(enum.Enum):
     damage_start = 'damage_start'
     damage = 'damage'
     damage_end = 'damage_end'
+    turn_start = 'turn_start'
+    turn_end = 'turn_end'
     # battle
     battle_start = 'battle_start'
     battle = 'battle'

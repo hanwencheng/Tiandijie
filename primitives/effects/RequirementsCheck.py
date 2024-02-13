@@ -43,6 +43,34 @@ def check_buff_in_range(range_value: int, actor_hero: Hero, context: Context, bu
 class RequirementCheck:
     # TODO  should not include any function related to level2 modifier
     @staticmethod
+    def battle_with_certain_hero(hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        if action.is_in_battle:
+            if target_hero.temp.id == hero_temp_id or actor_hero.temp.id == hero_temp_id:
+                return 1
+        return 0
+
+    @staticmethod
+    def no_partners_in_range(range_value: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    return 0
+        return 1
+
+    @staticmethod
+    def move_less_or_equal_than(max_move: int,  actor_hero: Hero, target_hero: Hero, context: Context):
+        action = context.get_last_action()
+        if actor_hero == action.actor:
+            if action.moves <= max_move:
+                return True
+        return False
+
+    @staticmethod
     def buff_stack_reach(reach_number: int, buff_id: str, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         for buff in target_hero.buffs:
             if buff.temp.id == buff_id:
@@ -125,6 +153,14 @@ class RequirementCheck:
     @staticmethod
     def always_true() -> int:
         return 1
+
+    @staticmethod
+    def target_has_certain_buff(buff_id: str, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.id == buff_id:
+                return 1
+        return 0
+
 
     @staticmethod
     def battle_with_no_element_advantage(actor_hero: Hero, target_hero: Hero, context: Context) -> int:

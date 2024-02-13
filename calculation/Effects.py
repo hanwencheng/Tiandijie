@@ -1,5 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
+from helpers import random_select
+
 if TYPE_CHECKING:
     from primitives.hero import Hero
     from calculation.Range import Range
@@ -7,14 +10,11 @@ if TYPE_CHECKING:
     from primitives.buff.Buff import Buff
     from primitives.buff import BuffTemp
 
-import random
 from typing import List
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
 from calculation.calculate_damage import calculate_fix_damage, calculate_magic_damage, \
     calculate_physical_damage
 from primitives.buff.BuffTemp import BuffTypes
-
-
 
 
 def get_current_action(context: Context) -> Action:
@@ -40,7 +40,47 @@ def _add_buffs(caster: Hero, target: Hero, buff_temp: List[BuffTemp], duration: 
             target.buffs.append(new_buff)
 
 
+def _remove_actor_certain_buff(buff_temp_id: str, actor: Hero):
+    actor.buffs = [buff for buff in actor.buffs if buff.temp.id != buff_temp_id]
+
+
+def _reduce_actor_certain_buff_stack(buff_temp_id: str, actor: Hero, reduced_stack: int):
+    for buff in actor.buffs:
+        if buff.temp.id == buff_temp_id:
+            buff.stack -= reduced_stack
+            if buff.temp.level <= 0:
+                actor.buffs.remove(buff)
+            break
+
+
 class Effects:
+    @staticmethod
+    def add_enemies_harm_buff(enemy_number: int, buff_number: int, square_range: int, duration: int, actor_instance: Hero, target_instance: Hero, context: Context):
+        targets = context.get_enemies_in_square_range(actor_instance, square_range)
+        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
+        selected_heroes = random_select(targets, enemy_number)
+        for enemy_hero in selected_heroes:
+            _add_buffs(actor_instance, enemy_hero, selected_harm_buff_temps, duration, context)
+
+    @staticmethod
+    def reduce_skill_cooldown(cooldown_reduction: int, actor_instance: Hero, target_instance: Hero, context: Context):
+        skill_id = context.get_last_action().skill.id
+        for skills in actor_instance.enabled_skills:
+            if skills.id == skill_id:
+                skills.cooldown -= cooldown_reduction
+                if skills.cooldown < 0:
+                    skills.cooldown = 0
+
+    @staticmethod
+    def replace_buff(existed_buff_id: str, new_buff_id: str, actor_instance: Hero, target_instance: Hero, context: Context):
+        _remove_actor_certain_buff(existed_buff_id, target_instance)
+        _add_buffs(actor_instance, target_instance, [context.get_buff_temp_by_id(new_buff_id)], 2, context)
+
+    @staticmethod
+    def add_additional_move_and_consume_xiayi(actor_instance: Hero, target_instance: Hero, context: Context):
+        context.get_last_action().update_additional_move(4)
+        _reduce_actor_certain_buff_stack('xiayi', actor_instance, 2)
+
     @staticmethod
     def heal_self(multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context):
         actor_max_life = get_max_life(actor_instance, target_instance, context)
@@ -49,10 +89,11 @@ class Effects:
             actor_instance.life = actor_max_life
 
     @staticmethod
-    def remove_partner_harm_buffs(buff_count: int, range_value: int, actor_instance: Hero, target_instance: Hero, context: Context):
-        partners = context.get_partners_in_range(actor_instance, range_value)
+    def remove_partner_harm_buffs(buff_count: int, range_value: int, actor_instance: Hero, target_instance: Hero,
+                                  context: Context):
+        partners = context.get_partners_in_diamond_range(actor_instance, range_value)
         for partner in partners:
-            selected_harm_buffs = random.sample(context.harm_buffs, buff_count)
+            selected_harm_buffs = random_select(context.harm_buffs, buff_count)
             for selected_harm_buff in selected_harm_buffs:
                 partner.buffs = [buff for buff in partner.buffs if buff.temp.id != selected_harm_buff.id]
 
@@ -98,15 +139,15 @@ class Effects:
     @staticmethod
     def add_partner_harm_buffs(buff_number: int, range_value: int, duration: int, is_attacker: bool, context: Context):
         actor = context.get_actor_by_side_in_battle(is_attacker)
-        partners = context.get_partners_in_range(actor, range_value)
-        selected_harm_buff_temps = random.sample(context.harm_buffs, buff_number)
+        partners = context.get_partners_in_diamond_range(actor, range_value)
+        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
         for partner in partners:
             _add_buffs(actor, partner, selected_harm_buff_temps, duration)
 
     @staticmethod
     def remove_partner_selected_buffs(buff_temp: BuffTemp, range_value: int, is_attacker: bool, context: Context):
         actor = context.get_actor_by_side_in_battle(is_attacker)
-        partners = context.get_partners_in_range(actor, range_value)
+        partners = context.get_partners_in_diamond_range(actor, range_value)
         for partner in partners:
             partner.buffs = [buff for buff in partner.buffs if buff.temp.id != buff_temp.id]
 
@@ -117,7 +158,8 @@ class Effects:
             terrain[i] = None
 
     @staticmethod
-    def take_magic_damage_of_buff_caster(multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff):
+    def take_magic_damage_of_buff_caster(multiplier: float, actor_instance: Hero, target_instance: Hero,
+                                         context: Context, buff: Buff):
         caster_hero = context.get_hero_by_id(buff.caster_id)
         if caster_hero.alive:
             caster_magic_attack = get_attack(actor_instance, target_instance, context, True, True)
@@ -147,8 +189,15 @@ class Effects:
 
     @staticmethod
     def remove_actor_certain_buff(buff_temp_id: str, actor: Hero, target: Hero, context: Context):
-        actor.buffs = [buff for buff in actor.buffs if buff.temp.id != buff_temp_id]
+        _remove_actor_certain_buff(buff_temp_id, actor)
 
     @staticmethod
     def remove_target_certain_buff(buff_temp_id: str, actor: Hero, target: Hero, context: Context):
-        target.buffs = [buff for buff in target.buffs if buff.temp.id != buff_temp_id]
+        _remove_actor_certain_buff(buff_temp_id, target)
+
+    @staticmethod
+    def remove_actor_harm_buffs(count: int, actor: Hero, target: Hero, context: Context):
+        # collect all harm buffs in target.buffs and remove count number of them
+        harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
+        for harm_buff in harm_buffs[:count]:
+            _remove_actor_certain_buff(harm_buff.temp.id, target)

@@ -32,7 +32,7 @@ def calculate_damage(attacker_instance: Hero, target_instance: Hero, action: Act
 
     # Calculating attack-defense difference
     attack_defense_difference = (
-            get_attack(action, is_attacker, context) * attacker_elemental_multiplier
+            get_attack(attacker_instance, target_instance, is_magic, context) * attacker_elemental_multiplier
             - get_defense_with_penetration(attacker_instance, target_instance, is_magic,
                                            context) * defender_elemental_multiplier)
 

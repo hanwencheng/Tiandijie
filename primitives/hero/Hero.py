@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from primitives.Action import Action
     from primitives.buff import Buff
     from primitives.skill.SkillTemp import SkillTemp
-
+    from basics import Position
 
 class Hero:
     def __init__(self, player_id: int, hero_temp: HeroTemp):
@@ -30,6 +30,7 @@ class Hero:
         self.died_once: bool = False
         self.counterattack_count = 0
         self.initialize_attributes()
+        self.actionable = True
 
     def initialize_attributes(self):
         initial_attributes = generate_max_level_attributes(
@@ -48,8 +49,8 @@ class Hero:
         if healing_value > 0:
             self.current_life = min(self.current_life + healing_value, self.max_life)
 
-    def update_position(self, action: Action):
-        self.position = action.move_point
+    def update_position(self, position: Position):
+        self.position = position
         #TODO move_path
 
     def add_counter_attack_count(self):

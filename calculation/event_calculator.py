@@ -16,6 +16,8 @@ class EventListenerContainer:
 
 def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or None, event_type: EventTypes,
                               context: Context):
+    if actor_instance.is_alive is False:
+        return
     event_listener_containers: List[EventListenerContainer] = []
     current_action: Action = context.get_last_action()
     if current_action is None:

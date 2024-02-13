@@ -101,7 +101,7 @@ class Formations:
 
     # 千煌幻日阵: 上阵夏侯仪，冰璃和慕容璇玑时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升15%，造成范围伤害额外提高10%。
     qianhuanghuanri = FormationTemp('qianhuanghuanri', 'xiahouyi', [{'id': 'bingli'}, {'id': 'murongxuanji'}], [
-        ModifierEffect(partial(Check.always_true), {ma.multi_target_skill_damage_percentage: 10})])
+        ModifierEffect(partial(Check.always_true), {ma.range_skill_damage_percentage: 10})])
 
     # 墨染冬月阵: 上阵白复归和「冰」，「暗」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，2格内存在携带「有害状态」的友方时免伤提高8%，2格内存在携带「有害状态」的敌方时伤害提高8%。
     morandongyue = FormationTemp('morandongyue', 'baifugui', [{'element': Elements.WATER}, {'element': Elements.DARK}],

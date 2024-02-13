@@ -1,5 +1,6 @@
 from typing import List, Any
 
+from calculation.Range import calculate_square_area, calculate_diamond_area
 from primitives import Action
 from primitives.formation.Formation import Formation
 from primitives.buff.BuffTemp import BuffTemp
@@ -24,8 +25,15 @@ class Context:
         else:
             return None  # Return None if there are no actions
 
-    def get_partners_in_range(self, hero: Hero, range_value: int) -> List[Hero]:
-        pass
+    def get_partners_in_diamond_range(self, hero: Hero, range_value: int) -> List[Hero]:
+        base_position = hero.position
+        positions_list_in_range = calculate_diamond_area(base_position, range_value)
+        return [hero for hero in self.heroes if hero.position in positions_list_in_range and hero.player_id == hero.player_id]
+
+    def get_enemies_in_square_range(self, hero: Hero, range_value: int) -> List[Hero]:
+        base_position = hero.position
+        positions_list_in_range = calculate_square_area(base_position, range_value)
+        return [hero for hero in self.heroes if hero.position in positions_list_in_range and hero.player_id != hero.player_id]
 
     def init_buffs(self, harm_buffs, benefit_buffs):
         self.harm_buffs = harm_buffs
@@ -73,12 +81,13 @@ class Context:
             if hero.temp.has_formation:
                 heroes = self.get_heroes_by_player_id(hero.player_id)
                 requirements = formation_temp.activation_requirements
+                other_heroes = heroes.copy().remove(hero)
 
                 def is_requirement_satisfied(req, check_heroes):
                     key = next(iter(req))
                     return any(getattr(check_hero.temp, key, None) == req[key] for check_hero in check_heroes)
 
-                if all(is_requirement_satisfied(req, heroes) for req in requirements):
+                if all(is_requirement_satisfied(req, other_heroes) for req in requirements):
                     self.formation = Formation(hero.player_id, formation_temp)
                     self.formation.active_formation()
 

@@ -34,6 +34,8 @@ class Action:
         self.actor = cast_hero
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
+        self.additional_move: int = 0
+        self.additional_skill: SkillTemp = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes
@@ -59,3 +61,5 @@ class Action:
         else:
             return self.targets[0]
 
+    def update_additional_move(self, additional_move: int):
+        self.additional_move = additional_move

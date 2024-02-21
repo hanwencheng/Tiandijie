@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 from enum import Enum
 from functools import partial
@@ -9,7 +8,7 @@ from calculation.Effects import Effects
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from calculation.Modifier import Modifier
-from primitives.effects.RequirementsCheck import RequirementCheck as RS
+from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
 
 
 class TerrainBuffTemp:

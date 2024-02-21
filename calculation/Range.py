@@ -86,9 +86,9 @@ def calculate_square_area(action_point: Position, range_value: int):
 class Range:
     def __init__(self, range_type: RangeType, range_value: int = 0, length=None, width=None):
         self.range_type = range_type
+        self.range = range_value
         self.length = length
         self.width = width
-        self.range = range_value
 
     def get_area(self, context: Context) -> List[Position]:
         current_action = context.actions[-1]

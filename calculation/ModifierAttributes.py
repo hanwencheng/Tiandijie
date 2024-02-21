@@ -50,3 +50,5 @@ class ModifierAttributes:
     is_counterattack_first = 'counterattack_first'
     is_non_selectable = 'non_selectable'
     is_non_healable = 'non_healable'
+    is_ignore_protector = 'ignore_protector'
+

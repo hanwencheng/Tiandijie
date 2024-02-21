@@ -1,8 +1,4 @@
 from functools import partial
-from typing import List
-
-from primitives.effects import EventListener
-from primitives.effects.RequirementsCheck import RequirementCheck
 
 
 class ModifierEffect:

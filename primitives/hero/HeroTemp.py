@@ -5,7 +5,7 @@ from primitives.hero.Element import Elements
 from primitives.hero.HeroBasics import Gender, Professions
 from primitives.hero.Attributes import Attributes, generate_max_level_attributes
 from primitives.hero.BasicAttributes import AttributesTuple
-from primitives.skill.SkillTemp import create_normal_attack_skill
+from primitives.skill.SkillTemp import create_normal_attack_skill, is_normal_attack_magic
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from primitives import Passive
@@ -17,7 +17,7 @@ class HeroTemp:
         self.name = "玄羽"
         self.rarity = "绝"
         self.id = 'xuanyu'
-
+        self.is_normal_attack_magic = is_normal_attack_magic(profession)
         self.normal_attack = create_normal_attack_skill(profession, None)
         self.flyable = False
         self.has_formation = False

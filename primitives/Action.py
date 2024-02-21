@@ -4,6 +4,7 @@ from basics import Position
 
 from primitives.hero import Hero
 from primitives.skill import SkillTemp
+from primitives.skill.Skill import Skill
 
 
 class ActionTypes(enum.Enum):
@@ -16,10 +17,10 @@ class ActionTypes(enum.Enum):
 
 
 class Action:
-    def __init__(self, cast_hero: Hero, affected_heroes, skill: SkillTemp, movable, actionable):
+    def __init__(self, cast_hero: Hero, affected_heroes, skill: Skill, movable, actionable):
         self.targets: List[Hero] = affected_heroes
         self.total_damage: float = 0
-        self.is_magic: bool = skill.is_magic
+        self.is_magic: bool = skill.is_magic()
         self.is_in_battle: bool = False
         self.is_with_protector: bool = False
         self.protector: Hero or None = None

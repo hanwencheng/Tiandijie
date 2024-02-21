@@ -1,14 +1,28 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
+from primitives.skill.Skill import Skill
+
 if TYPE_CHECKING:
     from calculation.Modifier import Modifier
     from primitives.Context import Context
     from primitives.effects.ModifierEffect import ModifierEffect
     from primitives.formation.Formation import Formation
     from primitives.hero.Hero import Hero
+    from primitives.skill.SkillTemp import SkillTemp
 from functools import reduce
 from typing import List
 from calculation.BuffStack import calculate_buff_with_max_stack
+
+
+def get_modifier_attribute_value(modifier_effect: dict, attr_name: str) -> float:
+    get_value: bool or float or int = modifier_effect.get(attr_name)
+    if get_value is not None:
+        if get_value is bool:
+            return 1 if get_value else 0
+        else:
+            return get_value
+    return 0
 
 
 def accumulate_attribute(modifiers: List[Modifier], attr_name: str) -> float:
@@ -42,7 +56,7 @@ def get_formation_modifier(attr_name: str, actor_instance: Hero, target_instance
             if hasattr(effect.modifier, attr_name):
                 multiplier = effect.requirement(actor_instance, target_instance, context)
                 if multiplier > 0:
-                    basic_modifier_value += getattr(effect.modifier, attr_name) * multiplier
+                    basic_modifier_value += get_modifier_attribute_value(effect.modifier, attr_name) * multiplier
     return basic_modifier_value
 
 
@@ -55,17 +69,13 @@ def get_buff_modifier(attr_name: str, actor_instance: Hero, target_instance: Her
             if hasattr(modifier_effects.modifier, attr_name):
                 is_requirement_meet = modifier_effects.requirement(actor_instance, target_instance, context, buff)
                 if is_requirement_meet > 0:
-                    basic_modifier_value += calculate_buff_with_max_stack(buff, modifier_effects.modifier, attr_name)
+                    modifier_value = get_modifier_attribute_value(modifier_effects.modifier, attr_name)
+                    basic_modifier_value += calculate_buff_with_max_stack(buff, modifier_value, attr_name)
     return basic_modifier_value
 
 
-def get_battle_damage_modifier(is_attacker: bool, context: Context) -> float:
-    action = context.get_action_by_side(is_attacker)
-    is_in_battle = action.is_in_battle
-    if is_in_battle:
-        return get_formation_modifier(ma.battle_damage_percentage, is_attacker, context)
-    else:
-        return 0
+def get_passives_modifier(passives: List[Skill], attr_name: str) -> float:
+    return 0
 
 
 def get_level1_modified_result(hero_instance: Hero, value_attr_name: str, basic: float) -> float:
@@ -76,12 +86,12 @@ def get_level1_modified_result(hero_instance: Hero, value_attr_name: str, basic:
 
 
 def get_level2_modifier(actor_instance: Hero, counter_instance: Hero, attr_name: str, context: Context, is_basic: bool = False) -> float:
-    accumulated_buffs_modifier = accumulate_attribute(actor_instance.buffs, attr_name) if not is_basic else 0
+    accumulated_buffs_modifier = get_buff_modifier(attr_name, actor_instance, counter_instance, context) if not is_basic else 0
     accumulated_stones_effect_modifier = accumulate_attribute(actor_instance.stones.effect, attr_name)
     accumulated_talents_modifier = accumulate_talents_modifier(attr_name, actor_instance, counter_instance, context)
     accumulated_equipments_modifier = accumulate_attribute(actor_instance.equipments, attr_name)
     formation_modifier = get_formation_modifier(attr_name, actor_instance, counter_instance, context)
-    accumulated_passives_modifier = accumulate_attribute(actor_instance.enabled_passives, attr_name)
+    accumulated_passives_modifier = get_passives_modifier(actor_instance.enabled_passives, attr_name)
 
     return accumulated_talents_modifier + accumulated_buffs_modifier + accumulated_stones_effect_modifier + accumulated_equipments_modifier + formation_modifier + accumulated_passives_modifier
 
@@ -90,6 +100,16 @@ def get_modifier(attr_name: str, actor_instance: Hero, counter_instance: Hero, c
     accumulated_buffs_modifier = get_buff_modifier(attr_name, actor_instance, counter_instance, context)
     accumulated_talents_modifier = accumulate_talents_modifier(attr_name, actor_instance, counter_instance, context)
     accumulated_equipments_modifier = accumulate_attribute(actor_instance.equipments, attr_name)
-    accumulated_passives_modifier = accumulate_attribute(actor_instance.enabled_passives, attr_name)
+    accumulated_passives_modifier = get_passives_modifier(actor_instance.enabled_passives, attr_name)
 
     return accumulated_talents_modifier + accumulated_buffs_modifier + accumulated_equipments_modifier + accumulated_passives_modifier
+
+
+def get_skill_modifier(attr_name: str, actor_instance: Hero, counter_instance: Hero, skill: SkillTemp, context: Context) -> float:
+    basic_modifier_value = 0
+    for effect in skill.modifier_effects:
+        if hasattr(effect.modifier, attr_name):
+            multiplier = effect.requirement(actor_instance, counter_instance, context)
+            if multiplier > 0:
+                basic_modifier_value += get_modifier_attribute_value(effect.modifier, attr_name) * multiplier
+    return basic_modifier_value

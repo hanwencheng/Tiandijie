@@ -35,3 +35,6 @@ class BuffTemp:
         self.expandable: bool = expandable
         self.modifier_effects: List[ModifierEffect] = on_event
         self.event_listeners: List[EventListener] = modifier_effects
+
+    def __getitem__(self, key):
+        return getattr(self, key)

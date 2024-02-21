@@ -18,13 +18,13 @@ buff_max_stack = {
 }
 
 
-def calculate_buff_with_max_stack(buff: Buff, modifier: dict[str, float], attr_name: str):
+def calculate_buff_with_max_stack(buff: Buff, modifier_value: float, attr_name: str):
     if buff.temp.id in buff_max_stack:
         target_buff_stack = buff_max_stack[buff.temp.id]
         max_stack = target_buff_stack.max_stack
         if attr_name in target_buff_stack.affected_attributes:
-            return modifier[attr_name] * max_stack
-    return modifier
+            return modifier_value * max_stack
+    return modifier_value
 
 
 def get_buff_max_stack(buff_id: str):

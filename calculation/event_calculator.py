@@ -1,5 +1,4 @@
-from typing import List
-
+from typing import List, Any
 from primitives.Action import Action
 from primitives.Context import Context
 from primitives.buff.Buff import Buff
@@ -9,7 +8,7 @@ from primitives.hero.Hero import Hero
 
 
 class EventListenerContainer:
-    def __init__(self, event_listener: EventListener, instance_self: Buff or None):
+    def __init__(self, event_listener: EventListener, instance_self: Any):
         self.event_listener = event_listener
         self.instance_self = instance_self
 
@@ -45,7 +44,7 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
     event_listener_containers.sort(key=lambda x: x.listener.priority)
 
     for event_listener_container in event_listener_containers:
-        multiplier = event_listener_container.event_listener.requirement(actor_instance, counter_instance, context)
+        multiplier = event_listener_container.event_listener.requirement(actor_instance, counter_instance, context, event_listener_container.instance_self)
         if round(multiplier) > 0:
             event_listener_container.event_listener.listener_effects(actor_instance, counter_instance, context,
                                                                      event_listener_container.instance_self)

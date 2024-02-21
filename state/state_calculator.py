@@ -40,6 +40,11 @@ def check_protector(context: Context):
     if action.skill.type == SkillTargetTypes.ENEMY_SINGLE:
         is_magic = action.skill.is_magic
         target = action.targets[0]
+
+        is_ignore_protector = get_modifier(ma.is_ignore_protector, action.actor, target, context)
+        if is_ignore_protector:
+            return
+
         target_player_id = target.player_id
         possible_defenders = context.get_heroes_by_player_id(target_player_id)
         possible_protectors: List[tuple[Hero, int]] = []

@@ -1,11 +1,15 @@
-from typing import List, Any
+from __future__ import annotations
+
+from typing import List, TYPE_CHECKING, Dict
+
+if TYPE_CHECKING:
+    from primitives.buff.buffs import BuffTemps
+    from primitives import Action
+    from primitives.formation.Formation import Formation
+    from primitives.buff.BuffTemp import BuffTemp, BuffTypes
+    from primitives.hero import Hero
 
 from calculation.Range import calculate_square_area, calculate_diamond_area
-from primitives import Action
-from primitives.formation.Formation import Formation
-from primitives.buff.BuffTemp import BuffTemp
-from primitives.formation.FormationTemp import FormationTemp
-from primitives.hero import Hero
 
 
 class Context:
@@ -13,8 +17,9 @@ class Context:
         self.heroes: List[Hero] = []
         self.formation: List[Formation] = []
         self.actions: List[Action] = []
-        self.harm_buffs: List[BuffTemp] = []
-        self.benefit_buffs: List[BuffTemp] = []
+        self.harm_buffs_temps: Dict[str, BuffTemp] = {}
+        self.benefit_buffs_temps: Dict[str, BuffTemp] = {}
+        self.all_buffs_temps: Dict[str, BuffTemp] = {}
 
     def add_action(self, action):
         self.actions.append(action)
@@ -35,15 +40,29 @@ class Context:
         positions_list_in_range = calculate_square_area(base_position, range_value)
         return [hero for hero in self.heroes if hero.position in positions_list_in_range and hero.player_id != hero.player_id]
 
-    def init_buffs(self, harm_buffs, benefit_buffs):
-        self.harm_buffs = harm_buffs
-        self.benefit_buffs = benefit_buffs
+    def load_buffs(self):
+        from primitives.buff.buffs import BuffTemps
+        all_buffs = {}
+        harm_buffs = {}
+        benefit_buffs = {}
+        for buff in BuffTemps:
+            all_buffs[buff.value.id] = buff.value
+            if buff.value.buff_type == BuffTypes.Harm:
+                harm_buffs[buff.value.id] = buff.value
+            elif buff.value.buff_type == BuffTypes.Benefit:
+                benefit_buffs[buff.value.id] = buff.value
+        self.all_buffs_temps = all_buffs
+        self.harm_buffs_temps = harm_buffs
+        self.benefit_buffs_temps = benefit_buffs
 
     def init_heroes(self, heroes: List[Hero]):
         self.heroes = heroes
 
     def get_current_player_id(self) -> int:
         return self.get_last_action().player_id
+
+    def get_counter_player_id(self) -> int:
+        return 1 - self.get_current_player_id()
 
     def get_formation_by_player_id(self, player_id: int) -> Formation:
         return [formation for formation in self.formation if formation.player_id == player_id][0]
@@ -92,4 +111,7 @@ class Context:
                     self.formation.active_formation()
 
     def get_harm_buff_temp_by_id(self, buff_temp_id: str) -> BuffTemp:
-        return [buff for buff in self.harm_buffs if buff.id == buff_temp_id][0]
+        return self.harm_buffs_temps[buff_temp_id]
+
+    def get_buff_by_id(self, buff_id: str) -> BuffTemp:
+        return self.all_buffs_temps[buff_id]

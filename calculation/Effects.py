@@ -54,6 +54,25 @@ def _reduce_actor_certain_buff_stack(buff_temp_id: str, actor: Hero, reduced_sta
 
 
 class Effects:
+
+    @staticmethod
+    def remove_caster_harm_buff(buff_count: 1, actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff):
+        caster = context.get_hero_by_id(buff.caster_id)
+        selected_buffs = random_select(caster.buffs, buff_count)
+        for selected_buff in selected_buffs:
+            _remove_actor_certain_buff(selected_buff.temp.id, caster)
+
+    @staticmethod
+    def add_enemies_harm_buff_and(additional_buff_name: str, enemy_number: int, buff_number: int, square_range: int, duration: int, actor_instance: Hero, target_instance: Hero, context: Context):
+        targets = context.get_enemies_in_square_range(actor_instance, square_range)
+        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
+        additional_buff_temp = context.get_buff_by_id(additional_buff_name)
+        if additional_buff_temp is not None:
+            selected_harm_buff_temps.append(context.get_buff_by_id(additional_buff_name))
+        selected_heroes = random_select(targets, enemy_number)
+        for enemy_hero in selected_heroes:
+            _add_buffs(actor_instance, enemy_hero, selected_harm_buff_temps, duration, context)
+
     @staticmethod
     def add_enemies_harm_buff(enemy_number: int, buff_number: int, square_range: int, duration: int, actor_instance: Hero, target_instance: Hero, context: Context):
         targets = context.get_enemies_in_square_range(actor_instance, square_range)
@@ -108,6 +127,13 @@ class Effects:
         if check_is_attacker(actor_instance, context):
             damage = (get_attack(actor_instance, target_instance, is_magic, context) + get_defense(
                 target_instance, actor_instance, is_magic, context)) * multiplier
+            calculate_fix_damage(damage, actor_instance, target_instance, context)
+
+    @staticmethod
+    def add_fixed_damage_with_attack(multiplier: float, is_magic: bool, actor_instance: Hero, target_instance: Hero,
+                                     context: Context):
+        if check_is_attacker(actor_instance, context):
+            damage = get_attack(actor_instance, target_instance, is_magic, context) * multiplier
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
     @staticmethod
@@ -198,6 +224,26 @@ class Effects:
     @staticmethod
     def remove_actor_harm_buffs(count: int, actor: Hero, target: Hero, context: Context):
         # collect all harm buffs in target.buffs and remove count number of them
+        harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
+        for harm_buff in harm_buffs[:count]:
+            _remove_actor_certain_buff(harm_buff.temp.id, actor)
+
+    @staticmethod
+    def remove_target_harm_buffs(count: int, actor: Hero, target: Hero, context: Context):
         harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
         for harm_buff in harm_buffs[:count]:
             _remove_actor_certain_buff(harm_buff.temp.id, target)
+
+    @staticmethod
+    def remove_actor_benefit_buffs(count: int, actor: Hero, target: Hero, context: Context):
+        harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Benefit]
+        for harm_buff in harm_buffs[:count]:
+            _remove_actor_certain_buff(harm_buff.temp.id, actor)
+
+    @staticmethod
+    def remove_target_benefit_buffs(count: int, actor: Hero, target: Hero, context: Context):
+        # collect all benefit buffs in target.buffs and remove count number of them
+        benefit_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Benefit]
+        for benefit_buff in benefit_buffs[:count]:
+            _remove_actor_certain_buff(benefit_buff.temp.id, target)
+

@@ -85,12 +85,12 @@ def battle_attack_actions(actor: Hero, target: Hero, action: Action, context: Co
     if check_if_counterattack_first(action, context):
         counterattack_actions(context)  # take damage
         if is_hero_live(actor, target, context):
-            battle_attack_actions(actor, target, action, context)
+            attack_actions(actor, target, action, context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
         event_listener_calculator(target, actor, EventTypes.battle_end, context)
         is_hero_live(target, actor, context)
     else:
-        battle_attack_actions(actor, target, action, context)
+        attack_actions(actor, target, action, context)
         if is_hero_live(target, actor, context):
             counterattack_actions(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)

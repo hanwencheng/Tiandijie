@@ -5,8 +5,11 @@ from primitives import Equipment
 from primitives.Stone import Stone
 from primitives.hero.Attributes import generate_max_level_attributes
 from typing import TYPE_CHECKING
+
+
 if TYPE_CHECKING:
     from primitives.hero.HeroTemp import HeroTemp
+    from primitives.skill.Skill import Skill
     from primitives.Action import Action
     from primitives.buff import Buff
     from primitives.skill.SkillTemp import SkillTemp
@@ -18,8 +21,8 @@ class Hero:
         self.player_id = player_id
         self.temp: HeroTemp = hero_temp
         self.equipments: List[Equipment] = []
-        self.enabled_passives: List[SkillTemp] = []
-        self.enabled_skills: List[SkillTemp] = []
+        self.enabled_passives: List[Skill] = []
+        self.enabled_skills: List[Skill] = []
         self.position = (0, 0)
         self.stones = Stone()
         self.buffs: List[Buff] = []

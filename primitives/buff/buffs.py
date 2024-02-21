@@ -7,10 +7,18 @@ from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from primitives.effects.ModifierEffect import ModifierEffect
-from primitives.effects.RequirementsCheck import RequirementCheck as RS
+from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
 
 
 class BuffTemps(Enum):
+    @classmethod
+    def get_buff_temp_by_id(cls, buff_id):
+        """Return the BuffTemp with the specified ID, or None if not found."""
+        for buff_temp in cls:
+            if buff_temp.value['id'] == buff_id:
+                return buff_temp.value
+        return None
+
     # 无摧·封脉	有害	不可驱散	不可扩散	不可偷取	所有被动「绝学」失效（不可驱散）
     wucui_fengmai = BuffTemp('wucui_fengmai', BuffTypes.Harm, False, False, False,
                              [ModifierEffect(RS.always_true, {ma.is_passives_disabled: True})])
@@ -43,12 +51,12 @@ class BuffTemps(Enum):
                                      {ma.is_action_disabled: True, ma.is_counterattack_disabled: True})], [
                          EventListener(EventTypes.damage_end, 1, RS.always_true,
                                        partial(Effects.add_partner_harm_buffs, buff_number=2, range=2, duration=2)),
-                         EventListener(EventTypes.partner_action_end, 1, partial(RS.in_range, 1),
+                         EventListener(EventTypes.partner_action_end, 1, partial(RS.PositionChecks.in_range, 1),
                                        partial(Effects.remove_target_certain_buff, buff_id='jinbi'))])
 
     # 幽禁 其他 不可驱散  不可扩散	不可偷取  若自身1格内无其他友方，行动力-1。与律「对战中」攻击、免伤降低15%
     youjin = BuffTemp('youjin', BuffTypes.Others, False, False, False,
-                      [ModifierEffect(partial(RS.no_partners_in_range, 1), {ma.move_range: -1}),
+                      [ModifierEffect(partial(RS.PositionChecks.no_partners_in_range, 1), {ma.move_range: -1}),
                        ModifierEffect(partial(RS.battle_with_certain_hero, 'lv'),
                                       {ma.battle_damage_reduction_percentage: -15})])
 
@@ -74,7 +82,7 @@ class BuffTemps(Enum):
     # 仙灵	其他	不可驱散	不可扩散	不可偷取	移动力+1，气血大于等于80%时，无法被敌方选中（主动攻击「对战后」移除）。
     xianling = BuffTemp('xianling', BuffTypes.Others, False, False, False,
                         [ModifierEffect(RS.always_true, {ma.move_range: 1}),
-                         ModifierEffect(partial(RS.self_life_is_higher, 80), {ma.is_non_selectable: 1})], [])
+                         ModifierEffect(partial(RS.LifeChecks.self_life_is_higher, 80), {ma.is_non_selectable: 1})], [])
 
     # 仙罪	其他	不可驱散	不可扩散	不可偷取	与「雪芝」「对战中」伤害、免伤-10%（上限3层）。主动绝学都在冷却中时，移动力-1。
     xianzeui = BuffTemp('xianzeui', BuffTypes.Others, False, False, False, 3, [
@@ -89,12 +97,12 @@ class BuffTemps(Enum):
 
     #  余蕴幽香	其他	不可驱散	不可扩散	不可偷取	若自身气血低于100%，则对友方使用绝学后同时为自己恢复气血（恢复量为施术者法攻的1倍）
     yuyunyouxiang = BuffTemp('yuyunyouxiang', BuffTypes.Others, False, False, False, [], [
-        EventListener(EventTypes.skill_for_partner_end, 1, partial(RS.life_not_full),
+        EventListener(EventTypes.skill_for_partner_end, 1, partial(RS.LifeChecks.life_not_full),
                       partial(Effects.heal_self, multiplier=1))])
 
     #  侠义	其他	不可驱散	不可扩散	不可偷取	行动结束前，若携带3层「侠义」状态，则获得再移动4格，并消耗2层。（上限3层，无法驱散）
     xiayi = BuffTemp('xiayi', BuffTypes.Others, False, False, False, 3, [
-        EventListener(EventTypes.action_end, 1, partial(RS.buff_stack_reach, 3, buff_id='xiayi'),
+        EventListener(EventTypes.action_end, 1, partial(RS.BuffChecks.buff_stack_reach, 3, buff_id='xiayi'),
                       partial(Effects.add_additional_move_and_consume_xiayi))])
 
     #  信步	有益	可驱散	可扩散	可偷取	免疫「移动力降低」
@@ -104,13 +112,13 @@ class BuffTemps(Enum):
     guangkai = BuffTemp('guangkai', BuffTypes.Benefit, True, True, True,
                         [ModifierEffect(RS.always_true, {ma.range_skill_damage_reduction_percentage: 20})], [
                             EventListener(EventTypes.skill_range_damage_start, 1, RS.always_true,
-                                          partial(Effects.remove_actor_harm_buffs, 1)),
+                                          partial(Effects.remove_target_harm_buffs, 1)),
                             EventListener(EventTypes.skill_range_damage_end, 1, RS.always_true,
-                                          partial(Effects.remove_actor_certain_buff, 'guangkai'))])
+                                          partial(Effects.remove_target_certain_buff, 'guangkai'))])
 
     # 冰之力	其他	不可驱散	不可扩散	不可偷取	攻击携带「迟缓」类状态的目标时，战斗中伤害额外提高20%。
     bingzhili = BuffTemp('bingzhili', BuffTypes.Others, False, False, False,
-                         [ModifierEffect(partial(RS.target_has_certain_buff, 'chihuan'), {ma.damage_percentage: 20})],
+                         [ModifierEffect(partial(RS.BuffChecks.target_has_certain_buff, 'chihuan'), {ma.damage_percentage: 20})],
                          [])
 
     # 冰劫	其他	不可驱散	不可扩散	不可偷取	主动移动时，若移动距离小于等于1格，行动结束时，将「冰劫」替换为「晕眩」，持续1回合。
@@ -216,3 +224,31 @@ class BuffTemps(Enum):
     xunmu = BuffTemp('xunmu', BuffTypes.Benefit, True, True, True,
                      [[ModifierEffect(RS.always_true, {ma.luck_percentage: 30})],
                       [ModifierEffect(RS.always_true, {ma.luck_percentage: 40})]], [])
+
+    #  圣耀	其他	不可驱散	不可扩散	不可偷取	3格内的敌人行动结束时获得「魂创」状态，并恢复施加者30%最大气血。
+    shengyao = BuffTemp('shengyao', BuffTypes.Others, False, False, False, [], [
+        EventListener(EventTypes.enemy_action_end, 1, partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                      partial(Effects.add_buffs, buff_temp=['hunchuang'])),
+        EventListener(EventTypes.enemy_action_end, 1, partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                      partial(Effects.heal_self, multiplier=0.3))])
+
+    #  圣耀·贰	其他	不可驱散	不可扩散	不可偷取	自身免伤+15%，3格内的敌人行动结束时获得「魂创」状态，驱散施加者1个「有害状态」并恢复施加者30%最大气血。
+    shengyao2 = BuffTemp('shengyao2', BuffTypes.Others, False, False, False, [
+        ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 20, ma.damage_reduction_percentage: 20})],
+                        [
+                            EventListener(EventTypes.enemy_action_end, 1,
+                                          partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                                          partial(Effects.add_buffs, buff_temp=['hunchuang'])),
+                            EventListener(EventTypes.enemy_action_end, 1,
+                                          partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                                          partial(Effects.heal_self, multiplier=0.3)),
+                            EventListener(EventTypes.enemy_action_end, 1,
+                                          partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                                          partial(Effects.remove_caster_harm_buff, buff_count=1))])
+
+    #   地火焚狱	其他	不可驱散	不可扩散	不可偷取	若敌人行动结束时，位于施加者3格范围内，驱散2个「有益状态」，并受到1次「固定伤害」（施术者物攻的15%）
+    dihuofenyu = BuffTemp('dihuofenyu', BuffTypes.Others, False, False, False, [], [
+        EventListener(EventTypes.enemy_action_end, 1, partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                      partial(Effects.remove_actor_benefit_buffs, buff_count=2)),
+        EventListener(EventTypes.action_end, 1, partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
+                      partial(Effects.add_fixed_damage_with_attack, multiplier=0.15, is_magic=False))])

@@ -2,6 +2,7 @@ import enum
 
 
 class Elements(enum.IntEnum):
+    NONE = 0  # 无
     FIRE = 1  # 火
     WATER = 2  # 冰
     THUNDER = 3  # 雷
@@ -29,11 +30,11 @@ def get_elemental_multiplier(attacker_element: Elements, defender_element: Eleme
         Elements.ETHEREAL: Elements.DARK
     }
     if is_attacker:
-        if elemental_advantage[attacker_element] == defender_element:
+        if attacker_element in elemental_advantage and elemental_advantage[attacker_element] == defender_element:
             return 1.3
         else:
             return 1.0
-    elif elemental_disadvantage[defender_element] == attacker_element:
+    elif defender_element in elemental_disadvantage and elemental_disadvantage[defender_element] == attacker_element:
         return 0.75
     else:
         return 1.0

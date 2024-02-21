@@ -1,12 +1,21 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
+import enum
+from typing import TYPE_CHECKING, List
+
+from primitives.skill.SkillTemp import SkillTemp
+
 if TYPE_CHECKING:
-    from primitives.Context import Context
-    from basics import Position
-    from SkillTemp import SkillTemp
+    from primitives.hero.Element import Elements
+    from primitives.skill.Distance import Distance
+    from calculation.Range import Range
+    from primitives.effects.EventListener import EventListener
+    from primitives.effects.SkillListener import SkillListener
+    from primitives.effects.ModifierEffect import ModifierEffect
 
 
 class Skill:
-    def __int__(self, action_position: Position or None, skill_temp: SkillTemp):
-        self.action_position = action_position
+    def __init__(self, current_cool_down: int, skill_temp: SkillTemp):
+        self.cool_down = current_cool_down
         self.temp = skill_temp
+

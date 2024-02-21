@@ -6,7 +6,7 @@ from primitives.effects.ModifierEffect import ModifierEffect
 
 
 class FormationTemp:
-    def __init__(self, formation_id: str, formation_hero_id: str, activation_hero_requirements: List[dict[Any]],
+    def __init__(self, formation_id: str, formation_hero_id: str, activation_hero_requirements: List[dict[str, Any]],
                  effects: List[ModifierEffect] = None, event_listeners: List[EventListener] = None):
         if event_listeners is None:
             event_listeners = []

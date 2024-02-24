@@ -23,7 +23,7 @@ class Skills(Enum):
     #  类别：物攻伤害	 冷却：2回合
     #  射程：1格	 范围：单体
     #  攻击单个敌人，造成1.3倍伤害，「对战前」施加「幽阙」状态，持续2回合。若目标周围1格没有友方则本次攻击无视护卫且物理穿透提高30%。
-    zongmingesha = SkillTemp('zongmingesha', 2, Elements.ETHEREAL, SkillType.Physical, 2, Distance(DistanceType.NORMAL, 1), Range(RangeType.POINT, 0, 1, 1), 1.3, [ModifierEffect(partial(RS.no_partners_in_range, 1, ), {ma.is_ignore_protector: 1, ma.penetration_percentage: 30})], [])
+    zongmingesha = SkillTemp('zongmingesha', 2, Elements.ETHEREAL, SkillType.Physical, 2, Distance(DistanceType.NORMAL, 1), Range(RangeType.POINT, 0, 1, 1), 1.3, [ModifierEffect(partial(RS.PositionChecks.no_partners_in_range, 1, ), {ma.is_ignore_protector: 1, ma.penetration_percentage: 30})], [])
 
     # 律隙万变	 消耗： 1
     #  类别：再动	 冷却：3回合

@@ -3,7 +3,6 @@ from typing import List
 from basics import Position
 
 from primitives.hero import Hero
-from primitives.skill import SkillTemp
 from primitives.skill.Skill import Skill
 
 
@@ -24,7 +23,7 @@ class Action:
         self.is_in_battle: bool = False
         self.is_with_protector: bool = False
         self.protector: Hero or None = None
-        self.skill: SkillTemp = skill
+        self.skill: Skill = skill
         self.type: ActionTypes = ActionTypes.PASS
         self.move_range: int = 0
         self.moves: List[Position] = []
@@ -36,7 +35,7 @@ class Action:
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
-        self.additional_skill: SkillTemp = None
+        self.additional_skill: Skill = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes

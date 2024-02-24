@@ -1,16 +1,32 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from primitives.hero.Element import get_elemental_relationship, get_elemental_multiplier
+    from primitives import Context
+    from primitives.hero import Hero
+    from primitives.skill.Skill import Skill
+    from primitives.Action import Action
+
 from helpers import is_normal_attack_magic
-from primitives import Context, Action
+
 from primitives.Action import ActionTypes
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from calculation.Range import calculate_if_targe_in_diamond_range
-from primitives.hero import Hero
 from calculation.modifier_calculator import accumulate_attribute, \
     get_level1_modified_result, get_level2_modifier, get_skill_modifier
-from primitives.skill.Skill import Skill
-from primitives.skill.SkillTemp import SkillTargetTypes, is_normal_attack, SkillTemp
+from primitives.skill.SkillTemp import SkillTargetTypes
 
 LIEXING_DAMAGE_REDUCTION = 4
 LIEXING_DAMAGE_INCREASE = 4
+
+
+def check_is_magic_action(skill: Skill or None, attacker_instance: Hero) -> bool:
+    if skill is None:
+        return is_normal_attack_magic(attacker_instance.temp.profession)
+    else:
+        return skill.temp.is_magic()
 
 
 def normalize_value(v: float) -> float:
@@ -19,24 +35,33 @@ def normalize_value(v: float) -> float:
 
 # TODO Shenbin calculation is not included
 
-def get_element_multiplier(is_attacker: bool, context: Context, is_basic: bool = False) -> float:
-    hero_instance = context.get_actor_by_side_in_battle(is_attacker)
-    attr_name = ma.element_attacker_multiplier if is_attacker else ma.element_defender_multiplier
-    return get_level2_modifier(hero_instance, is_attacker, attr_name, context)
+def get_element_attacker_multiplier(attacker_instance: Hero, target_instance: Hero, action: Action, context: Context) -> float:
+    skill = action.skill
+    attr_name = ma.element_attacker_multiplier
+    basic_elemental_multiplier = get_elemental_multiplier(get_elemental_relationship(skill.temp.element, target_instance.temp.element))
+    accumulated_skill_damage_modifier = get_skill_modifier(attr_name, attacker_instance, target_instance, skill, context)
+    return normalize_value(basic_elemental_multiplier + accumulated_skill_damage_modifier + get_level2_modifier(attacker_instance, target_instance, attr_name, context))
 
 
-def get_penetration_multiplier(hero_instance: Hero, counter_hero: Hero, is_magic: bool, context: Context,
+def get_element_defender_multiplier(attacker_instance: Hero, target_instance: Hero, action: Action, context: Context) -> float:
+    basic_elemental_multiplier = get_elemental_multiplier(get_elemental_relationship(target_instance.temp.element, attacker_instance.temp.element))
+    return normalize_value(basic_elemental_multiplier + get_level2_modifier(attacker_instance, target_instance, ma.element_defender_multiplier, context))
+
+
+def get_penetration_multiplier(hero_instance: Hero, counter_hero: Hero, skill: Skill or None, context: Context,
                                is_basic: bool = False) -> float:
+    is_magic = check_is_magic_action(skill, hero_instance)
     attr_name = ma.magic_penetration_percentage if is_magic else ma.penetration_percentage
+    accumulated_skill_damage_modifier = 0 if skill is None else get_skill_modifier(attr_name, hero_instance, counter_hero, skill, context)
     leve2_modifier = get_level2_modifier(hero_instance, counter_hero, attr_name, context)
-    return normalize_value(leve2_modifier)
+    return normalize_value(leve2_modifier + accumulated_skill_damage_modifier)
 
 
-def get_defense_with_penetration(attacker_instance: Hero, defender_instance: Hero, is_magic: bool,
+def get_defense_with_penetration(attacker_instance: Hero, defender_instance: Hero, skill: Skill or None,
                                  context: Context, is_basic: bool = False) -> float:
-    penetration = get_penetration_multiplier(attacker_instance, True, is_magic, context, is_basic)
+    penetration = get_penetration_multiplier(attacker_instance, True, skill, context, is_basic)
     # calculate buffs
-    basic_defense = get_defense(defender_instance, False, is_magic, context, is_basic)
+    basic_defense = get_defense(defender_instance, False, skill, context, is_basic)
     return basic_defense * (1 - normalize_value(penetration))
 
 
@@ -92,11 +117,7 @@ def get_attack(actor_instance: Hero, target_instance: Hero, context: Context, is
 def get_damage_modifier(attacker_instance: Hero, counter_instance: Hero, skill: Skill or None, context: Context,
                         is_basic: bool = False) -> float:
 
-    if skill is None:
-        is_magic = is_normal_attack_magic(attacker_instance.temp.profession)
-    else:
-        is_magic = skill.temp.is_magic()
-
+    is_magic = check_is_magic_action(skill, attacker_instance)
     attr_name = ma.magic_damage_percentage if is_magic else ma.damage_percentage
     accumulated_skill_damage_modifier = 0 if skill is None else get_skill_modifier(attr_name, attacker_instance, counter_instance, skill, context)
     accumulated_passive_damage_modifier = accumulate_attribute(attacker_instance.temp.passives, attr_name)

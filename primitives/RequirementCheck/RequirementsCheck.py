@@ -9,7 +9,7 @@ from primitives.RequirementCheck.PositionRequirementChecks import PositionRequir
 if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
-from primitives.hero.Element import get_elemental_multiplier
+from primitives.hero.Element import get_elemental_relationship, ElementRelationships
 
 
 class RequirementCheck:
@@ -57,7 +57,7 @@ class RequirementCheck:
         if action.is_in_battle:
             actor_element = actor_hero.temp.element
             target_element = target_hero.temp.element
-            if get_elemental_multiplier(actor_element, target_element, True) == 1:
+            if get_elemental_relationship(actor_element, target_element) == ElementRelationships.NEUTRAL:
                 return 1
             else:
                 return 0

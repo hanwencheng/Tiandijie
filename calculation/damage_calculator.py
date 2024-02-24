@@ -1,10 +1,14 @@
-from random import random
+from __future__ import annotations
 
-from primitives.Action import Action
-from primitives.hero.Element import get_elemental_multiplier
+from random import random
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from primitives.Action import Action
+
 from calculation.attribute_calculator import *
 from primitives import Context
-from primitives.hero import HeroTemp, Hero
+from primitives.hero import Hero
 
 CRIT_MULTIPLIER = 1.3
 LIEXING_DAMAGE_REDUCTION = 4
@@ -21,14 +25,14 @@ def apply_counterattack_damage(counter_attacker: Hero, attacker: Hero, action: A
     calculate_skill_damage(counter_attacker, attacker, action, context)
 
 
-def calculate_skill_damage(attacker_instance: Hero, target_instance: Hero, action: Action, context):
+def calculate_skill_damage(attacker_instance: Hero, target_instance: Hero, action: Action, context: Context):
     hero_id = attacker_instance.id
     is_attacker = action.is_attacker(hero_id)
     skill = action.skill
-    is_magic = skill.is_magic
-    attacker_elemental_multiplier = get_elemental_multiplier(skill.element, target_instance.temp.element, is_attacker) + get_element_multiplier(is_attacker, context)
-    defender_elemental_multiplier = get_elemental_multiplier(skill.element, target_instance.temp.element,
-                                                             not is_attacker) + get_element_multiplier(not is_attacker, context)
+    is_magic = skill.temp.is_magic
+
+    attacker_elemental_multiplier = get_element_attacker_multiplier(attacker_instance, target_instance, action, context)
+    defender_elemental_multiplier = get_element_defender_multiplier(attacker_instance, target_instance, action, context)
 
     # Calculating attack-defense difference
     attack_defense_difference = (
@@ -38,7 +42,7 @@ def calculate_skill_damage(attacker_instance: Hero, target_instance: Hero, actio
 
     # Calculating base damage
     actual_damage = (attack_defense_difference
-                     * skill.damage_multiplier
+                     * skill.temp.multiplier
                      * get_damage_modifier(attacker_instance, target_instance, skill, context)
                      * get_damage_reduction_modifier(target_instance, attacker_instance, is_magic, context))
 

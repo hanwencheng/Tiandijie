@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from calculation.damage_calculator import apply_counterattack_damage, apply_damage
 from state.state_calculator import check_if_counterattack_first, check_if_in_battle, check_protector
 
 if TYPE_CHECKING:
@@ -11,11 +12,7 @@ if TYPE_CHECKING:
 
 from typing import Callable, List
 
-from calculation.Range import calculate_if_targe_in_diamond_range
-from calculation.calculate_damage import apply_damage, \
-    apply_counterattack_damage
 from calculation.event_calculator import event_listener_calculator
-from calculation.modifier_calculator import get_modifier
 from primitives.Action import ActionTypes
 
 from primitives.effects.Event import EventTypes

@@ -11,30 +11,45 @@ class Elements(enum.IntEnum):
     ETHEREAL = 6  # 幽
 
 
-def get_elemental_multiplier(attacker_element: Elements, defender_element: Elements, is_attacker: bool) -> float:
-    elemental_advantage = {
-        Elements.FIRE: Elements.THUNDER,
-        Elements.THUNDER: Elements.WATER,
-        Elements.WATER: Elements.FIRE,
-        Elements.LIGHT: Elements.DARK,
-        Elements.DARK: Elements.ETHEREAL,
-        Elements.ETHEREAL: Elements.LIGHT
-    }
+class ElementRelationships(enum.IntEnum):
+    ADVANTAGE = 0
+    DISADVANTAGE = 1
+    NEUTRAL = 2
 
-    elemental_disadvantage = {
-        Elements.FIRE: Elements.WATER,
-        Elements.THUNDER: Elements.FIRE,
-        Elements.WATER: Elements.THUNDER,
-        Elements.LIGHT: Elements.ETHEREAL,
-        Elements.DARK: Elements.LIGHT,
-        Elements.ETHEREAL: Elements.DARK
-    }
-    if is_attacker:
-        if attacker_element in elemental_advantage and elemental_advantage[attacker_element] == defender_element:
-            return 1.3
-        else:
-            return 1.0
-    elif defender_element in elemental_disadvantage and elemental_disadvantage[defender_element] == attacker_element:
-        return 0.75
+
+elemental_advantage = {
+    Elements.FIRE: Elements.THUNDER,
+    Elements.THUNDER: Elements.WATER,
+    Elements.WATER: Elements.FIRE,
+    Elements.LIGHT: Elements.DARK,
+    Elements.DARK: Elements.ETHEREAL,
+    Elements.ETHEREAL: Elements.LIGHT
+}
+
+elemental_disadvantage = {
+    Elements.FIRE: Elements.WATER,
+    Elements.THUNDER: Elements.FIRE,
+    Elements.WATER: Elements.THUNDER,
+    Elements.LIGHT: Elements.ETHEREAL,
+    Elements.DARK: Elements.LIGHT,
+    Elements.ETHEREAL: Elements.DARK
+}
+
+elemental_multiplier = {
+    ElementRelationships.ADVANTAGE: 1.3,
+    ElementRelationships.DISADVANTAGE: 0.75,
+    ElementRelationships.NEUTRAL: 1
+}
+
+
+def get_elemental_relationship(base_element: Elements, compare_element: Elements) -> ElementRelationships:
+    if base_element in elemental_advantage and elemental_advantage[base_element] == compare_element:
+        return ElementRelationships.ADVANTAGE
+    elif base_element in elemental_disadvantage and elemental_disadvantage[base_element] == compare_element:
+        return ElementRelationships.DISADVANTAGE
     else:
-        return 1.0
+        return ElementRelationships.NEUTRAL
+
+
+def get_elemental_multiplier(elemental_relationship: ElementRelationships) -> float:
+    return elemental_multiplier[elemental_relationship]

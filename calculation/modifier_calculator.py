@@ -105,9 +105,9 @@ def get_modifier(attr_name: str, actor_instance: Hero, counter_instance: Hero, c
     return accumulated_talents_modifier + accumulated_buffs_modifier + accumulated_equipments_modifier + accumulated_passives_modifier
 
 
-def get_skill_modifier(attr_name: str, actor_instance: Hero, counter_instance: Hero, skill: SkillTemp, context: Context) -> float:
+def get_skill_modifier(attr_name: str, actor_instance: Hero, counter_instance: Hero, skill: Skill, context: Context) -> float:
     basic_modifier_value = 0
-    for effect in skill.modifier_effects:
+    for effect in skill.temp.modifier_effects:
         if hasattr(effect.modifier, attr_name):
             multiplier = effect.requirement(actor_instance, counter_instance, context)
             if multiplier > 0:

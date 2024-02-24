@@ -10,10 +10,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from primitives.hero.HeroTemp import HeroTemp
     from primitives.skill.Skill import Skill
-    from primitives.Action import Action
     from primitives.buff import Buff
-    from primitives.skill.SkillTemp import SkillTemp
     from basics import Position
+
 
 class Hero:
     def __init__(self, player_id: int, hero_temp: HeroTemp):

@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from primitives.effects.SkillListener import SkillListener
     from primitives.hero.Element import Elements
     from primitives.skill.Distance import Distance
-    from typing import Callable, Any
     from typing import List
     from primitives.hero.HeroBasics import Professions
 

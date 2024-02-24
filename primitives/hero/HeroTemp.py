@@ -1,11 +1,12 @@
 from typing import List
 
 from calculation.Range import skill_range_profession_dict
+from helpers import is_normal_attack_magic
 from primitives.hero.Element import Elements
 from primitives.hero.HeroBasics import Gender, Professions
 from primitives.hero.Attributes import Attributes, generate_max_level_attributes
 from primitives.hero.BasicAttributes import AttributesTuple
-from primitives.skill.SkillTemp import create_normal_attack_skill, is_normal_attack_magic
+from primitives.skill.SkillTemp import create_normal_attack_skill
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from primitives import Passive

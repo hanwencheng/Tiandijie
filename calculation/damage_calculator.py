@@ -15,10 +15,8 @@ LIEXING_DAMAGE_REDUCTION = 4
 LIEXING_DAMAGE_INCREASE = 4
 
 
-def apply_damage(action: Action, context: Context):
-    targets = action.targets
-    for target in targets:
-        calculate_skill_damage(action.actor, target, action, context)
+def apply_damage(actor: Hero, target: Hero, action: Action, context: Context):
+    calculate_skill_damage(actor, target, action, context)
 
 
 def apply_counterattack_damage(counter_attacker: Hero, attacker: Hero, action: Action, context: Context):

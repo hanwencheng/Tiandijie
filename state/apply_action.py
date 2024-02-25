@@ -18,7 +18,6 @@ from primitives.Action import ActionTypes
 from primitives.effects.Event import EventTypes
 from primitives.skill.SkillTemp import SkillTargetTypes
 
-
 # move actor to the desired position
 
 
@@ -54,7 +53,7 @@ skill_type_to_event_dict: dict[SkillTargetTypes, tuple[EventTypes, EventTypes]] 
 
 under_skill_type_to_event_dict: dict[SkillTargetTypes, tuple[EventTypes, EventTypes]] = {
     SkillTargetTypes.ENEMY_SINGLE: (
-    EventTypes.under_skill_single_damage_start, EventTypes.under_skill_single_damage_end),
+        EventTypes.under_skill_single_damage_start, EventTypes.under_skill_single_damage_end),
     SkillTargetTypes.ENEMY_RANGE: (EventTypes.under_skill_range_damage_start, EventTypes.under_skill_range_damage_end),
     SkillTargetTypes.PARTNER_SINGLE: (None, None),
     SkillTargetTypes.PARTNER_RANGE: (None, None),
@@ -74,7 +73,8 @@ def counterattack_actions(context: Context):
     event_listener_calculator(actor, counter_attacker, EventTypes.counterattack_end, context)
 
 
-def calculation_events(actor: Hero, target: Hero, action: Action, context: Context, apply_func: Callable[[Action, Context], None]):
+def calculation_events(actor: Hero, target: Hero, action: Action, context: Context,
+                       apply_func: Callable[[Hero, Hero or None, Action, Context], None]):
     actions_start_event_type = action_type_to_event_dict[action.type][0]
     actions_end_event_type = action_type_to_event_dict[action.type][1]
     under_action_start_event_type = under_action_type_to_event_dict[action.type][0]
@@ -82,7 +82,7 @@ def calculation_events(actor: Hero, target: Hero, action: Action, context: Conte
     event_listener_calculator(actor, None, actions_start_event_type, context)
     if under_action_end_event_type is not None:
         event_listener_calculator(target, actor, under_action_start_event_type, context)
-    apply_func(action, context)
+    apply_func(actor, target, action, context)
     event_listener_calculator(actor, None, actions_end_event_type, context)
     if under_action_end_event_type is not None:
         event_listener_calculator(target, actor, under_action_end_event_type, context)
@@ -94,12 +94,12 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
     if check_if_counterattack_first(action, context):
         counterattack_actions(context)  # take damage
         if is_hero_live(actor, target, context):
-            calculation_events(actor, target, action, context)
+            skill_events(actor, target, action, context, apply_damage)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
         event_listener_calculator(target, actor, EventTypes.under_battle_end, context)
         is_hero_live(target, actor, context)
     else:
-        calculation_events(actor, target, action, context)
+        skill_events(actor, target, action, context, apply_damage)
         if is_hero_live(target, actor, context):
             counterattack_actions(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
@@ -107,21 +107,14 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
         is_hero_live(actor, target, context)
 
 
-def action_wrapper_battle(context: Context, action_func: Callable[[Hero, Hero or None, Context], None]):
-    actor = context.get_last_action().actor
-    target = context.get_last_action().get_defender_hero_in_battle()
-    event_listener_calculator(actor, target, EventTypes.battle_start, context)
-    action_func(actor, target, context)
-    event_listener_calculator(actor, target, EventTypes.battle_end, context)
-
-
-def skill_events(actor_instance: Hero, counter_instance: Hero or None, action: Action, context: Context, apply_func: Callable[[Action, Context], None]):
+def skill_events(actor_instance: Hero, counter_instance: Hero or None, action: Action, context: Context,
+                 apply_func: Callable[[Hero, Hero or None, Action, Context], None]):
     skill_start_event_type = skill_type_to_event_dict[action.skill.temp.target_type][0]
     under_skill_start_event_type = under_skill_type_to_event_dict[action.skill.temp.target_type][0]
     skill_end_event_type = skill_type_to_event_dict[action.skill.temp.target_type][1]
     under_skill_end_event_type = under_skill_type_to_event_dict[action.skill.temp.target_type][1]
     event_listener_calculator(actor_instance, counter_instance, skill_start_event_type, context)
-    event_listener_calculator(counter_instance, actor_instance, under_skill_start_event_type)
+    event_listener_calculator(counter_instance, actor_instance, under_skill_start_event_type, context)
     calculation_events(actor_instance, counter_instance, action, context, apply_func)
     event_listener_calculator(actor_instance, counter_instance, skill_end_event_type, context)
     event_listener_calculator(counter_instance, actor_instance, under_skill_end_event_type, context)
@@ -133,10 +126,10 @@ def is_hero_live(hero_instance: Hero, counter_instance: Hero or None, context: C
         context.set_hero_died(hero_instance)
 
 
-def move_event(actor: Hero, action: Action, context: Context, apply_func: Callable[[Action, Context], None]):
+def move_event(actor: Hero, action: Action, context: Context, apply_func: Callable[[Hero, Action, Context], None]):
     if action.movable:
         event_listener_calculator(actor, None, EventTypes.move_start, context)
-        apply_move(action, context)
+        apply_func(actor, action, context)
         event_listener_calculator(actor, None, EventTypes.move_end, context)
 
 
@@ -156,8 +149,6 @@ def apply_action(context: Context, action: Action):
         if action.is_in_battle:
             target = action.get_defender_hero_in_battle()
             battle_events(action.actor, target, action, context)
-
-            event_listener_calculator(actor, target, EventTypes.action_end, context)
             is_hero_live(action.actor, True, context)
         else:
             for target in action.targets:
@@ -172,7 +163,6 @@ def apply_action(context: Context, action: Action):
     elif action.type == ActionTypes.HEAL:
         for target in action.targets:
             skill_events(actor, target, action, context, apply_heal)
-            target.heal(action.total_damage)
 
     elif action.type == ActionTypes.SUMMON:
         skill_events(actor, None, action, context, apply_summon)

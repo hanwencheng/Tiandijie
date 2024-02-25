@@ -105,7 +105,7 @@ def get_attack(actor_instance: Hero, target_instance: Hero, context: Context, is
     if is_magic_input is not None:
         is_magic = is_magic_input
     else:
-        is_magic = action.skill.is_magic
+        is_magic = action.skill.temp.is_magic()
     # calculate buffs
     attr_name = 'magic_attack' if is_magic else 'attack'
     attack_attribute = actor_instance.initial_attribute.attack if is_magic else actor_instance.initial_attribute.magic_attack

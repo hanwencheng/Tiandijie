@@ -110,16 +110,6 @@ class Range:
         return target_position in area_map
 
 
-skill_range_profession_dict = {
-    Professions.WARRIOR: Range(RangeType.DIAMOND, 1),
-    Professions.SWORDSMAN: Range(RangeType.DIAMOND, 1),
-    Professions.ARCHER: Range(RangeType.ARCHER, 2),
-    Professions.SORCERER: Range(RangeType.DIAMOND, 2),
-    Professions.PRIEST: Range(RangeType.DIAMOND, 2),
-    Professions.GUARD: Range(RangeType.DIAMOND, 1),
-}
-
-
 def create_directional_range(length: int, width: int) -> Range:
     return Range(RangeType.DIRECTIONAL, 0, length, width)
 

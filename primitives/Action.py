@@ -13,13 +13,20 @@ class ActionTypes(enum.Enum):
     SELF = 3
     PASS = 4
     NORMAL_ATTACK = 5
+    TELEPORT = 6
+
+
+class AdditionalSkill:
+    def __init__(self, skill: Skill, targets: List[Hero]):
+        self.skill: Skill = skill
+        self.targets: List[Hero] = targets
 
 
 class Action:
     def __init__(self, cast_hero: Hero, affected_heroes, skill: Skill, movable, actionable):
         self.targets: List[Hero] = affected_heroes
         self.total_damage: float = 0
-        self.is_magic: bool = skill.is_magic()
+        self.is_magic: bool = skill.temp.is_magic()
         self.is_in_battle: bool = False
         self.is_with_protector: bool = False
         self.protector: Hero or None = None
@@ -35,7 +42,7 @@ class Action:
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
-        self.additional_skill: Skill = None
+        self.additional_skill: AdditionalSkill = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes

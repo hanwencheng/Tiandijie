@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from primitives.Action import Action
+    from primitives import Context
 
 from calculation.attribute_calculator import *
-from primitives import Context
 from primitives.hero import Hero
 
 CRIT_MULTIPLIER = 1.3
@@ -29,7 +29,7 @@ def calculate_skill_damage(attacker_instance: Hero, target_instance: Hero, actio
     hero_id = attacker_instance.id
     is_attacker = action.is_attacker(hero_id)
     skill = action.skill
-    is_magic = skill.temp.is_magic
+    is_magic = skill.temp.is_magic()
 
     attacker_elemental_multiplier = get_element_attacker_multiplier(attacker_instance, target_instance, action, context)
     defender_elemental_multiplier = get_element_defender_multiplier(attacker_instance, target_instance, action, context)

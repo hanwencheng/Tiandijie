@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from primitives.hero.Hero import Hero
     from primitives.Action import Action
 
-from calculation.modifier_calculator import get_modifier
+from calculation.modifier_calculator import get_modifier, get_skill_modifier
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from primitives.skill.SkillTemp import SkillTargetTypes
 
@@ -38,10 +38,12 @@ def check_if_in_battle(action: Action, context: Context):
 def check_protector(context: Context):
     action = context.get_last_action()
     if action.skill.type == SkillTargetTypes.ENEMY_SINGLE:
-        is_magic = action.skill.is_magic
+        is_magic = action.skill.temp.is_magic()
         target = action.targets[0]
+        attr_name = ma.is_ignore_protector
 
-        is_ignore_protector = get_modifier(ma.is_ignore_protector, action.actor, target, context)
+        is_ignore_protector = get_modifier(attr_name, action.actor, target, context)
+        is_ignore_protector += get_skill_modifier(attr_name, action.actor, target, action.skill, context)
         if is_ignore_protector:
             return
 

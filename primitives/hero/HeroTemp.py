@@ -1,6 +1,5 @@
 from typing import List
 
-from calculation.Range import skill_range_profession_dict
 from helpers import is_normal_attack_magic
 from primitives.hero.Element import Elements
 from primitives.hero.HeroBasics import Gender, Professions
@@ -13,13 +12,13 @@ if TYPE_CHECKING:
 
 
 class HeroTemp:
-    def __init__(self, basicInfo, profession, level0_attributes, growth_coefficients, skills):
+    def __init__(self, basicInfo, element, profession, level0_attributes, growth_coefficients, skills):
         self.current_life: float = 1
         self.name = "玄羽"
         self.rarity = "绝"
         self.id = 'xuanyu'
         self.is_normal_attack_magic = is_normal_attack_magic(profession)
-        self.normal_attack = create_normal_attack_skill(profession, None)
+        self.normal_attack = create_normal_attack_skill(element, profession, None)
         self.flyable = False
         self.has_formation = False
         self.formation_temp = None
@@ -29,7 +28,6 @@ class HeroTemp:
             raise ValueError("性别必须是‘男’或‘女’")
         self.element: Elements = Elements.DARK
         self.profession: Professions = profession
-        self.range: skill_range_profession_dict[profession]
         self.movement: int = 3
         self.level0_attributes: Attributes = Attributes(172, 89, 31, 22, 23, 60)
         self.growth_coefficients: AttributesTuple = growth_coefficients

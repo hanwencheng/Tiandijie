@@ -28,12 +28,22 @@ class PositionRequirementChecks:
 
     @staticmethod
     def no_partners_in_range(range_value: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
-        action = context.get_last_action()
         actor_position = actor_hero.position
         for hero in context.heroes:
             if hero.id == actor_hero.id:
                 continue
             if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    return 0
+        return 1
+
+    @staticmethod
+    def no_partners_in_target_range(range_value: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        actor_position = target_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == target_hero.player_id:
                 if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
                     return 0
         return 1

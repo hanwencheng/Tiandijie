@@ -1,9 +1,13 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import enum
 from typing import List
 from basics import Position
 
-from primitives.hero import Hero
-from primitives.skill.Skill import Skill
+if TYPE_CHECKING:
+    from primitives.hero.Hero import Hero
+    from primitives.skill.Skill import Skill
 
 
 class ActionTypes(enum.Enum):
@@ -42,7 +46,8 @@ class Action:
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
-        self.additional_skill: AdditionalSkill = None
+        self.additional_skill: AdditionalSkill or None = None
+        self.additional_action: Action or None = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes

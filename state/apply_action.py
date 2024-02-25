@@ -182,6 +182,9 @@ def apply_action(context: Context, action: Action):
     if action.additional_skill is not None:
         skill_events(actor, action.additional_skill.targets, action, context, apply_additional_skill)
 
+    if action.additional_action is not None:
+        apply_action(context, action.additional_action.action)
+
     # TODO Calculate Critical Damage Events
     event_listener_calculator(actor, None, EventTypes.action_end, context)
 

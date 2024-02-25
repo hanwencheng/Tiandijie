@@ -134,6 +134,8 @@ def move_event(actor: Hero, action: Action, context: Context, apply_func: Callab
 
 
 def apply_action(context: Context, action: Action):
+    # TODO: turn start and end is not calculated here
+
     if not action.actionable:
         return
 

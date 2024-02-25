@@ -6,6 +6,20 @@ from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from primitives.hero.Hero import Hero
 
+skill_related_events = [
+    EventTypes.damage_start,
+    EventTypes.damage_end,
+    EventTypes.skill_single_damage_start,
+    EventTypes.skill_single_damage_end,
+    EventTypes.skill_range_damage_start,
+    EventTypes.skill_range_damage_end,
+    EventTypes.under_damage_start,
+    EventTypes.under_damage_end,
+    EventTypes.under_skill_single_damage_start,
+    EventTypes.under_skill_single_damage_end,
+    EventTypes.under_skill_range_damage_start,
+    EventTypes.under_skill_range_damage_end,
+]
 
 class EventListenerContainer:
     def __init__(self, event_listener: EventListener, instance_self: Any):
@@ -27,6 +41,13 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
         for event_listener in buff_event_listeners:
             if event_listener.event_type == event_type:
                 event_listener_containers.append(EventListenerContainer(event_listener, buff))
+    
+    # Calculated Skills
+    if event_type in skill_related_events:
+        skill = current_action.skill
+        for event_listener in  skill.temp.event_listeners:
+            if event_listener.event_type == event_type:
+                event_listener_containers.append(EventListenerContainer(event_listener, skill))
 
     # Calculate Talents
 

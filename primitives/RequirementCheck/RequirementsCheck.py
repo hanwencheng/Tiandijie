@@ -45,7 +45,7 @@ class RequirementCheck:
     @staticmethod
     def all_skills_in_cooldown(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         for skill in actor_hero.enabled_skills:
-            if skill.current_cooldown > 0:
+            if skill.cool_down > 0:
                 return 0
         return 1
 

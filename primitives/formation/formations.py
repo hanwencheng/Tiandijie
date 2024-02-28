@@ -209,7 +209,7 @@ class Formations:
 
     # 玄雷淬火阵: 上阵赛特和「暗」，「雷」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，自身气血越高，伤害和暴击率越高（最高8%）。
     xuanleicuihuo = FormationTemp('xuanleicuihuo', 'saite', [{'element': Elements.DARK}, {'element': Elements.THUNDER}],
-                                  [ModifierEffect(partial(Check.LifeChecks.self_life_is_higher, 0),
+                                  [ModifierEffect(partial(Check.LifeChecks.self_life_is_higher_percentage, 0),
                                                   {ma.damage_percentage: 8, ma.magic_damage_percentage: 8, ma.critical_percentage: 8})])
 
     # 牵灵慑魂阵： 上阵妮可和「侠客」，「斗将」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，主动攻击时，伤害提高7%，技能范围内每多1个目标，伤害额外提高2%（最多额外提高8%）。

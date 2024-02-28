@@ -14,6 +14,18 @@ from primitives.hero.Element import get_elemental_relationship, ElementRelations
 
 class RequirementCheck:
     # TODO  should not include any function related to level2 modifier
+
+    @staticmethod
+    def enemies_in_skill_range(maximum_count: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        counted_enemies = 0
+        action = context.get_last_action()
+        skill = action.skill
+        for hero in context.heroes:
+            if hero.player_id != actor_hero.player_id:
+                if skill.temp.range.check_if_target_in_range(actor_hero.position, skill.target_point, hero.position):
+                    counted_enemies += 1
+        return min(maximum_count, counted_enemies)
+
     @staticmethod
     def battle_with_certain_hero(hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         action = context.get_last_action()

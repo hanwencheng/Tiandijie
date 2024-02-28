@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from typing import TYPE_CHECKING, List
-
+from basics import Position
 from primitives.skill.SkillTemp import SkillTemp
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class Skill:
-    def __init__(self, current_cool_down: int, skill_temp: SkillTemp):
+    def __init__(self, current_cool_down: int, skill_temp: SkillTemp, target_point: Position):
         self.cool_down = current_cool_down
         self.temp = skill_temp
-
+        self.target_point = target_point

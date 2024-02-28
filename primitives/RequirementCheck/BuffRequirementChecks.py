@@ -25,6 +25,12 @@ class BuffRequirementChecks:
                 return 0
         return 1
 
+    @staticmethod
+    def no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Harm:
+                return 0
+        return 1
 
     @staticmethod
     def self_has_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
@@ -71,3 +77,7 @@ class BuffRequirementChecks:
             if buff.temp.id == buff_id:
                 return 1
         return 0
+
+    @staticmethod
+    def self_has_move_buff():
+        pass

@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from primitives.buff.Buff import Buff
 from typing import List
 from calculation.Range import calculate_if_targe_in_diamond_range
+from primitives.hero.HeroBasics import Professions, Gender
 from primitives.buff.BuffTemp import BuffTypes
 
 
@@ -93,6 +94,30 @@ class PositionRequirementChecks:
             if hero.player_id == actor_hero.player_id:
                 if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
                     return 1
+        return 0
+
+    @staticmethod
+    def has_male_in_range(range_value, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    if hero.gender == Gender.MALE:
+                        return 1
+        return 0
+
+    @staticmethod
+    def has_female_in_range(range_value, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    if hero.gender == Gender.FEMALE:
+                        return 1
         return 0
 
     @staticmethod

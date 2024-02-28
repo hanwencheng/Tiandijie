@@ -23,7 +23,7 @@ def calculate_buff_with_max_stack(buff: Buff, modifier_value: float, attr_name: 
         target_buff_stack = buff_max_stack[buff.temp.id]
         max_stack = target_buff_stack.max_stack
         if attr_name in target_buff_stack.affected_attributes:
-            return modifier_value * max_stack
+            return modifier_value * min(buff.stack, max_stack)
     return modifier_value
 
 

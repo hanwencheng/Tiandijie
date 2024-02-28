@@ -17,5 +17,5 @@ class FormationTemp:
         self.hero_id = formation_hero_id
         self.modifier_effects = effects
         self.event_listeners = event_listeners
-        self.basic_modifier = Modifier({'attack_percentage': 15, 'magic_attack_percentage': 0, 'defense_percentage': 0,
+        self.basic_modifier = Modifier({'attack_percentage': 15, 'magic_attack_percentage': 15, 'defense_percentage': 15,
                                         'magic_defense_percentage': 15})

@@ -13,32 +13,32 @@ from basics import Position
 
 
 # return the area in the right bottom direction based on the actor point
-def calculate_direction_area(actor_point: Position, current_action_point: Position, length: int, width: int) -> List[Position]:
+def calculate_direction_area(base_point: Position, current_action_point: Position, length: int, width: int) -> List[Position]:
     area_map = []
     # in right direction
-    if current_action_point[0] - actor_point[0] > 0 and actor_point[1] == current_action_point[1]:
+    if current_action_point[0] - base_point[0] > 0 and base_point[1] == current_action_point[1]:
         print('in right direction')
         for i in range(length):
             for j in range(width):
-                area_map.append((actor_point[0] + i + 1, actor_point[1] - floor(width / 2) + j))
+                area_map.append((base_point[0] + i + 1, base_point[1] - floor(width / 2) + j))
     # in left direction
-    elif actor_point[0] - current_action_point[0] > 0 and actor_point[1] == current_action_point[1]:
+    elif base_point[0] - current_action_point[0] > 0 and base_point[1] == current_action_point[1]:
         print('in left direction')
         for i in range(length):
             for j in range(ceil(width / 2) + 1):
-                area_map.append((actor_point[0] - i - 1, actor_point[1] - floor(width / 2) + j))
+                area_map.append((base_point[0] - i - 1, base_point[1] - floor(width / 2) + j))
     # in top direction
-    elif actor_point[0] == current_action_point[0] and actor_point[1] - current_action_point[1] > 0:
+    elif base_point[0] == current_action_point[0] and base_point[1] - current_action_point[1] > 0:
         print('in top direction')
         for i in range(length):
             for j in range(width):
-                area_map.append((actor_point[0] - floor(width / 2) + j, actor_point[1] - i - 1))
+                area_map.append((base_point[0] - floor(width / 2) + j, base_point[1] - i - 1))
     # in bottom direction
-    elif current_action_point[0] == actor_point[0] and current_action_point[1] - actor_point[1] > 0:
+    elif current_action_point[0] == base_point[0] and current_action_point[1] - base_point[1] > 0:
         print('in bottom direction')
         for i in range(length):
             for j in range(width):
-                area_map.append((actor_point[0] - floor(width / 2) + j, actor_point[1] + i + 1))
+                area_map.append((base_point[0] - floor(width / 2) + j, base_point[1] + i + 1))
     return area_map
 
 
@@ -90,23 +90,20 @@ class Range:
         self.length = length
         self.width = width
 
-    def get_area(self, context: Context) -> List[Position]:
-        current_action = context.actions[-1]
-        action_point = current_action.action_point
-        actor_point = current_action.actor.position
+    def get_area(self, base_position: Position, action_point: Position) -> List[Position]:
         if self.range_type == RangeType.DIRECTIONAL:
-            return calculate_direction_area(actor_point, action_point, self.length, self.width)
+            return calculate_direction_area(base_position, action_point, self.length, self.width)
         elif self.range_type == RangeType.POINT:
             return [action_point]
         elif self.range_type == RangeType.DIAMOND:
-            return calculate_diamond_area(actor_point, self.range)
+            return calculate_diamond_area(base_position, self.range)
         elif self.range_type == RangeType.ARCHER:
-            return calculate_archer_area(actor_point, self.range)
+            return calculate_archer_area(base_position, self.range)
         else:
-            return calculate_square_area(action_point, self.range)
+            return calculate_square_area(base_position, self.range)
 
-    def check_if_target_in_range(self, target_position: Position, context: Context) -> bool:
-        area_map = self.get_area(context)
+    def check_if_target_in_range(self, base_position: Position, action_point: Position, target_position: Position) -> bool:
+        area_map = self.get_area(base_position, action_point)
         return target_position in area_map
 
 

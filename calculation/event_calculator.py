@@ -41,7 +41,7 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
         for event_listener in buff_event_listeners:
             if event_listener.event_type == event_type:
                 event_listener_containers.append(EventListenerContainer(event_listener, buff))
-    
+
     # Calculated Skills
     if event_type in skill_related_events:
         skill = current_action.skill

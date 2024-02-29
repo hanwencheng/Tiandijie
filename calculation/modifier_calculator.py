@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from primitives.effects.ModifierEffect import ModifierEffect
     from primitives.formation.Formation import Formation
     from primitives.hero.Hero import Hero
-    from primitives.skill.SkillTemp import SkillTemp
+
 from functools import reduce
 from typing import List
 from calculation.BuffStack import calculate_buff_with_max_stack

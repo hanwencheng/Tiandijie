@@ -25,8 +25,8 @@ class Modifier:
         # self.magic_attack_percentage: float = 0
         # self.defense_percentage: float = 0
         # self.magic_defense_percentage: float = 0
-        # self.damage_percentage: float = 0
-        # self.damage_reduction_percentage: float = 0
+        # self.physical_damage_percentage: float = 0
+        # self.physical_damage_reduction_percentage: float = 0
         # self.magic_damage_percentage: float = 0
         # self.magic_damage_reduction_percentage: float = 0
         # self.heal_percentage: float = 0

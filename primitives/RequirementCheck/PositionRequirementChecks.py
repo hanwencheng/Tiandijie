@@ -76,6 +76,21 @@ class PositionRequirementChecks:
         return 1 if count == len(elements) else 0
 
     @staticmethod
+    def has_element_hero_in_range(elements: List[Elements], range_value: int, actor_hero: Hero, target_hero: Hero,
+                              context: Context) -> int:
+        actor_position = actor_hero.position
+        for element in elements:
+            for hero in context.heroes:
+                if hero.id == actor_hero.id:
+                    continue
+                if hero.player_id == actor_hero.player_id:
+                    if hero.temp.element == element:
+                        if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                            return 1
+
+        return 0
+
+    @staticmethod
     def in_range(range_value: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         actor_position = actor_hero.position
         for hero in context.heroes:

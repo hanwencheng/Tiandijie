@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from primitives.hero.Hero import Hero
 from primitives.hero.Element import get_elemental_relationship, ElementRelationships
 
+from primitives.hero.HeroBasics import Professions, Gender
 
 class RequirementCheck:
     # TODO  should not include any function related to level2 modifier
@@ -56,6 +57,14 @@ class RequirementCheck:
             if target_hero.temp.flyable:
                 return 0
             else:
+                return 1
+        return 0
+
+    @staticmethod
+    def in_battle_with_male(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        if action.is_in_battle:
+            if target_hero.temp.gender==Gender.MALE:
                 return 1
         return 0
 

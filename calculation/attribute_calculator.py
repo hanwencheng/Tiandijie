@@ -51,7 +51,7 @@ def get_element_defender_multiplier(attacker_instance: Hero, target_instance: He
 def get_penetration_multiplier(hero_instance: Hero, counter_hero: Hero, skill: Skill or None, context: Context,
                                is_basic: bool = False) -> float:
     is_magic = check_is_magic_action(skill, hero_instance)
-    attr_name = ma.magic_penetration_percentage if is_magic else ma.penetration_percentage
+    attr_name = ma.magic_penetration_percentage if is_magic else ma.physical_penetration_percentage
     accumulated_skill_damage_modifier = 0 if skill is None else get_skill_modifier(attr_name, hero_instance, counter_hero, skill, context)
     leve2_modifier = get_level2_modifier(hero_instance, counter_hero, attr_name, context)
     return normalize_value(leve2_modifier + accumulated_skill_damage_modifier)
@@ -118,7 +118,7 @@ def get_damage_modifier(attacker_instance: Hero, counter_instance: Hero, skill: 
                         is_basic: bool = False) -> float:
 
     is_magic = check_is_magic_action(skill, attacker_instance)
-    attr_name = ma.magic_damage_percentage if is_magic else ma.damage_percentage
+    attr_name = ma.magic_damage_percentage if is_magic else ma.physical_damage_percentage
     accumulated_skill_damage_modifier = 0 if skill is None else get_skill_modifier(attr_name, attacker_instance, counter_instance, skill, context)
     accumulated_passive_damage_modifier = accumulate_attribute(attacker_instance.temp.passives, attr_name)
     accumulated_stones_percentage_damage_modifier = accumulate_attribute(attacker_instance.stones.percentage,
@@ -182,12 +182,12 @@ def get_action_type_damage_reduction_modifier(defender: Hero, attacker: Hero, co
 
 def get_damage_reduction_modifier(defense_instance: Hero, counter_instance: Hero, is_magic: bool, context: Context,
                                   is_basic: bool = False) -> float:
-    attr_name = ma.magic_damage_reduction_percentage if is_magic else ma.damage_reduction_percentage
+    attr_name = ma.magic_damage_reduction_percentage if is_magic else ma.physical_damage_reduction_percentage
     accumulated_passives_damage_reduction_modifier = accumulate_attribute(defense_instance.temp.passives,
                                                                           attr_name)
     accumulated_stones_damage_reduction_percentage_modifier = accumulate_attribute(
         defense_instance.stones.percentage, attr_name)
-    formation_damage_reduction_modifier = context.formation.magic_damage_reduction_percentage if is_magic else context.formation.damage_reduction_percentage
+    formation_damage_reduction_modifier = context.formation.magic_damage_reduction_percentage if is_magic else context.formation.physical_damage_reduction_percentage
 
     # A-type damage increase (Additive)
     a_type_damage_reduction = 1 - (

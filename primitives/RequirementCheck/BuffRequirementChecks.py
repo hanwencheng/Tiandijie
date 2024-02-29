@@ -19,16 +19,30 @@ class BuffRequirementChecks:
         return 0
 
     @staticmethod
-    def no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def target_has_no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         for buff in target_hero.buffs:
             if buff.temp.type == BuffTypes.Benefit:
                 return 0
         return 1
 
     @staticmethod
-    def no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def target_has_no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         for buff in target_hero.buffs:
             if buff.temp.type == BuffTypes.Harm:
+                return 0
+        return 1
+
+    @staticmethod
+    def self_has_no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Harm:
+                return 0
+        return 1
+
+    @staticmethod
+    def self_has_no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Benefit:
                 return 0
         return 1
 
@@ -79,5 +93,10 @@ class BuffRequirementChecks:
         return 0
 
     @staticmethod
-    def self_has_move_buff():
-        pass
+    def self_has_move_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in actor_hero.buffs:
+            for ModifierEffect in buff.temp.modifier_effects:
+                for EffectName, value in ModifierEffect.modifier.items():
+                    if EffectName == "move_range" and value > 0:
+                        return 1
+        return 0

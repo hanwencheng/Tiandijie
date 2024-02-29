@@ -17,7 +17,7 @@ class Formations:
     # 飞燕惊鸿阵: 上阵韩千秀和「侠客」，「铁卫」英灵至少各一名时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升15%，主动造成伤害后，额外附加1次「固定伤害」（目标当前气血*15%）。
     feiyanjinghong = FormationTemp('feiyanjinghong', 'hanqianxiu',
                                    [{'profession': Professions.GUARD}, {'profession': Professions.SWORDSMAN}],
-                                   None, [EventListener(EventTypes.damage_end, 1, Check.always_true,
+                                   None, [EventListener(EventTypes.damage_end, 1, RS.always_true,
                                                         partial(
                                                             Effects.take_fixed_damage_by_percentage,
                                                             0.15))])
@@ -41,7 +41,7 @@ class Formations:
     # 乾坤流烨阵: 上阵武英仲和至少2位「光」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，若目标未携带「有益状态」，「对战中」伤害提高15%。
     qiankunliuye = FormationTemp('qiankunliuye', 'wuyingzhong',
                                  [{'element': Elements.LIGHT}, {'element': Elements.LIGHT}],
-                                 [ModifierEffect(partial(Check.BuffChecks.target_has_benefit_buff),
+                                 [ModifierEffect(partial(Check.BuffChecks.target_has_no_benefit_buff),
                                                  {ma.battle_damage_percentage: 15})])
 
     # 伦巴第协阵： 上阵古伦德和至少2位「男性」英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升15%，自身气血未满时，伤害提高10%。
@@ -68,7 +68,7 @@ class Formations:
                                  [{'element': Elements.FIRE}, {'element': Elements.WATER}], [
                                      ModifierEffect(partial(Check.BuffChecks.self_has_benefit_buff),
                                                     {ma.physical_damage_percentage: 8, ma.magic_damage_percentage: 8}),
-                                     ModifierEffect(partial(Check.BuffChecks.no_benefit_buff),
+                                     ModifierEffect(partial(Check.BuffChecks.self_has_no_benefit_buff),
                                                     {ma.physical_damage_reduction_percentage: 8,ma.magic_damage_reduction_percentage: 8},
                                                     )])
 
@@ -223,7 +223,7 @@ class Formations:
     # 焚香销魂阵: 上阵憛香和「侠客」，「铁卫」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，若自身未携带「有害状态」，范围伤害和暴击率提高8%。
     fenxiangxiaohun = FormationTemp('fenxiangxiaohun', 'tanxiang',
                                     [{'profession': Professions.GUARD}, {'profession': Professions.SWORDSMAN}],
-                                    [ModifierEffect(partial(Check.BuffChecks.no_harm_buff),
+                                    [ModifierEffect(partial(Check.BuffChecks.self_has_no_harm_buff),
                                                     {ma.range_skill_damage_percentage: 8, ma.critical_percentage: 8})])
 
     # 狐灵神氛阵： 上阵太玄灵狐和「火」，「幽」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。目标气血低于90%时，「对战中」伤害提高8%；自身气血低于90%时，「对战中」免伤提高8%。
@@ -251,7 +251,7 @@ class Formations:
     # 祝法化生阵: 上阵九色鹿和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。自身满血时伤害提高8%，自身未携带「有害状态」时免伤提高8%。
     zhufahuasheng = FormationTemp('zhufahuasheng', 'jiuselu', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
                                   [ModifierEffect(partial(Check.LifeChecks.life_is_full), {ma.physical_damage_percentage: 8, ma.magic_damage_percentage: 8}),
-                                   ModifierEffect(partial(Check.BuffChecks.no_harm_buff), {ma.physical_damage_reduction_percentage: 8, ma.magic_damage_reduction_percentage: 8})])
+                                   ModifierEffect(partial(Check.BuffChecks.self_has_no_harm_buff), {ma.physical_damage_reduction_percentage: 8, ma.magic_damage_reduction_percentage: 8})])
 
     # 神武曦舒阵: 上阵傅雅鱼和「男性」、「女性」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，2格范围内存在其他男性角色时，伤害提高8%，2格范围内存在其他女性角色时，免伤提高8%。
     shenwuxishu = FormationTemp('shenwuxishu', 'fuyayu', [{'gender': Gender.MALE}, {'gender': Gender.FEMALE}],
@@ -269,7 +269,7 @@ class Formations:
 
     # 紫电青霜阵: 上阵紫蕴和至少2位「雷」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「电流」状态的目标时，伤害提高10%
     zidianqingshuang = FormationTemp('zidianqingshuang', 'ziyun', [{'element': Elements.THUNDER}, {'element': Elements.THUNDER}],
-                                     [ModifierEffect(partial(Check.BuffChecks.target_has_benefit_buff, 'electricity'),
+                                     [ModifierEffect(partial(Check.BuffChecks.target_has_certain_buff, 'electricity'),
                                                      {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10}),
                                       ModifierEffect(partial(Check.always_true), {ma.attack_percentage: -5,
                                                                                   ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])
@@ -284,7 +284,7 @@ class Formations:
 
     # 附星擢升阵: 上阵允迦和「暗」，「雷」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，伤害提升15%，3格范围内每有1个敌方，造成伤害降低5%（最多15%）。
     fuxingzhuosheng = FormationTemp('fuxingzhuosheng', 'yunjia', [{'element': Elements.DARK}, {'element': Elements.THUNDER}],
-                                    [ModifierEffect(Check.always_true), {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5},
+                                    [ModifierEffect(partial(Check.always_true), {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5}),
                                      ModifierEffect(partial(Check.PositionChecks.enemy_in_range_count_bigger_than, 3, 3),
                                                     {ma.physical_damage_percentage: -5, ma.magic_damage_percentage: -5})])
 
@@ -295,7 +295,7 @@ class Formations:
 
     # 驱雷魔魄阵: 上阵剑魂·天尊和「雷」，「幽」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，若自身未携带「有害状态」，「对战中」伤害提高15%。
     quleimopo = FormationTemp('qule', 'jianhuntianzun', [{'element': Elements.THUNDER}, {'element': Elements.ETHEREAL}],
-                              [ModifierEffect(partial(Check.BuffChecks.no_harm_buff), {ma.battle_damage_percentage: 15})])
+                              [ModifierEffect(partial(Check.BuffChecks.self_has_no_harm_buff), {ma.battle_damage_percentage: 15})])
 
     # 鬼冥炼狱阵: 上阵鲜于超和「羽士」，「咒师」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，气血高于70%时，伤害和免伤提高8%。
     guiminglianyu = FormationTemp('guiminglianyu', 'xianyuchao', [{'profession': Professions.ARCHER}, {'profession': Professions.SORCERER}],
@@ -304,7 +304,7 @@ class Formations:
 
     # 光焰烛天阵: 上阵慕容筝和至少2位「炎」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「燃烧」状态的目标时，伤害提高10%。
     guangyanzhutian = FormationTemp('guangyanzhutian', 'murongzheng', [{'element': Elements.FIRE}, {'element': Elements.FIRE}],
-                                    [ModifierEffect(partial(Check.BuffChecks.target_has_benefit_buff, 'burn'),
+                                    [ModifierEffect(partial(Check.BuffChecks.target_has_certain_buff, 'burn'),
                                                     {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10}),
                                      ModifierEffect(partial(Check.always_true), {ma.attack_percentage: -5,
                                                                                  ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])
@@ -316,7 +316,7 @@ class Formations:
 
     # 幻冰凝霜阵: 上阵胧妖和至少2位「冰」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「迟缓」类状态的目标时，伤害提高10%
     huanbingningshuang = FormationTemp('huanbingningshuang', 'longyao', [{'element': Elements.WATER}, {'element': Elements.WATER}],
-                                       [ModifierEffect(partial(Check.BuffChecks.target_has_benefit_buff, 'slow'),
+                                       [ModifierEffect(partial(Check.BuffChecks.target_has_certain_buff, 'slow'),
                                                        {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10}),
                                         ModifierEffect(partial(Check.always_true), {ma.attack_percentage: -5,
                                                                                     ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])

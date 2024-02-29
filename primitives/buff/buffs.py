@@ -85,7 +85,7 @@ class BuffTemps(Enum):
                          ModifierEffect(partial(RS.LifeChecks.self_life_is_higher, 80), {ma.is_non_selectable: 1})], [])
 
     # 仙罪	其他	不可驱散	不可扩散	不可偷取	与「雪芝」「对战中」伤害、免伤-10%（上限3层）。主动绝学都在冷却中时，移动力-1。
-    xianzeui = BuffTemp('xianzeui', BuffTypes.Others, False, False, False, 3, [
+    xianzeui = BuffTemp('xianzeui', BuffTypes.Others, False, False, False,[
         ModifierEffect(RS.always_true, {ma.battle_damage_reduction_percentage: 10, ma.battle_damage_percentage: 10}),
         ModifierEffect(partial(RS.all_skills_in_cooldown), {ma.move_range: -1})])
 
@@ -252,3 +252,11 @@ class BuffTemps(Enum):
                       partial(Effects.remove_actor_benefit_buffs, buff_count=2)),
         EventListener(EventTypes.action_end, 1, partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
                       partial(Effects.add_fixed_damage_with_attack, multiplier=0.15, is_magic=False))])
+
+
+    # 堕罪	有害	不可驱散	不可扩散	不可偷取	无法获得「有益状态」，遭受施加者攻击时，法术免伤-10%。
+    duozui = BuffTemp('duozui', BuffTypes.Harm, False, False, False, [ModifierEffect(RS.always_true, {ma.})], [
+        EventListener(EventTypes.battle_end, 1, RS.always_true,
+                      partial(Effects.remove_actor_benefit_buffs, buff_count=2)),
+        EventListener(EventTypes.skill_damage_start, 1, RS.always_true,
+                      partial(Effects.add_target_harm_buffs, buff_temp=['shimo'], duration=1))])

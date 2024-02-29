@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from calculation.damage_calculator import calculate_fix_damage, calculate_magic_damage, calculate_physical_damage
 from helpers import random_select
 
 if TYPE_CHECKING:
@@ -12,8 +13,6 @@ if TYPE_CHECKING:
 
 from typing import List
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
-from calculation.calculate_damage import calculate_fix_damage, calculate_magic_damage, \
-    calculate_physical_damage
 from primitives.buff.BuffTemp import BuffTypes
 
 

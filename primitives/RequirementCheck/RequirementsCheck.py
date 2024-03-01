@@ -51,6 +51,14 @@ class RequirementCheck:
         return 1
 
     @staticmethod
+    def all_active_skills_in_cooldown(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for skill in actor_hero.enabled_skills:
+            if skill not in actor_hero.temp.passives and skill.cool_down > 0:
+                return 0
+        return 1
+
+
+    @staticmethod
     def in_battle_with_non_flyable(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         action = context.get_last_action()
         if action.is_in_battle:

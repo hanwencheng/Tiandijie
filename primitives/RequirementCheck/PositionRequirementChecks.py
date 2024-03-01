@@ -148,6 +148,32 @@ class PositionRequirementChecks:
         return min(count, maximum_count)
 
     @staticmethod
+    def in_range_partner_count_with_limit(range_value, maximum_count: int, actor_hero: Hero, target_hero: Hero,
+                                          context: Context) -> int:
+        actor_position = actor_hero.position
+        count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    count += 1
+        return min(count, maximum_count)
+
+    @staticmethod
+    def in_range_enemy_count_with_limit(range_value, maximum_count: int, actor_hero: Hero, target_hero: Hero,
+                                        context: Context) -> int:
+        actor_position = actor_hero.position
+        count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id != actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    count += 1
+        return min(count, maximum_count)
+
+    @staticmethod
     def enemy_in_range_count_bigger_than(range_value: int, count_requirement: int, actor_hero: Hero, target_hero: Hero,
                                          context: Context) -> int:
         actor_position = actor_hero.position

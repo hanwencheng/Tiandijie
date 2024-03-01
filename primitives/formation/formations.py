@@ -10,14 +10,13 @@ from calculation.Effects import Effects
 from primitives.RequirementCheck.RequirementsCheck import \
     RequirementCheck as Check
 from calculation.ModifierAttributes import ModifierAttributes as ma
-from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
 
 
 class Formations:
     # 飞燕惊鸿阵: 上阵韩千秀和「侠客」，「铁卫」英灵至少各一名时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升15%，主动造成伤害后，额外附加1次「固定伤害」（目标当前气血*15%）。
     feiyanjinghong = FormationTemp('feiyanjinghong', 'hanqianxiu',
                                    [{'profession': Professions.GUARD}, {'profession': Professions.SWORDSMAN}],
-                                   None, [EventListener(EventTypes.damage_end, 1, RS.always_true,
+                                   None, [EventListener(EventTypes.damage_end, 1, Check.always_true,
                                                         partial(
                                                             Effects.take_fixed_damage_by_percentage,
                                                             0.15))])
@@ -84,8 +83,9 @@ class Formations:
     # 剑心凛蝉阵: 上阵冰蝉玉剑和「御风」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。主动攻击时，穿透提高10%，若3格范围内敌方数量大于等于2，穿透额外提高5%。
     jianxinlinchan = FormationTemp('jianxinlinchan', 'bingchuanyujian',
                                    [{'profession': Professions.RIDER}, {'profession': Professions.PRIEST}], [
+                                       ModifierEffect(partial(Check.is_attacker), {ma.physical_penetration_percentage: 10, ma.magic_penetration_percentage: 10}),
                                        ModifierEffect(partial(Check.PositionChecks.attack_enemy_in_range_count_bigger_than_with_base_2, 3, 2),
-                                                      {ma.physical_penetration_percentage: 5})])
+                                                      {ma.physical_penetration_percentage: 5, ma.magic_penetration_percentage: 5})])
 
     # 剑灼焰染阵: 上阵安逸和「羽士」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，目标不满血时，「对战中」自身伤害提高10%
     jianzhuoyanran = FormationTemp('jianzhuoyanran', 'anyi',
@@ -190,7 +190,7 @@ class Formations:
                                [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}], [
                                    ModifierEffect(partial(Check.always_true),
                                                   {ma.physical_damage_percentage: 8, ma.magic_damage_percentage: 8, ma.critical_percentage: 8}),
-                                   ModifierEffect(partial(Check.PositionChecks.in_range_count_with_limit, 2, 2),
+                                   ModifierEffect(partial(Check.PositionChecks.in_range_partner_count_with_limit, 2, 2),
                                                   {ma.physical_damage_percentage: -4, ma.magic_damage_percentage: -4, ma.critical_percentage: -4})])
 
     # 海潮升歌阵: 上阵露葵和「铁卫」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。自身满血时，伤害提高8%，气血未满时，免伤提高8%。
@@ -206,8 +206,7 @@ class Formations:
     zhuoguangleiming = FormationTemp('zhuoguangleiming', 'aqiu',
                                      [{'element': Elements.FIRE}, {'element': Elements.LIGHT}], [
                                          ModifierEffect(partial(Check.PositionChecks.in_the_same_line),
-                                                        {ma.single_target_skill_damage_percentage: 8,
-                                                 ma.critical_percentage: 8})])
+                                                        {ma.single_target_skill_damage_percentage: 8, ma.range_skill_damage_percentage: 8, ma.critical_percentage: 8})])
 
     # 玄雷淬火阵: 上阵赛特和「暗」，「雷」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，自身气血越高，伤害和暴击率越高（最高8%）。
     xuanleicuihuo = FormationTemp('xuanleicuihuo', 'saite', [{'element': Elements.DARK}, {'element': Elements.THUNDER}],
@@ -216,7 +215,7 @@ class Formations:
 
     # 牵灵慑魂阵： 上阵妮可和「侠客」，「斗将」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，主动攻击时，伤害提高7%，技能范围内每多1个目标，伤害额外提高2%（最多额外提高8%）。
     qianlingshehun = FormationTemp('qianlingshehun', 'nike', [{'profession': Professions.WARRIOR}, {'profession': Professions.SWORDSMAN}],
-                                   [ModifierEffect(partial(Check.always_true), {ma.battle_damage_percentage: 7}),
+                                   [ModifierEffect(partial(Check.is_attacker), {ma.battle_damage_percentage: 7}),
                                     ModifierEffect(partial(Check.enemies_in_skill_range, 4),
                                                    {ma.range_skill_damage_percentage: 2, ma.single_target_skill_damage_percentage: 2})])
 
@@ -246,7 +245,7 @@ class Formations:
 
     # 璇玑引雷阵: 上阵慕容璇玑和至少2位「雷」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升15%，主动攻击暴击率提升15%。
     xuanjiyinlei = FormationTemp('xuanjiyinlei', 'murongxuanji', [{'element': Elements.THUNDER}, {'element': Elements.THUNDER}],
-                                 [ModifierEffect(partial(Check.always_true), {ma.critical_percentage: 15})])
+                                 [ModifierEffect(partial(Check.is_attacker), {ma.critical_percentage: 15})])
 
     # 祝法化生阵: 上阵九色鹿和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。自身满血时伤害提高8%，自身未携带「有害状态」时免伤提高8%。
     zhufahuasheng = FormationTemp('zhufahuasheng', 'jiuselu', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
@@ -260,7 +259,7 @@ class Formations:
 
     # 神观天掣阵：上阵云衣宫主和「雷」，「光」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，自身有主动绝学处于冷却中时，伤害提高10%。
     shenguantianche = FormationTemp('shenguantianche', 'yunyigongzhu', [{'element': Elements.THUNDER}, {'element': Elements.LIGHT}],
-                                    [ModifierEffect(partial(RS.all_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
+                                    [ModifierEffect(partial(Check.all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
 
     # 神阙灵繁阵: 上阵白菀，紫蕴，朱缳和青萝时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升20%。
     shenquelingfan = FormationTemp('shenquelingfan', 'baiwan', [{'id': 'ziyun'}, {'id': 'zhuhuan'},{'id': 'qingluo'}],
@@ -275,17 +274,17 @@ class Formations:
                                                                                   ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])
     # 醉梦红尘阵: 上阵李逍遥和「咒师」，「御风」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，自身每有1个「有益状态」，伤害提高5%（最多提高15%）。
     zuimenghongchen = FormationTemp('zuimenghongchen', 'lixiaoyao', [{'profession': Professions.SORCERER}, {'profession': Professions.RIDER}],
-                                    [ModifierEffect(partial(Check.BuffChecks.target_harm_buff_count),
+                                    [ModifierEffect(partial(Check.BuffChecks.target_benefit_buff_count),
                                                     {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5})])
 
     # 问仙破御阵: 上阵雪芝和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。攻击存在主动绝学处于冷却中的敌方时，伤害提高10%。
     wenxianduyu = FormationTemp('wenxianduyu', 'xuezhi', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
-                                [ModifierEffect(partial(RS.all_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
+                                [ModifierEffect(partial(Check.all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
 
     # 附星擢升阵: 上阵允迦和「暗」，「雷」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，伤害提升15%，3格范围内每有1个敌方，造成伤害降低5%（最多15%）。
     fuxingzhuosheng = FormationTemp('fuxingzhuosheng', 'yunjia', [{'element': Elements.DARK}, {'element': Elements.THUNDER}],
-                                    [ModifierEffect(partial(Check.always_true), {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5}),
-                                     ModifierEffect(partial(Check.PositionChecks.enemy_in_range_count_bigger_than, 3, 3),
+                                    [ModifierEffect(partial(Check.always_true), {ma.physical_damage_percentage: 15, ma.magic_damage_percentage: 15}),
+                                     ModifierEffect(partial(Check.PositionChecks.in_range_enemy_count_with_limit, 3, 3),
                                                     {ma.physical_damage_percentage: -5, ma.magic_damage_percentage: -5})])
 
     # 风花剑影阵: 上阵殷无邪和至少2位「女性」英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，2格范围内存在女性角色时，伤害提高10%。
@@ -311,7 +310,7 @@ class Formations:
 
     # 头狼寻猎阵: 上阵苍狼和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。3格范围内其他友方大于等于2名时，伤害和免伤提高8%。
     toulangxunlie = FormationTemp('toulanxunlie', 'canglang', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
-                                  [ModifierEffect(partial(Check.PositionChecks.in_range_count_with_limit, 3, 2),
+                                  [ModifierEffect(partial(Check.PositionChecks.in_range_partner_count_with_limit, 3, 2),
                                                   {ma.physical_damage_percentage: 8, ma.magic_damage_percentage: 8})])
 
     # 幻冰凝霜阵: 上阵胧妖和至少2位「冰」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「迟缓」类状态的目标时，伤害提高10%

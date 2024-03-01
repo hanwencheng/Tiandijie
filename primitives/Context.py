@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from collections import Counter
 from typing import List, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
@@ -100,13 +100,22 @@ class Context:
             if hero.temp.has_formation:
                 heroes = self.get_heroes_by_player_id(hero.player_id)
                 requirements = formation_temp.activation_requirements
-                other_heroes = heroes.copy().remove(hero)
+
+                # Remove the current hero from the check to only consider other heroes
+                other_heroes = [h for h in heroes if h != hero]
 
                 def is_requirement_satisfied(req, check_heroes):
                     key = next(iter(req))
-                    return any(getattr(check_hero.temp, key, None) == req[key] for check_hero in check_heroes)
+                    return sum(getattr(h.temp, key, None) == req[key] for h in check_heroes)
 
-                if all(is_requirement_satisfied(req, other_heroes) for req in requirements):
+                # Count how many times each requirement appears
+                req_counts = Counter(str(req) for req in requirements)  # Convert dict to str for immutability
+
+                # Check each unique requirement against the number of heroes that satisfy it
+                satisfied_counts = Counter({str(req): is_requirement_satisfied(req, other_heroes) for req in requirements})
+
+                # Ensure for each requirement type, the number of heroes that satisfy it meets or exceeds the requirement count
+                if all(satisfied_counts[str(req)] >= count for req, count in req_counts.items()):
                     self.formation = Formation(hero.player_id, formation_temp)
                     self.formation.active_formation()
 

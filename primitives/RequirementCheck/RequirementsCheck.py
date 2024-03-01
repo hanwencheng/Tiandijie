@@ -9,6 +9,8 @@ from primitives.RequirementCheck.PositionRequirementChecks import PositionRequir
 if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
+    from primitives.buff.Buff import Buff
+
 from primitives.hero.Element import get_elemental_relationship, ElementRelationships
 
 from primitives.hero.HeroBasics import Professions, Gender
@@ -32,6 +34,24 @@ class RequirementCheck:
         action = context.get_last_action()
         if action.is_in_battle:
             if target_hero.temp.id == hero_temp_id or actor_hero.temp.id == hero_temp_id:
+                return 1
+        return 0
+
+    @staticmethod
+    def battle_with_caster(actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff) -> int:
+        caster_id = buff.caster_id
+        action = context.get_last_action()
+        if action.is_in_battle:
+            if target_hero.id == caster_id:
+                return 1
+        return 0
+
+    @staticmethod
+    def attacked_by_caster(actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff) -> int:
+        caster_id = buff.caster_id
+        action = context.get_last_action()
+        if action.is_in_battle and _is_attacker(target_hero, context):
+            if target_hero.id == caster_id:
                 return 1
         return 0
 

@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from primitives import Context
     from primitives.buff.BuffTemp import BuffTemp, BuffTypes
 
-from primitives.buff.BuffImmuneList import immune_dict
+from primitives.buff.BuffImmuneList import *
 
 
 class Buff:
@@ -24,10 +24,12 @@ def cast_buff(buff_temp: BuffTemp, duration: int, caster_id: str, target_id: str
     target_hero = context.get_hero_by_id(target_id)
     # prevent adding buff if the target hero is immune to the buff
     for immune_buff in target_hero.buffs:
-        if immune_buff.temp.id == 'bingqing':
-            if buff_temp.type == BuffTypes.Harm:
-                return
+        if immune_buff.temp.id in prevent_all_harm_list and buff_temp.type == BuffTypes.Harm:
             return
+
+        if immune_buff.temp.id in prevent_all_benefit_list and buff_temp.type == BuffTypes.Benefit:
+            return
+
         if immune_buff.temp.id in immune_dict and buff_temp.id in immune_dict[immune_buff.temp.id]:
             return
 
@@ -36,7 +38,9 @@ def cast_buff(buff_temp: BuffTemp, duration: int, caster_id: str, target_id: str
         immune_list = immune_dict[buff_temp.id]
         for immune_buff_id in immune_list:
             for buff in target_hero.buffs:
-                if buff_temp.id == 'bingqing' and buff.type == BuffTypes.Harm:
+                if buff_temp.id in immune_all_harm_list and buff.type == BuffTypes.Harm:
+                    target_hero.buffs.remove(buff)
+                elif buff_temp.id in immune_all_benefit_list and buff.type == BuffTypes.Benefit:
                     target_hero.buffs.remove(buff)
                 elif buff.temp.id == immune_buff_id:
                     target_hero.buffs.remove(buff)

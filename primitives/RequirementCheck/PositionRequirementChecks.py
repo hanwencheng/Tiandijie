@@ -186,6 +186,19 @@ class PositionRequirementChecks:
                     enemy_count += 1
         return 1 if enemy_count >= count_requirement else 0
 
+    @staticmethod
+    def partner_in_range_count_bigger_than(range_value: int, count_requirement: int, actor_hero: Hero, target_hero: Hero,
+                                         context: Context) -> int:
+        actor_position = actor_hero.position
+        enemy_count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    enemy_count += 1
+        return 1 if enemy_count >= count_requirement else 0
+
     def attack_enemy_in_range_count_bigger_than_with_base_2(self, range_value: int, count_requirement: int,
                                                             actor_hero: Hero, target_hero: Hero,
                                                             context: Context) -> int:

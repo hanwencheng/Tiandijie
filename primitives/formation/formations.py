@@ -259,7 +259,7 @@ class Formations:
 
     # 神观天掣阵：上阵云衣宫主和「雷」，「光」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，自身有主动绝学处于冷却中时，伤害提高10%。
     shenguantianche = FormationTemp('shenguantianche', 'yunyigongzhu', [{'element': Elements.THUNDER}, {'element': Elements.LIGHT}],
-                                    [ModifierEffect(partial(Check.all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
+                                    [ModifierEffect(partial(Check.self_all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
 
     # 神阙灵繁阵: 上阵白菀，紫蕴，朱缳和青萝时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升20%。
     shenquelingfan = FormationTemp('shenquelingfan', 'baiwan', [{'id': 'ziyun'}, {'id': 'zhuhuan'},{'id': 'qingluo'}],
@@ -268,7 +268,7 @@ class Formations:
 
     # 紫电青霜阵: 上阵紫蕴和至少2位「雷」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「电流」状态的目标时，伤害提高10%
     zidianqingshuang = FormationTemp('zidianqingshuang', 'ziyun', [{'element': Elements.THUNDER}, {'element': Elements.THUNDER}],
-                                     [ModifierEffect(partial(Check.BuffChecks.target_has_certain_buff, 'electricity'),
+                                     [ModifierEffect(partial(Check.BuffChecks.target_has_certain_buff, 'dianliu'),
                                                      {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10}),
                                       ModifierEffect(partial(Check.always_true), {ma.attack_percentage: -5,
                                                                                   ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])
@@ -279,7 +279,7 @@ class Formations:
 
     # 问仙破御阵: 上阵雪芝和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。攻击存在主动绝学处于冷却中的敌方时，伤害提高10%。
     wenxianduyu = FormationTemp('wenxianduyu', 'xuezhi', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
-                                [ModifierEffect(partial(Check.all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
+                                [ModifierEffect(partial(Check.target_all_active_skills_in_cooldown), {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10})])
 
     # 附星擢升阵: 上阵允迦和「暗」，「雷」属相英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，伤害提升15%，3格范围内每有1个敌方，造成伤害降低5%（最多15%）。
     fuxingzhuosheng = FormationTemp('fuxingzhuosheng', 'yunjia', [{'element': Elements.DARK}, {'element': Elements.THUNDER}],
@@ -310,7 +310,7 @@ class Formations:
 
     # 头狼寻猎阵: 上阵苍狼和「咒师」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%。3格范围内其他友方大于等于2名时，伤害和免伤提高8%。
     toulangxunlie = FormationTemp('toulanxunlie', 'canglang', [{'profession': Professions.SORCERER}, {'profession': Professions.PRIEST}],
-                                  [ModifierEffect(partial(Check.PositionChecks.in_range_partner_count_with_limit, 3, 2),
+                                  [ModifierEffect(partial(Check.PositionChecks.partner_in_range_count_bigger_than, 3, 2),
                                                   {ma.physical_damage_percentage: 8, ma.magic_damage_percentage: 8})])
 
     # 幻冰凝霜阵: 上阵胧妖和至少2位「冰」属性英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，攻击携带「迟缓」类状态的目标时，伤害提高10%
@@ -322,7 +322,7 @@ class Formations:
 
     # 暗香迷情阵: 上阵韩无砂和至少2位「女性」英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提升10%，与非女性单位战斗时，伤害提升10%
     anxiangmiqing = FormationTemp('anxiangmiqing', 'hanwusha', [{'gender':Gender.FEMALE}, {'gender':Gender.FEMALE}],
-                                  [ModifierEffect(partial(Check.in_battle_with_male),
+                                  [ModifierEffect(partial(Check.in_battle_with_non_female),
                                                   {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10}),
                                    ModifierEffect(partial(Check.always_true), {ma.attack_percentage: -5,
                                                                                ma.magic_attack_percentage: -5, ma.defense_percentage: -5,ma.magic_defense_percentage: -5})])

@@ -4,6 +4,7 @@ import enum
 class Gender(enum.IntEnum):
     MALE = 1
     FEMALE = 2
+    OTHER = 3
 
 
 class Professions(enum.Enum):

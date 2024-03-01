@@ -19,12 +19,32 @@ class BuffRequirementChecks:
         return 0
 
     @staticmethod
-    def no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def target_has_no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         for buff in target_hero.buffs:
             if buff.temp.type == BuffTypes.Benefit:
                 return 0
         return 1
 
+    @staticmethod
+    def target_has_no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Harm:
+                return 0
+        return 1
+
+    @staticmethod
+    def self_has_no_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Harm:
+                return 0
+        return 1
+
+    @staticmethod
+    def self_has_no_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Benefit:
+                return 0
+        return 1
 
     @staticmethod
     def self_has_benefit_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
@@ -41,6 +61,7 @@ class BuffRequirementChecks:
     @staticmethod
     def target_has_harm_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         return check_buff_on_target(actor_hero, target_hero, BuffTypes.Harm, False)
+
     @staticmethod
     def target_harm_buff_count(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         harm_buff_count = 0
@@ -48,6 +69,14 @@ class BuffRequirementChecks:
             if buff.temp.type == BuffTypes.Harm:
                 harm_buff_count += 1
         return min(3, harm_buff_count)
+
+    @staticmethod
+    def target_benefit_buff_count(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        benefit_buff_count = 0
+        for buff in target_hero.buffs:
+            if buff.temp.type == BuffTypes.Benefit:
+                benefit_buff_count += 1
+        return min(3, benefit_buff_count)
 
     @staticmethod
     def self_harm_buff_count_smaller_than(count: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
@@ -70,4 +99,12 @@ class BuffRequirementChecks:
         for buff in target_hero.buffs:
             if buff.temp.id == buff_id:
                 return 1
+        return 0
+
+    @staticmethod
+    def self_has_move_buff(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        for buff in actor_hero.buffs:
+            for k, v in buff.temp.modifier_effects.modifiers.items():
+                if k == "move_range" and v > 0:
+                    return 1
         return 0

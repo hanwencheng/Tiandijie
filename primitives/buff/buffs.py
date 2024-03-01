@@ -37,7 +37,7 @@ class BuffTemps(Enum):
 
     # 幽霜	其他	不可驱散	不可扩散	不可偷取	免伤+20%，主动造成伤害后，对目标造成1次「固定伤害」（（物攻+物防）的30%），并施加「迟缓I」状态，持续2回合
     youshuang = BuffTemp('youshuang', BuffTypes.Others, False, False, False, [
-        ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 20, ma.damage_reduction_percentage: 20})],
+        ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 20, ma.physical_damage_reduction_percentage: 20})],
                          [
                              EventListener(EventTypes.damage_end, 1, RS.always_true,
                                            partial(Effects.add_fixed_damage_with_attack_and_defense, multiplier=0.3,
@@ -76,8 +76,8 @@ class BuffTemps(Enum):
 
     # 乱神I	有害	可驱散	可扩散	不可偷取	伤害-10%, 乱神II	有害	可驱散	可扩散	不可偷取	伤害-20%
     luanshen = BuffTemp('luanshen', BuffTypes.Harm, True, True, False,
-                        [[ModifierEffect(RS.always_true, {ma.damage_percentage: -10, ma.magic_damage_percentage: -10})],
-                         [ModifierEffect(RS.always_true, {ma.damage_percentage: -0, ma.magic_damage_percentage: -20})]])
+                        [[ModifierEffect(RS.always_true, {ma.physical_damage_percentage: -10, ma.magic_damage_percentage: -10})],
+                         [ModifierEffect(RS.always_true, {ma.physical_damage_percentage: -0, ma.magic_damage_percentage: -20})]])
 
     # 仙灵	其他	不可驱散	不可扩散	不可偷取	移动力+1，气血大于等于80%时，无法被敌方选中（主动攻击「对战后」移除）。
     xianling = BuffTemp('xianling', BuffTypes.Others, False, False, False,
@@ -118,7 +118,7 @@ class BuffTemps(Enum):
 
     # 冰之力	其他	不可驱散	不可扩散	不可偷取	攻击携带「迟缓」类状态的目标时，战斗中伤害额外提高20%。
     bingzhili = BuffTemp('bingzhili', BuffTypes.Others, False, False, False,
-                         [ModifierEffect(partial(RS.BuffChecks.target_has_certain_buff, 'chihuan'), {ma.damage_percentage: 20})],
+                         [ModifierEffect(partial(RS.BuffChecks.target_has_certain_buff, 'chihuan'), {ma.physical_damage_percentage: 20})],
                          [])
 
     # 冰劫	其他	不可驱散	不可扩散	不可偷取	主动移动时，若移动距离小于等于1格，行动结束时，将「冰劫」替换为「晕眩」，持续1回合。
@@ -153,8 +153,8 @@ class BuffTemps(Enum):
 
     # 披甲I	有益	可驱散	可扩散	可偷取	物防+20%
     pijia = BuffTemp('pijia', BuffTypes.Benefit, True, True, True,
-                     [[ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: 20})],
-                      [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: 25})]], [])
+                     [[ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 20})],
+                      [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 25})]], [])
 
     # 断刺I	有害	可驱散	可扩散	不可偷取	暴击率-20%
     duanci = BuffTemp('duanci', BuffTypes.Harm, True, True, False,
@@ -163,9 +163,9 @@ class BuffTemps(Enum):
 
     # 极意I	有益	可驱散	可扩散	可偷取	伤害+10%
     jiyi = BuffTemp('jiyi', BuffTypes.Benefit, True, True, True,
-                    [[ModifierEffect(RS.always_true, {ma.damage_percentage: 10})],
-                     [ModifierEffect(RS.always_true, {ma.damage_percentage: 20})],
-                     [ModifierEffect(RS.always_true, {ma.damage_percentage: 25})]], [])
+                    [[ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 10})],
+                     [ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 20})],
+                     [ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 25})]], [])
 
     # 疲弱I	有害	可驱散	可扩散	不可偷取	物攻，法攻-20%
     piruo = BuffTemp('piruo', BuffTypes.Harm, True, True, False,
@@ -175,9 +175,9 @@ class BuffTemps(Enum):
 
     # 神护I	有益	可驱散	可扩散	可偷取	物理免伤+10%
     shenhu = BuffTemp('shenhu', BuffTypes.Benefit, True, True, True,
-                      [[ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: 10})],
-                       [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: 20})],
-                       [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: 25})]], [])
+                      [[ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 10})],
+                       [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 20})],
+                       [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 25})]], [])
 
     # 神睿I	有益	可驱散	可扩散	可偷取	物攻、法攻+20%
     shenrui = BuffTemp('shenrui', BuffTypes.Benefit, True, True, True,
@@ -200,14 +200,14 @@ class BuffTemps(Enum):
 
     # 虚损I	有害	可驱散	可扩散	不可偷取	物理免伤-10%
     xusun = BuffTemp('xusun', BuffTypes.Harm, True, True, False,
-                     [[ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: -10})],
-                      [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: -20})],
-                      [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: -25})]], [])
+                     [[ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: -10})],
+                      [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: -20})],
+                      [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: -25})]], [])
 
     # 蚀御I	有害	可驱散	可扩散	不可偷取	物防-20%
     shiyu = BuffTemp('shiyu', BuffTypes.Harm, True, True, False,
-                     [[ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: -20})],
-                      [ModifierEffect(RS.always_true, {ma.damage_reduction_percentage: -25})]], [])
+                     [[ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: -20})],
+                      [ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: -25})]], [])
 
     # 蚀魔I	有害	可驱散	可扩散	不可偷取	法防-30%
     shimo = BuffTemp('shimo', BuffTypes.Harm, True, True, False,
@@ -234,7 +234,7 @@ class BuffTemps(Enum):
 
     #  圣耀·贰	其他	不可驱散	不可扩散	不可偷取	自身免伤+15%，3格内的敌人行动结束时获得「魂创」状态，驱散施加者1个「有害状态」并恢复施加者30%最大气血。
     shengyao2 = BuffTemp('shengyao2', BuffTypes.Others, False, False, False, [
-        ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 20, ma.damage_reduction_percentage: 20})],
+        ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 20, ma.physical_damage_reduction_percentage: 20})],
                         [
                             EventListener(EventTypes.enemy_action_end, 1,
                                           partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),

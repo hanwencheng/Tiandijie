@@ -19,4 +19,3 @@ class Skill:
         self.cool_down = current_cool_down
         self.temp = skill_temp
         self.target_point = target_point
-

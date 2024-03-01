@@ -13,7 +13,7 @@ class BuffStack:
 
 
 buff_max_stack = {
-    "xianzui": BuffStack(3, [ma.damage_reduction_percentage, ma.damage_percentage]),
+    "xianzui": BuffStack(3, [ma.physical_damage_reduction_percentage, ma.physical_damage_percentage]),
     "xiayi": BuffStack(3, [])
 }
 

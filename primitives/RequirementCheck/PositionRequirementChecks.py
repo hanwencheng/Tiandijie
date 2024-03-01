@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from primitives.buff.Buff import Buff
 from typing import List
 from calculation.Range import calculate_if_targe_in_diamond_range
+from primitives.hero.HeroBasics import Professions, Gender
 from primitives.buff.BuffTemp import BuffTypes
 
 
@@ -75,6 +76,21 @@ class PositionRequirementChecks:
         return 1 if count == len(elements) else 0
 
     @staticmethod
+    def has_element_hero_in_range(elements: List[Elements], range_value: int, actor_hero: Hero, target_hero: Hero,
+                              context: Context) -> int:
+        actor_position = actor_hero.position
+        for element in elements:
+            for hero in context.heroes:
+                if hero.id == actor_hero.id:
+                    continue
+                if hero.player_id == actor_hero.player_id:
+                    if hero.temp.element == element:
+                        if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                            return 1
+
+        return 0
+
+    @staticmethod
     def in_range(range_value: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         actor_position = actor_hero.position
         for hero in context.heroes:
@@ -96,6 +112,30 @@ class PositionRequirementChecks:
         return 0
 
     @staticmethod
+    def has_male_in_range(range_value, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    if hero.gender == Gender.MALE:
+                        return 1
+        return 0
+
+    @staticmethod
+    def has_female_in_range(range_value, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    if hero.gender == Gender.FEMALE:
+                        return 1
+        return 0
+
+    @staticmethod
     def in_range_count_with_limit(range_value, maximum_count: int, actor_hero: Hero, target_hero: Hero,
                                   context: Context) -> int:
         actor_position = actor_hero.position
@@ -108,6 +148,32 @@ class PositionRequirementChecks:
         return min(count, maximum_count)
 
     @staticmethod
+    def in_range_partner_count_with_limit(range_value, maximum_count: int, actor_hero: Hero, target_hero: Hero,
+                                          context: Context) -> int:
+        actor_position = actor_hero.position
+        count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    count += 1
+        return min(count, maximum_count)
+
+    @staticmethod
+    def in_range_enemy_count_with_limit(range_value, maximum_count: int, actor_hero: Hero, target_hero: Hero,
+                                        context: Context) -> int:
+        actor_position = actor_hero.position
+        count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id != actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    count += 1
+        return min(count, maximum_count)
+
+    @staticmethod
     def enemy_in_range_count_bigger_than(range_value: int, count_requirement: int, actor_hero: Hero, target_hero: Hero,
                                          context: Context) -> int:
         actor_position = actor_hero.position
@@ -116,6 +182,19 @@ class PositionRequirementChecks:
             if hero.id == actor_hero.id:
                 continue
             if hero.player_id != actor_hero.player_id:
+                if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
+                    enemy_count += 1
+        return 1 if enemy_count >= count_requirement else 0
+
+    @staticmethod
+    def partner_in_range_count_bigger_than(range_value: int, count_requirement: int, actor_hero: Hero, target_hero: Hero,
+                                         context: Context) -> int:
+        actor_position = actor_hero.position
+        enemy_count = 0
+        for hero in context.heroes:
+            if hero.id == actor_hero.id:
+                continue
+            if hero.player_id == actor_hero.player_id:
                 if calculate_if_targe_in_diamond_range(actor_position, hero.position, range_value):
                     enemy_count += 1
         return 1 if enemy_count >= count_requirement else 0

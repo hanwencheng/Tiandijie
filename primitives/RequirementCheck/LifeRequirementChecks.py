@@ -29,6 +29,10 @@ class LifeRequirementChecks:
         return 1 if actor_hero.current_life / actor_hero.max_life > percentage / 100 else 0
 
     @staticmethod
+    def self_life_is_below(percentage: float, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        return 1 if actor_hero.current_life / actor_hero.max_life < percentage / 100 else 0
+
+    @staticmethod
     def self_life_is_higher_percentage(percentage: float, actor_hero: Hero, target_hero: Hero, context: Context) -> float:
         offset_base = actor_hero.max_life * percentage / 100
         offset_range = actor_hero.max_life - offset_base

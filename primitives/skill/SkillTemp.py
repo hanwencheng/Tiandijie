@@ -10,17 +10,31 @@ if TYPE_CHECKING:
     from primitives.effects.ModifierEffect import ModifierEffect
     from primitives.effects.SkillListener import SkillListener
     from primitives.hero.Element import Elements
-    from primitives.skill.Distance import Distance, DistanceType, distance_profession_dict
+    from primitives.skill.Distance import (
+        Distance,
+        DistanceType,
+        distance_profession_dict,
+    )
     from typing import List
     from primitives.hero.HeroBasics import Professions
     from primitives.effects.EventListener import EventListener
 
 
 class SkillTemp:
-    def __init__(self, skill_temp_id: str, cost: int, skill_element: Elements, skill_type: SkillType, target_type: SkillTargetTypes,
-                 max_cool_down: int, distance: Distance,
-                 range_vale: Range, multiplier: float, effects: List[ModifierEffect] = None,
-                 event_listeners: List[EventListener] = None):
+    def __init__(
+        self,
+        skill_temp_id: str,
+        cost: int,
+        skill_element: Elements,
+        skill_type: SkillType,
+        target_type: SkillTargetTypes,
+        max_cool_down: int,
+        distance: Distance,
+        range_vale: Range,
+        multiplier: float,
+        effects: List[ModifierEffect] = None,
+        event_listeners: List[EventListener] = None,
+    ):
         if effects is None:
             effects = []
         if event_listeners is None:
@@ -42,11 +56,33 @@ class SkillTemp:
 
 
 class NormalAttackTemp(SkillTemp):
-    def __init__(self, skill_temp_id: str, cost: int, skill_element: Elements, skill_type: SkillType, skill_target_type: SkillTargetTypes,
-                 max_cool_down: int, distance: Distance, range_vale: Range, multiplier: float,
-                 effects: List[ModifierEffect] = None, event_listeners: List[SkillListener] = None):
-        super().__init__(skill_temp_id, cost, skill_element, skill_type, skill_target_type, max_cool_down, distance, range_vale,
-                         multiplier, effects, event_listeners)
+    def __init__(
+        self,
+        skill_temp_id: str,
+        cost: int,
+        skill_element: Elements,
+        skill_type: SkillType,
+        skill_target_type: SkillTargetTypes,
+        max_cool_down: int,
+        distance: Distance,
+        range_vale: Range,
+        multiplier: float,
+        effects: List[ModifierEffect] = None,
+        event_listeners: List[SkillListener] = None,
+    ):
+        super().__init__(
+            skill_temp_id,
+            cost,
+            skill_element,
+            skill_type,
+            skill_target_type,
+            max_cool_down,
+            distance,
+            range_vale,
+            multiplier,
+            effects,
+            event_listeners,
+        )
         if effects is None:
             effects = []
         if event_listeners is None:
@@ -68,8 +104,22 @@ def is_normal_attack(skill: SkillTemp) -> bool:
     return isinstance(skill, NormalAttackTemp)
 
 
-def create_normal_attack_skill(element: Elements, profession: Professions, is_magic) -> NormalAttackTemp:
+def create_normal_attack_skill(
+    element: Elements, profession: Professions, is_magic
+) -> NormalAttackTemp:
     if is_magic is None:
         is_magic = is_magic_profession_dict[profession]
     skill_type = SkillType.Magical if is_magic else SkillType.Physical
-    return NormalAttackTemp('normal', 0, element, skill_type, SkillTargetTypes.ENEMY_SINGLE, 0, distance_profession_dict[profession], Range(RangeType.POINT, 1), 1.0, [], [])
+    return NormalAttackTemp(
+        "normal",
+        0,
+        element,
+        skill_type,
+        SkillTargetTypes.ENEMY_SINGLE,
+        0,
+        distance_profession_dict[profession],
+        Range(RangeType.POINT, 1),
+        1.0,
+        [],
+        [],
+    )

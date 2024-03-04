@@ -12,23 +12,34 @@ from primitives.skill.SkillTemp import SkillTargetTypes
 
 
 def check_if_counterattack(actor: Hero, target: Hero, context: Context):
-    is_counterattack_disabled = get_modifier(ma.is_counterattack_disabled, target, actor, context)
+    is_counterattack_disabled = get_modifier(
+        ma.is_counterattack_disabled, target, actor, context
+    )
     return not is_counterattack_disabled
 
 
 def check_if_counterattack_first(action: Action, context: Context):
     target = action.get_defender_hero_in_battle()
     actor = action.actor
-    is_counterattack_first = get_modifier(ma.is_counterattack_first, target, actor, context)
-    counterattack_first_limit = get_modifier(ma.counterattack_first_limit, target, actor, context)
-    return is_counterattack_first and counterattack_first_limit > target.counterattack_count
+    is_counterattack_first = get_modifier(
+        ma.is_counterattack_first, target, actor, context
+    )
+    counterattack_first_limit = get_modifier(
+        ma.counterattack_first_limit, target, actor, context
+    )
+    return (
+        is_counterattack_first
+        and counterattack_first_limit > target.counterattack_count
+    )
 
 
 def check_if_in_battle(action: Action, context: Context):
     if action.skill.type == SkillTargetTypes.ENEMY_SINGLE:
         defender = action.get_defender_hero_in_battle()
         if check_if_counterattack(action.actor, defender, context):
-            if action.skill.range.check_if_target_in_normal_attack_range(defender, action.actor, context):
+            if action.skill.range.check_if_target_in_normal_attack_range(
+                defender, action.actor, context
+            ):
                 action.update_is_in_battle(True)
                 return True
     else:
@@ -43,7 +54,9 @@ def check_protector(context: Context):
         attr_name = ma.is_ignore_protector
 
         is_ignore_protector = get_modifier(attr_name, action.actor, target, context)
-        is_ignore_protector += get_skill_modifier(attr_name, action.actor, target, action.skill, context)
+        is_ignore_protector += get_skill_modifier(
+            attr_name, action.actor, target, action.skill, context
+        )
         if is_ignore_protector:
             return
 
@@ -51,10 +64,14 @@ def check_protector(context: Context):
         possible_defenders = context.get_heroes_by_player_id(target_player_id)
         possible_protectors: List[tuple[Hero, int]] = []
         for defender in possible_defenders:
-            attr_name = ma.magic_protect_range if is_magic else ma.physical_protect_range
+            attr_name = (
+                ma.magic_protect_range if is_magic else ma.physical_protect_range
+            )
             protect_range = get_modifier(attr_name, defender, action.actor, context)
             if protect_range >= 2:
-                distance = abs(defender.position[0] - target.position[0]) + abs(defender.position[1] - target.position[1])
+                distance = abs(defender.position[0] - target.position[0]) + abs(
+                    defender.position[1] - target.position[1]
+                )
                 if distance <= protect_range:
                     possible_protectors.append((defender, distance))
 

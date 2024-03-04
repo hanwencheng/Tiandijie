@@ -3,7 +3,11 @@ from typing import TYPE_CHECKING
 
 from calculation.damage_calculator import apply_counterattack_damage, apply_damage
 from calculation.non_damage_calculator import *
-from state.state_calculator import check_if_counterattack_first, check_if_in_battle, check_protector
+from state.state_calculator import (
+    check_if_counterattack_first,
+    check_if_in_battle,
+    check_protector,
+)
 
 if TYPE_CHECKING:
     from primitives.Context import Context
@@ -25,7 +29,10 @@ action_type_to_event_dict: dict[ActionTypes, tuple[EventTypes, EventTypes]] = {
     ActionTypes.HEAL: (EventTypes.heal_start, EventTypes.heal_end),
     ActionTypes.TELEPORT: (EventTypes.teleport_start, EventTypes.teleport_end),
     ActionTypes.SKILL_ATTACK: (EventTypes.damage_start, EventTypes.damage_end),
-    ActionTypes.NORMAL_ATTACK: (EventTypes.normal_attack_start, EventTypes.normal_attack_end),
+    ActionTypes.NORMAL_ATTACK: (
+        EventTypes.normal_attack_start,
+        EventTypes.normal_attack_end,
+    ),
     ActionTypes.SUMMON: (EventTypes.summon_start, EventTypes.summon_end),
     ActionTypes.SELF: (EventTypes.self_start, EventTypes.self_end),
     ActionTypes.PASS: (EventTypes.pass_start, EventTypes.pass_end),
@@ -35,26 +42,57 @@ action_type_to_event_dict: dict[ActionTypes, tuple[EventTypes, EventTypes]] = {
 under_action_type_to_event_dict: dict[ActionTypes, tuple[EventTypes, EventTypes]] = {
     ActionTypes.HEAL: (EventTypes.under_heal_start, EventTypes.under_heal_end),
     ActionTypes.TELEPORT: (None, None),
-    ActionTypes.SKILL_ATTACK: (EventTypes.under_damage_start, EventTypes.under_damage_end),
-    ActionTypes.NORMAL_ATTACK: (EventTypes.under_normal_attack_start, EventTypes.under_normal_attack_end),
+    ActionTypes.SKILL_ATTACK: (
+        EventTypes.under_damage_start,
+        EventTypes.under_damage_end,
+    ),
+    ActionTypes.NORMAL_ATTACK: (
+        EventTypes.under_normal_attack_start,
+        EventTypes.under_normal_attack_end,
+    ),
     ActionTypes.SUMMON: (None, None),
     ActionTypes.SELF: (None, None),
     ActionTypes.PASS: (None, None),
 }
 
 skill_type_to_event_dict: dict[SkillTargetTypes, tuple[EventTypes, EventTypes]] = {
-    SkillTargetTypes.ENEMY_SINGLE: (EventTypes.skill_single_damage_start, EventTypes.skill_single_damage_end),
-    SkillTargetTypes.ENEMY_RANGE: (EventTypes.skill_range_damage_start, EventTypes.skill_range_damage_end),
-    SkillTargetTypes.PARTNER_SINGLE: (EventTypes.skill_for_partner_start, EventTypes.skill_for_partner_end),
-    SkillTargetTypes.PARTNER_RANGE: (EventTypes.skill_for_partner_start, EventTypes.skill_for_partner_end),
-    SkillTargetTypes.SELF: (EventTypes.skill_for_self_start, EventTypes.skill_for_self_end),
-    SkillTargetTypes.TERRAIN: (EventTypes.skill_for_terrain_start, EventTypes.skill_for_terrain_end),
+    SkillTargetTypes.ENEMY_SINGLE: (
+        EventTypes.skill_single_damage_start,
+        EventTypes.skill_single_damage_end,
+    ),
+    SkillTargetTypes.ENEMY_RANGE: (
+        EventTypes.skill_range_damage_start,
+        EventTypes.skill_range_damage_end,
+    ),
+    SkillTargetTypes.PARTNER_SINGLE: (
+        EventTypes.skill_for_partner_start,
+        EventTypes.skill_for_partner_end,
+    ),
+    SkillTargetTypes.PARTNER_RANGE: (
+        EventTypes.skill_for_partner_start,
+        EventTypes.skill_for_partner_end,
+    ),
+    SkillTargetTypes.SELF: (
+        EventTypes.skill_for_self_start,
+        EventTypes.skill_for_self_end,
+    ),
+    SkillTargetTypes.TERRAIN: (
+        EventTypes.skill_for_terrain_start,
+        EventTypes.skill_for_terrain_end,
+    ),
 }
 
-under_skill_type_to_event_dict: dict[SkillTargetTypes, tuple[EventTypes, EventTypes]] = {
+under_skill_type_to_event_dict: dict[
+    SkillTargetTypes, tuple[EventTypes, EventTypes]
+] = {
     SkillTargetTypes.ENEMY_SINGLE: (
-        EventTypes.under_skill_single_damage_start, EventTypes.under_skill_single_damage_end),
-    SkillTargetTypes.ENEMY_RANGE: (EventTypes.under_skill_range_damage_start, EventTypes.under_skill_range_damage_end),
+        EventTypes.under_skill_single_damage_start,
+        EventTypes.under_skill_single_damage_end,
+    ),
+    SkillTargetTypes.ENEMY_RANGE: (
+        EventTypes.under_skill_range_damage_start,
+        EventTypes.under_skill_range_damage_end,
+    ),
     SkillTargetTypes.PARTNER_SINGLE: (None, None),
     SkillTargetTypes.PARTNER_RANGE: (None, None),
     SkillTargetTypes.SELF: (None, None),
@@ -66,15 +104,28 @@ def counterattack_actions(context: Context):
     action = context.get_last_action()
     counter_attacker = action.get_defender_hero_in_battle()
     actor = action.actor
-    event_listener_calculator(counter_attacker, actor, EventTypes.counterattack_start, context)
-    event_listener_calculator(actor, counter_attacker, EventTypes.counterattack_start, context)
+    event_listener_calculator(
+        counter_attacker, actor, EventTypes.counterattack_start, context
+    )
+    event_listener_calculator(
+        actor, counter_attacker, EventTypes.counterattack_start, context
+    )
     apply_counterattack_damage(counter_attacker, action.actor, action, context)
-    event_listener_calculator(counter_attacker, actor, EventTypes.counterattack_end, context)
-    event_listener_calculator(actor, counter_attacker, EventTypes.counterattack_end, context)
+    event_listener_calculator(
+        counter_attacker, actor, EventTypes.counterattack_end, context
+    )
+    event_listener_calculator(
+        actor, counter_attacker, EventTypes.counterattack_end, context
+    )
 
 
-def calculation_events(actor: Hero, target: Hero, action: Action, context: Context,
-                       apply_func: Callable[[Hero, Hero or None, Action, Context], None]):
+def calculation_events(
+    actor: Hero,
+    target: Hero,
+    action: Action,
+    context: Context,
+    apply_func: Callable[[Hero, Hero or None, Action, Context], None],
+):
     actions_start_event_type = action_type_to_event_dict[action.type][0]
     actions_end_event_type = action_type_to_event_dict[action.type][1]
     under_action_start_event_type = under_action_type_to_event_dict[action.type][0]
@@ -107,26 +158,50 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
         is_hero_live(actor, target, context)
 
 
-def skill_events(actor_instance: Hero, counter_instance: Hero or None, action: Action, context: Context,
-                 apply_func: Callable[[Hero, Hero or None, Action, Context], None]):
+def skill_events(
+    actor_instance: Hero,
+    counter_instance: Hero or None,
+    action: Action,
+    context: Context,
+    apply_func: Callable[[Hero, Hero or None, Action, Context], None],
+):
     skill_start_event_type = skill_type_to_event_dict[action.skill.temp.target_type][0]
-    under_skill_start_event_type = under_skill_type_to_event_dict[action.skill.temp.target_type][0]
+    under_skill_start_event_type = under_skill_type_to_event_dict[
+        action.skill.temp.target_type
+    ][0]
     skill_end_event_type = skill_type_to_event_dict[action.skill.temp.target_type][1]
-    under_skill_end_event_type = under_skill_type_to_event_dict[action.skill.temp.target_type][1]
-    event_listener_calculator(actor_instance, counter_instance, skill_start_event_type, context)
-    event_listener_calculator(counter_instance, actor_instance, under_skill_start_event_type, context)
+    under_skill_end_event_type = under_skill_type_to_event_dict[
+        action.skill.temp.target_type
+    ][1]
+    event_listener_calculator(
+        actor_instance, counter_instance, skill_start_event_type, context
+    )
+    event_listener_calculator(
+        counter_instance, actor_instance, under_skill_start_event_type, context
+    )
     calculation_events(actor_instance, counter_instance, action, context, apply_func)
-    event_listener_calculator(actor_instance, counter_instance, skill_end_event_type, context)
-    event_listener_calculator(counter_instance, actor_instance, under_skill_end_event_type, context)
+    event_listener_calculator(
+        actor_instance, counter_instance, skill_end_event_type, context
+    )
+    event_listener_calculator(
+        counter_instance, actor_instance, under_skill_end_event_type, context
+    )
 
 
 def is_hero_live(hero_instance: Hero, counter_instance: Hero or None, context: Context):
     if hero_instance.current_life <= 0:
-        event_listener_calculator(hero_instance, counter_instance, EventTypes.hero_death, context)
+        event_listener_calculator(
+            hero_instance, counter_instance, EventTypes.hero_death, context
+        )
         context.set_hero_died(hero_instance)
 
 
-def move_event(actor: Hero, action: Action, context: Context, apply_func: Callable[[Hero, Action, Context], None]):
+def move_event(
+    actor: Hero,
+    action: Action,
+    context: Context,
+    apply_func: Callable[[Hero, Action, Context], None],
+):
     if action.movable:
         event_listener_calculator(actor, None, EventTypes.move_start, context)
         apply_func(actor, action, context)
@@ -145,7 +220,10 @@ def apply_action(context: Context, action: Action):
     move_event(actor, action, context, apply_move)
 
     # events_check_order: battle events -> damage skill events -> damage events
-    if action.type == ActionTypes.NORMAL_ATTACK or action.type == ActionTypes.SKILL_ATTACK:
+    if (
+        action.type == ActionTypes.NORMAL_ATTACK
+        or action.type == ActionTypes.SKILL_ATTACK
+    ):
         check_protector(context)
         action.update_is_in_battle(check_if_in_battle(action, context))
         if action.is_in_battle:
@@ -182,7 +260,13 @@ def apply_action(context: Context, action: Action):
         move_event(actor, action, context, apply_additional_move)
 
     if action.additional_skill is not None:
-        skill_events(actor, action.additional_skill.targets, action, context, apply_additional_skill)
+        skill_events(
+            actor,
+            action.additional_skill.targets,
+            action,
+            context,
+            apply_additional_skill,
+        )
 
     if action.additional_action is not None:
         apply_action(context, action.additional_action.action)
@@ -193,7 +277,9 @@ def apply_action(context: Context, action: Action):
     # trigger partners event listener
     for hero in context.heroes:
         if hero.player_id == context.get_heroes_by_player_id(actor.player_id):
-            event_listener_calculator(hero, actor, EventTypes.partner_action_end, context)
+            event_listener_calculator(
+                hero, actor, EventTypes.partner_action_end, context
+            )
         else:
             event_listener_calculator(hero, actor, EventTypes.enemy_action_end, context)
 

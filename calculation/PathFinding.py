@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from primitives.map import BattleMap
 
@@ -12,21 +13,35 @@ from primitives.map.TerrainType import TerrainType
 
 type TerrainMap = List[List[Terrain]]
 
-
 def is_accessible(x, y, terrain_map: TerrainMap, can_fly: bool):
     if can_fly:
-        return terrain_map[y][x].terrain_type in [TerrainType.NORMAL, TerrainType.FLYABLE_OBSTACLE,
-                                                  TerrainType.EFFECT_SPAWN, TerrainType.HERO_SPAWN]
+        return terrain_map[y][x].terrain_type in [
+            TerrainType.NORMAL,
+            TerrainType.FLYABLE_OBSTACLE,
+            TerrainType.EFFECT_SPAWN,
+            TerrainType.HERO_SPAWN,
+        ]
     else:
-        return terrain_map[y][x].terrain_type in [TerrainType.NORMAL, TerrainType.EFFECT_SPAWN, TerrainType.HERO_SPAWN]
+        return terrain_map[y][x].terrain_type in [
+            TerrainType.NORMAL,
+            TerrainType.EFFECT_SPAWN,
+            TerrainType.HERO_SPAWN,
+        ]
 
 
 def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly):
     width, height = terrain_map.width, terrain_map.height
-    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  # Four primary directions for movement
+    directions = [
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1),
+    ]  # Four primary directions for movement
     start = tuple(start)  # Convert start to tuple to make it hashable
     visited = {start}  # Record visited positions, including the starting position
-    queue = deque([(start, 0)])  # Queue to manage BFS, with each item being a tuple of position and current step count
+    queue = deque(
+        [(start, 0)]
+    )  # Queue to manage BFS, with each item being a tuple of position and current step count
     reachable = {start}  # List to accumulate reachable positions
 
     while queue:
@@ -38,12 +53,15 @@ def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly):
             reachable.add((x, y))
             for dx, dy in directions:
                 new_x, new_y = x + dx, y + dy
-                if 0 <= new_x < width and 0 <= new_y < height and (new_x, new_y) not in visited:
+                if (
+                    0 <= new_x < width
+                    and 0 <= new_y < height
+                    and (new_x, new_y) not in visited
+                ):
                     visited.add((new_x, new_y))
                     queue.append(((new_x, new_y), steps + 1))
 
     return reachable
-
 
 
 class PriorityQueue:

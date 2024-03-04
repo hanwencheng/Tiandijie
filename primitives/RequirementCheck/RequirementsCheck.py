@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 from primitives.RequirementCheck.BuffRequirementChecks import BuffRequirementChecks
 from primitives.RequirementCheck.CheckHelpers import _is_attacker
 from primitives.RequirementCheck.LifeRequirementChecks import LifeRequirementChecks
-from primitives.RequirementCheck.PositionRequirementChecks import PositionRequirementChecks
+from primitives.RequirementCheck.PositionRequirementChecks import (
+    PositionRequirementChecks,
+)
 
 if TYPE_CHECKING:
     from primitives.Context import Context
@@ -15,30 +17,42 @@ from primitives.hero.Element import get_elemental_relationship, ElementRelations
 
 from primitives.hero.HeroBasics import Professions, Gender
 
+
 class RequirementCheck:
     # TODO  should not include any function related to level2 modifier
 
     @staticmethod
-    def enemies_in_skill_range(maximum_count: int, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def enemies_in_skill_range(
+        maximum_count: int, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         counted_enemies = 0
         action = context.get_last_action()
         skill = action.skill
         for hero in context.heroes:
             if hero.player_id != actor_hero.player_id:
-                if skill.temp.range.check_if_target_in_range(actor_hero.position, skill.target_point, hero.position):
+                if skill.temp.range.check_if_target_in_range(
+                    actor_hero.position, skill.target_point, hero.position
+                ):
                     counted_enemies += 1
         return min(maximum_count, counted_enemies)
 
     @staticmethod
-    def battle_with_certain_hero(hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def battle_with_certain_hero(
+        hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         action = context.get_last_action()
         if action.is_in_battle:
-            if target_hero.temp.id == hero_temp_id or actor_hero.temp.id == hero_temp_id:
+            if (
+                target_hero.temp.id == hero_temp_id
+                or actor_hero.temp.id == hero_temp_id
+            ):
                 return 1
         return 0
 
     @staticmethod
-    def battle_with_caster(actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff) -> int:
+    def battle_with_caster(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
         caster_id = buff.caster_id
         action = context.get_last_action()
         if action.is_in_battle:
@@ -47,7 +61,9 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def attacked_by_caster(actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff) -> int:
+    def attacked_by_caster(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
         caster_id = buff.caster_id
         action = context.get_last_action()
         if action.is_in_battle and _is_attacker(target_hero, context):
@@ -56,7 +72,9 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def move_less_or_equal_than(max_move: int, actor_hero: Hero, target_hero: Hero, context: Context):
+    def move_less_or_equal_than(
+        max_move: int, actor_hero: Hero, target_hero: Hero, context: Context
+    ):
         action = context.get_last_action()
         if actor_hero == action.actor:
             if action.moves <= max_move:
@@ -64,28 +82,36 @@ class RequirementCheck:
         return False
 
     @staticmethod
-    def all_skills_in_cooldown(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def all_skills_in_cooldown(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         for skill in actor_hero.enabled_skills:
             if skill.cool_down > 0:
                 return 0
         return 1
 
     @staticmethod
-    def self_all_active_skills_in_cooldown(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def self_all_active_skills_in_cooldown(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         for skill in actor_hero.enabled_skills:
             if skill not in actor_hero.temp.passives and skill.cool_down > 0:
                 return 0
         return 1
 
     @staticmethod
-    def target_all_active_skills_in_cooldown(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def target_all_active_skills_in_cooldown(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         for skill in target_hero.enabled_skills:
             if skill not in target_hero.temp.passives and skill.cool_down > 0:
                 return 0
         return 1
 
     @staticmethod
-    def in_battle_with_non_flyable(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def in_battle_with_non_flyable(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         action = context.get_last_action()
         if action.is_in_battle:
             if target_hero.temp.flyable:
@@ -95,10 +121,12 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def in_battle_with_non_female(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def in_battle_with_non_female(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         action = context.get_last_action()
         if action.is_in_battle:
-            if target_hero.temp.gender!=Gender.FEMALE:
+            if target_hero.temp.gender != Gender.FEMALE:
                 return 1
         return 0
 
@@ -107,12 +135,17 @@ class RequirementCheck:
         return 1
 
     @staticmethod
-    def battle_with_no_element_advantage(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def battle_with_no_element_advantage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
         action = context.get_last_action()
         if action.is_in_battle:
             actor_element = actor_hero.temp.element
             target_element = target_hero.temp.element
-            if get_elemental_relationship(actor_element, target_element) == ElementRelationships.NEUTRAL:
+            if (
+                get_elemental_relationship(actor_element, target_element)
+                == ElementRelationships.NEUTRAL
+            ):
                 return 1
             else:
                 return 0

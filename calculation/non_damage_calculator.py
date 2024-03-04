@@ -18,7 +18,9 @@ def apply_additional_move(actor: Hero, action: Action, context: Context):
     actor.update_position(action.additional_move)
 
 
-def apply_additional_skill(actor: Hero, target: Hero or None, action: Action, context: Context):
+def apply_additional_skill(
+    actor: Hero, target: Hero or None, action: Action, context: Context
+):
     actor = context.get_last_action().actor
 
 

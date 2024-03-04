@@ -27,7 +27,9 @@ class AdditionalSkill:
 
 
 class Action:
-    def __init__(self, cast_hero: Hero, affected_heroes, skill: Skill, movable, actionable):
+    def __init__(
+        self, cast_hero: Hero, affected_heroes, skill: Skill, movable, actionable
+    ):
         self.targets: List[Hero] = affected_heroes
         self.total_damage: float = 0
         self.is_magic: bool = skill.temp.is_magic()

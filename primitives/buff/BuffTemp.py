@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from primitives.effects import EventListener
     from calculation.Modifier import Modifier
@@ -16,8 +17,16 @@ class BuffTypes(enum.IntEnum):
 
 
 class BuffTemp:
-    def __init__(self, buff_id: string, buff_type: BuffTypes, dispellable, expandable, stealable,
-                 modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = None, on_event: List[EventListener] = None):
+    def __init__(
+        self,
+        buff_id: string,
+        buff_type: BuffTypes,
+        dispellable,
+        expandable,
+        stealable,
+        modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = None,
+        on_event: List[EventListener] = None,
+    ):
         if modifier_effects is None:
             modifier_effects = [[]]
             self.upgradable = False

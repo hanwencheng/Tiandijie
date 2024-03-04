@@ -60,4 +60,3 @@ class Modifier:
         for key, value in modifier_dict.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-

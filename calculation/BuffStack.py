@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from primitives.buff.Buff import Buff
 from typing import List
@@ -13,8 +14,10 @@ class BuffStack:
 
 
 buff_max_stack = {
-    "xianzui": BuffStack(3, [ma.physical_damage_reduction_percentage, ma.physical_damage_percentage]),
-    "xiayi": BuffStack(3, [])
+    "xianzui": BuffStack(
+        3, [ma.physical_damage_reduction_percentage, ma.physical_damage_percentage]
+    ),
+    "xiayi": BuffStack(3, []),
 }
 
 

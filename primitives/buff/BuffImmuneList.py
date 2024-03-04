@@ -1,7 +1,7 @@
 from typing import List
 
 immune_dict = {
-    #免疫「移动力降低」
+    # 免疫「移动力降低」
     "xinbu": ["chihuan", "wucui_chihuan", "shuangdong"],
 }
 

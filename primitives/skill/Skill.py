@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 
 
 class Skill:
-    def __init__(self, current_cool_down: int, skill_temp: SkillTemp, target_point: Position):
+    def __init__(
+        self, current_cool_down: int, skill_temp: SkillTemp, target_point: Position
+    ):
         self.cool_down = current_cool_down
         self.temp = skill_temp
         self.target_point = target_point

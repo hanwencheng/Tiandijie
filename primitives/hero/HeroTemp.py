@@ -7,16 +7,25 @@ from primitives.hero.Attributes import Attributes, generate_max_level_attributes
 from primitives.hero.BasicAttributes import AttributesTuple
 from primitives.skill.SkillTemp import create_normal_attack_skill
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from primitives import Passive
 
 
 class HeroTemp:
-    def __init__(self, basicInfo, element, profession, level0_attributes, growth_coefficients, skills):
+    def __init__(
+        self,
+        basicInfo,
+        element,
+        profession,
+        level0_attributes,
+        growth_coefficients,
+        skills,
+    ):
         self.current_life: float = 1
         self.name = "玄羽"
         self.rarity = "绝"
-        self.id = 'xuanyu'
+        self.id = "xuanyu"
         self.is_normal_attack_magic = is_normal_attack_magic(profession)
         self.normal_attack = create_normal_attack_skill(element, profession, None)
         self.flyable = False
@@ -38,7 +47,7 @@ class HeroTemp:
             "中级": ["飞羽憾魄"],
             "高级": ["迅", "奋力", "漫天箭雨", "摧心闇矢"],
             "特级": ["晦弓在弦"],
-            "极级": ["魂", "贯甲咒"]
+            "极级": ["魂", "贯甲咒"],
         }
         self.weapons = ["柳木弓", "缠银弓", "暮云弓", "幽蚕弓"]
         self.weapon_features = ["鹤唳", "翎牙", "锁心"]
@@ -48,9 +57,7 @@ class HeroTemp:
 
     def initialize_attributes(self):
         generate_max_level_attributes(
-            self.current_attributes,
-            self.growth_coefficients,
-            self.profession
+            self.current_attributes, self.growth_coefficients, self.profession
         )
         self.current_life = self.current_attributes.life
 

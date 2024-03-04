@@ -23,7 +23,7 @@ elemental_advantage = {
     Elements.WATER: Elements.FIRE,
     Elements.LIGHT: Elements.DARK,
     Elements.DARK: Elements.ETHEREAL,
-    Elements.ETHEREAL: Elements.LIGHT
+    Elements.ETHEREAL: Elements.LIGHT,
 }
 
 elemental_disadvantage = {
@@ -32,20 +32,28 @@ elemental_disadvantage = {
     Elements.WATER: Elements.THUNDER,
     Elements.LIGHT: Elements.ETHEREAL,
     Elements.DARK: Elements.LIGHT,
-    Elements.ETHEREAL: Elements.DARK
+    Elements.ETHEREAL: Elements.DARK,
 }
 
 elemental_multiplier = {
     ElementRelationships.ADVANTAGE: 1.3,
     ElementRelationships.DISADVANTAGE: 0.75,
-    ElementRelationships.NEUTRAL: 1
+    ElementRelationships.NEUTRAL: 1,
 }
 
 
-def get_elemental_relationship(base_element: Elements, compare_element: Elements) -> ElementRelationships:
-    if base_element in elemental_advantage and elemental_advantage[base_element] == compare_element:
+def get_elemental_relationship(
+    base_element: Elements, compare_element: Elements
+) -> ElementRelationships:
+    if (
+        base_element in elemental_advantage
+        and elemental_advantage[base_element] == compare_element
+    ):
         return ElementRelationships.ADVANTAGE
-    elif base_element in elemental_disadvantage and elemental_disadvantage[base_element] == compare_element:
+    elif (
+        base_element in elemental_disadvantage
+        and elemental_disadvantage[base_element] == compare_element
+    ):
         return ElementRelationships.DISADVANTAGE
     else:
         return ElementRelationships.NEUTRAL

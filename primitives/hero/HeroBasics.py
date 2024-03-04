@@ -16,4 +16,3 @@ class Professions(enum.Enum):
     ARCHER = (5, 2, 3)
     RIDER = (6, 1, 5)
     WARRIOR = (7, 1, 4)
-

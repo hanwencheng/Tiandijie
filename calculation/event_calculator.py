@@ -21,14 +21,19 @@ skill_related_events = [
     EventTypes.under_skill_range_damage_end,
 ]
 
+
 class EventListenerContainer:
     def __init__(self, event_listener: EventListener, instance_self: Any):
         self.event_listener = event_listener
         self.instance_self = instance_self
 
 
-def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or None, event_type: EventTypes,
-                              context: Context):
+def event_listener_calculator(
+    actor_instance: Hero,
+    counter_instance: Hero or None,
+    event_type: EventTypes,
+    context: Context,
+):
     if actor_instance.is_alive is False:
         return
     event_listener_containers: List[EventListenerContainer] = []
@@ -40,14 +45,18 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
         buff_event_listeners: List[EventListener] = buff.temp.event_listeners
         for event_listener in buff_event_listeners:
             if event_listener.event_type == event_type:
-                event_listener_containers.append(EventListenerContainer(event_listener, buff))
+                event_listener_containers.append(
+                    EventListenerContainer(event_listener, buff)
+                )
 
     # Calculated Skills
     if event_type in skill_related_events:
         skill = current_action.skill
-        for event_listener in  skill.temp.event_listeners:
+        for event_listener in skill.temp.event_listeners:
             if event_listener.event_type == event_type:
-                event_listener_containers.append(EventListenerContainer(event_listener, skill))
+                event_listener_containers.append(
+                    EventListenerContainer(event_listener, skill)
+                )
 
     # Calculate Talents
 
@@ -57,7 +66,9 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
         formation_event_listeners: List[EventListener] = formation.temp.event_listeners
         for event_listener in formation_event_listeners:
             if event_listener.event_type == event_type:
-                event_listener_containers.append(EventListenerContainer(event_listener, formation))
+                event_listener_containers.append(
+                    EventListenerContainer(event_listener, formation)
+                )
 
     # Calculate Passives
 
@@ -65,7 +76,16 @@ def event_listener_calculator(actor_instance: Hero, counter_instance: Hero or No
     event_listener_containers.sort(key=lambda x: x.listener.priority)
 
     for event_listener_container in event_listener_containers:
-        multiplier = event_listener_container.event_listener.requirement(actor_instance, counter_instance, context, event_listener_container.instance_self)
+        multiplier = event_listener_container.event_listener.requirement(
+            actor_instance,
+            counter_instance,
+            context,
+            event_listener_container.instance_self,
+        )
         if round(multiplier) > 0:
-            event_listener_container.event_listener.listener_effects(actor_instance, counter_instance, context,
-                                                                     event_listener_container.instance_self)
+            event_listener_container.event_listener.listener_effects(
+                actor_instance,
+                counter_instance,
+                context,
+                event_listener_container.instance_self,
+            )

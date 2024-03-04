@@ -5,11 +5,17 @@ from primitives.Context import Context
 
 
 def is_harm_buff(buff):
-    return isinstance(buff, BuffTemp) and buff.type == BuffTypes.Harm and buff.dispellable
+    return (
+        isinstance(buff, BuffTemp) and buff.type == BuffTypes.Harm and buff.dispellable
+    )
 
 
 def is_benefit_buff(buff):
-    return isinstance(buff, BuffTemp) and buff.type == BuffTypes.Benefit and buff.dispellable
+    return (
+        isinstance(buff, BuffTemp)
+        and buff.type == BuffTypes.Benefit
+        and buff.dispellable
+    )
 
 
 def setup_context() -> Context:

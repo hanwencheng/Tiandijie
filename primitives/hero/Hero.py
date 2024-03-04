@@ -38,7 +38,7 @@ class Hero:
         initial_attributes = generate_max_level_attributes(
             self.temp.level0_attributes,
             self.temp.growth_coefficients,
-            self.temp.profession
+            self.temp.profession,
         )
         self.initial_attributes = initial_attributes
         self.current_life = self.initial_attributes.life

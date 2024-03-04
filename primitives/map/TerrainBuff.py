@@ -29,6 +29,17 @@ class TerrainBuff:
 
 
 class TerrainBuffTemps(Enum):
-    fire = TerrainBuffTemp('fire', True, {}, [
-        EventListener(EventTypes.action_end, 1, RS.always_true, partial(Effects.take_fixed_damage_by_percentage, percentange=0.1))])
-    ice = TerrainBuffTemp('ice', True, {'move_range': -1})
+    fire = TerrainBuffTemp(
+        "fire",
+        True,
+        {},
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.take_fixed_damage_by_percentage, percentange=0.1),
+            )
+        ],
+    )
+    ice = TerrainBuffTemp("ice", True, {"move_range": -1})

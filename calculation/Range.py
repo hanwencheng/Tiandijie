@@ -13,32 +13,54 @@ from basics import Position
 
 
 # return the area in the right bottom direction based on the actor point
-def calculate_direction_area(base_point: Position, current_action_point: Position, length: int, width: int) -> List[Position]:
+def calculate_direction_area(
+    base_point: Position, current_action_point: Position, length: int, width: int
+) -> List[Position]:
     area_map = []
     # in right direction
-    if current_action_point[0] - base_point[0] > 0 and base_point[1] == current_action_point[1]:
-        print('in right direction')
+    if (
+        current_action_point[0] - base_point[0] > 0
+        and base_point[1] == current_action_point[1]
+    ):
+        print("in right direction")
         for i in range(length):
             for j in range(width):
-                area_map.append((base_point[0] + i + 1, base_point[1] - floor(width / 2) + j))
+                area_map.append(
+                    (base_point[0] + i + 1, base_point[1] - floor(width / 2) + j)
+                )
     # in left direction
-    elif base_point[0] - current_action_point[0] > 0 and base_point[1] == current_action_point[1]:
-        print('in left direction')
+    elif (
+        base_point[0] - current_action_point[0] > 0
+        and base_point[1] == current_action_point[1]
+    ):
+        print("in left direction")
         for i in range(length):
             for j in range(ceil(width / 2) + 1):
-                area_map.append((base_point[0] - i - 1, base_point[1] - floor(width / 2) + j))
+                area_map.append(
+                    (base_point[0] - i - 1, base_point[1] - floor(width / 2) + j)
+                )
     # in top direction
-    elif base_point[0] == current_action_point[0] and base_point[1] - current_action_point[1] > 0:
-        print('in top direction')
+    elif (
+        base_point[0] == current_action_point[0]
+        and base_point[1] - current_action_point[1] > 0
+    ):
+        print("in top direction")
         for i in range(length):
             for j in range(width):
-                area_map.append((base_point[0] - floor(width / 2) + j, base_point[1] - i - 1))
+                area_map.append(
+                    (base_point[0] - floor(width / 2) + j, base_point[1] - i - 1)
+                )
     # in bottom direction
-    elif current_action_point[0] == base_point[0] and current_action_point[1] - base_point[1] > 0:
-        print('in bottom direction')
+    elif (
+        current_action_point[0] == base_point[0]
+        and current_action_point[1] - base_point[1] > 0
+    ):
+        print("in bottom direction")
         for i in range(length):
             for j in range(width):
-                area_map.append((base_point[0] - floor(width / 2) + j, base_point[1] + i + 1))
+                area_map.append(
+                    (base_point[0] - floor(width / 2) + j, base_point[1] + i + 1)
+                )
     return area_map
 
 
@@ -84,15 +106,21 @@ def calculate_square_area(action_point: Position, range_value: int):
 
 
 class Range:
-    def __init__(self, range_type: RangeType, range_value: int = 0, length=None, width=None):
+    def __init__(
+        self, range_type: RangeType, range_value: int = 0, length=None, width=None
+    ):
         self.range_type = range_type
         self.range = range_value
         self.length = length
         self.width = width
 
-    def get_area(self, base_position: Position, action_point: Position) -> List[Position]:
+    def get_area(
+        self, base_position: Position, action_point: Position
+    ) -> List[Position]:
         if self.range_type == RangeType.DIRECTIONAL:
-            return calculate_direction_area(base_position, action_point, self.length, self.width)
+            return calculate_direction_area(
+                base_position, action_point, self.length, self.width
+            )
         elif self.range_type == RangeType.POINT:
             return [action_point]
         elif self.range_type == RangeType.DIAMOND:
@@ -102,7 +130,9 @@ class Range:
         else:
             return calculate_square_area(base_position, self.range)
 
-    def check_if_target_in_range(self, base_position: Position, action_point: Position, target_position: Position) -> bool:
+    def check_if_target_in_range(
+        self, base_position: Position, action_point: Position, target_position: Position
+    ) -> bool:
         area_map = self.get_area(base_position, action_point)
         return target_position in area_map
 
@@ -123,12 +153,21 @@ def create_square_range(range_value: int) -> Range:
     return Range(RangeType.SQUARE, range_value)
 
 
-def calculate_if_targe_in_diamond_range(base_position: Position, target_position: Position, range_value: int) -> bool:
-    return abs(base_position[0] - target_position[0]) + abs(base_position[1] - target_position[1]) <= range_value
+def calculate_if_targe_in_diamond_range(
+    base_position: Position, target_position: Position, range_value: int
+) -> bool:
+    return (
+        abs(base_position[0] - target_position[0])
+        + abs(base_position[1] - target_position[1])
+        <= range_value
+    )
 
 
 def check_if_target_in_normal_attack_range(actor: Hero, target: Hero) -> bool:
-    return calculate_if_targe_in_diamond_range(actor.position, target.position, actor.temp.range.range)
+    return calculate_if_targe_in_diamond_range(
+        actor.position, target.position, actor.temp.range.range
+    )
+
 
 # class DirectionalRange(Range):
 #     def __int__(self, is_directional: True, length, width, start, end):

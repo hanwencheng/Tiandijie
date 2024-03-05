@@ -57,3 +57,4 @@ class ModifierAttributes:
     is_non_healable = "non_healable"
     is_ignore_protector = "ignore_protector"
     is_ignore_obstacle = "is_ignore_obstacle"
+    is_restrict_by_obstacles = "restrict_by_obstacles"

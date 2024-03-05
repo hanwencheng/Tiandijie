@@ -413,6 +413,21 @@ class Effects:
         # collect all benefit buffs in target.buffs and remove count number of them
         harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
         for harm_buff in harm_buffs:
-            # _add_buffs(harm_buff .temp.id, target)
+            for i in range(buff_level):
+                harm_buff.temp.level += 1
 
-            pass
+    @staticmethod
+    def add_actor_benefit_talent(
+        talent_id: str, actor: Hero, target: Hero, context: Context
+    ):
+        pass
+
+    @staticmethod
+    def reduce_enemy_attributes_except(
+        attributes_temp: List[str],
+        percentage_value: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+    ):
+        pass

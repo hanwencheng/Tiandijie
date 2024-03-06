@@ -944,7 +944,7 @@ class BuffTemps(Enum):
         False,
         [
             ModifierEffect(
-                RS.is_attacker,
+                partial(RS.is_attacker),
                 {
                     ma.critical_percentage: 20,
                     ma.move_range: 1,

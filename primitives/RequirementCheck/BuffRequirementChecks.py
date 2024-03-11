@@ -134,6 +134,15 @@ class BuffRequirementChecks:
         return 0
 
     @staticmethod
+    def self_has_certain_buff(
+        buff_id: str, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        for buff in actor_hero.buffs:
+            if buff.temp.id == buff_id:
+                return 1
+        return 0
+
+    @staticmethod
     def self_has_move_buff(
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:

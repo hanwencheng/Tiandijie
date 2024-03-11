@@ -197,7 +197,7 @@ class Effects:
         context: Context,
     ):
         actor = context.actor
-        _add_buffs(actor, target, buff_temp, duration)
+        _add_buffs(actor, target, buff_temp, duration, context)
 
     @staticmethod
     def add_fixed_damage_with_attack_and_defense(
@@ -209,8 +209,8 @@ class Effects:
     ):
         if check_is_attacker(actor_instance, context):
             damage = (
-                get_attack(actor_instance, target_instance, is_magic, context)
-                + get_defense(target_instance, actor_instance, is_magic, context)
+                get_attack(actor_instance, target_instance, context, is_magic)
+                + get_defense(target_instance, actor_instance, context, is_magic)
             ) * multiplier
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
@@ -224,10 +224,35 @@ class Effects:
     ):
         if check_is_attacker(actor_instance, context):
             damage = (
-                get_attack(actor_instance, target_instance, is_magic, context)
+                get_attack(actor_instance, target_instance, context, is_magic)
                 * multiplier
             )
             calculate_fix_damage(damage, actor_instance, target_instance, context)
+
+    @staticmethod
+    def add_fixed_damage_with_physical_and_magic_attack(
+        multiplier: float,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+    ):
+        if check_is_attacker(actor_instance, context):
+            damage = (
+                get_attack(actor_instance, target_instance, context, False)
+                + get_attack(actor_instance, target_instance, context, True)
+            ) * multiplier
+            calculate_fix_damage(damage, actor_instance, target_instance, context)
+
+    @staticmethod
+    def receive_fixed_damage_with_life_by_self(
+        multiplier: float,
+        is_magic: bool,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+    ):
+        damage = actor_instance.current_life * multiplier
+        calculate_fix_damage(damage, actor_instance, actor_instance, context)
 
     @staticmethod
     def add_target_harm_buffs(
@@ -426,9 +451,8 @@ class Effects:
     ):
         # collect all benefit buffs in target.buffs and remove count number of them
         harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
-        for harm_buff in harm_buffs:
-            for i in range(buff_level):
-                harm_buff.temp.level += 1
+        for i in range(buff_level):
+            _add_buffs(actor, target, harm_buffs, harm_buffs[i].duration, context)
 
     @staticmethod
     def take_effect_of_tianjiyin(
@@ -442,7 +466,7 @@ class Effects:
                 target_instance=target,
                 context=context,
             )
-        else:  #  反之为自身3格范围内4个其他友方施加1个随机「有益状态」
+        else:  # 反之为自身3格范围内4个其他友方施加1个随机「有益状态」
             Effects.add_partner_benefit_buffs(
                 buff_number=1,
                 range_value=3,
@@ -466,3 +490,113 @@ class Effects:
                     attribute_name,
                     getattr(target.temp, attribute_name) * (1 - percentage_value),
                 )
+
+    @staticmethod
+    def reverse_actor_harm_buffs(
+        buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
+        if not harm_buffs:
+            return
+        selected_buffs = random_select(harm_buffs, buff_count)
+        new_benefit_buffs = random_select(context.benefit_buffs, buff_count)
+
+        for i in range(buff_count):
+            _remove_actor_certain_buff(selected_buffs[i].temp.id, target)
+            _add_buffs(
+                actor,
+                target,
+                [new_benefit_buffs[i].temp],
+                selected_buffs[i].duration,
+                context,
+            )
+
+    @staticmethod
+    def add_self_random_harm_buff(
+        buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        harm_buffs = random_select(context.harm_buffs, buff_count)
+        _add_buffs(actor, actor, harm_buffs, 2, context)
+
+    @staticmethod
+    def add_caster_random_benefit_buff(
+        buff_count: int, actor: Hero, target: Hero, context: Context, buff: Buff,
+    ):
+        benefit_buffs = random_select(context.benefit_buffs, buff_count)
+        caster_hero = context.get_hero_by_id(buff.caster_id)
+        _add_buffs(actor, caster_hero, benefit_buffs, 2, context)
+
+    @staticmethod
+    def add_partner_random_benefit_buff(
+        buff_count: int, range_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        benefit_buffs = random_select(context.benefit_buffs, buff_count)
+        partners = context.get_partners_in_diamond_range(actor, range_value)
+        for partner in partners:
+            _add_buffs(actor, partner, benefit_buffs, 2, context)
+
+    @staticmethod
+    def kill_self(actor: Hero, target: Hero, context: Context):
+        actor.current_life = 0
+        actor.is_alive = False
+        actor.buffs = []
+
+    @staticmethod
+    def heal_partner_and_add_benefit_buff_by_caster(
+        multiplier: float, range_value: int, actor: Hero, target: Hero, context: Context, buff: Buff,
+    ):
+        caster_hero = context.get_hero_by_id(buff.caster_id)
+        if caster_hero.alive:
+            partners = context.get_partners_in_diamond_range(caster_hero, range_value)
+            for partner in partners:
+                partner.current_life += caster_hero.magic_attack * multiplier
+                if partner.current_life > partner.max_life:
+                    partner.current_life = partner.max_life
+                benefit_buffs = random_select(context.benefit_buffs, 1)
+                _add_buffs(actor, partner, benefit_buffs, 2, context)
+
+    @staticmethod
+    def increase_self_loongest_skill_cooldown(
+        cooldown_reduction: int, actor: Hero, target: Hero, context: Context
+    ):
+        longest_skill = max(actor.enabled_skills, key=lambda x: x.cool_down)
+        longest_skill.cool_down += cooldown_reduction
+
+    @staticmethod
+    def reduce_self_all_skill_cooldown(
+        cooldown_reduction: int, actor: Hero, target: Hero, context: Context
+    ):
+        for skill in actor.enabled_skills:
+            skill.cool_down -= cooldown_reduction
+            if skill.cool_down < 0:
+                skill.cool_down = 0
+
+    @staticmethod
+    def steal_target_benefit_buff(
+        buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        benefit_buffs = [
+            buff for buff in target.buffs if buff.temp.type == BuffTypes.Benefit
+        ]
+        selected_buffs = random_select(benefit_buffs, buff_count)
+        for selected_buff in selected_buffs:
+            _remove_actor_certain_buff(selected_buffs.temp.id, target)
+            _add_buffs(
+                actor, actor, selected_buff.temp.id, selected_buff.duration, context
+            )
+
+    @staticmethod
+    def take_effect_of_suhun(
+            multiplier: int, actor: Hero, target: Hero, context: Context
+    ):
+        if not actor.is_taken_suhun:
+            Effects.heal_self(multiplier, actor, target, context)
+            actor.is_taken_suhun = True
+
+    @staticmethod
+    def heal_self_by_magic_attack(
+        multiplier: float, actor: Hero, target: Hero, context: Context
+    ):
+        actor.current_life += actor.magic_attack * multiplier
+        if actor.current_life > actor.max_life:
+            actor.current_life = actor.max_life

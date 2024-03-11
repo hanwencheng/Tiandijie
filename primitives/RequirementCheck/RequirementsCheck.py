@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
     from primitives.buff.Buff import Buff
+    from primitives.skill.SkillTypes import SkillTargetTypes
+    from primitives.hero.Element import Elements
+
 
 from primitives.hero.Element import get_elemental_relationship, ElementRelationships
 
@@ -154,6 +157,66 @@ class RequirementCheck:
     @staticmethod
     def is_attacker(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         return _is_attacker(actor_hero, context)
+
+    @staticmethod
+    def target_is_remote(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        if target_hero.temp.profession in [Professions.SORCERER, Professions.PRIEST, Professions.ARCHER]:
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_is_single_target_damage_and_life_is_higher_percentage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> float:
+        skill_target_type = context.get_last_action().skill.target_type
+        if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
+            return actor_hero.current_life / actor_hero.max_life
+        return 0
+
+    @staticmethod
+    def skill_is_water_element(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(actor_hero, context):
+            if action.skill.temp.skill_element == Elements.WATER:
+                return 1
+        return 0
+
+    @staticmethod
+    def is_attacked_by_fire_element(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(target_hero, context):
+            if action.skill.temp.skill_element == Elements.FIRE:
+                return 1
+        return 0
+
+    @staticmethod
+    def is_attacked_by_non_flyer(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(target_hero, context):
+            if not target_hero.temp.flyable:
+                return 1
+        return 0
+
+    @staticmethod
+    def attack_to_advantage_elements(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(actor_hero, context):
+            if (
+                get_elemental_relationship(
+                    actor_hero.temp.element, target_hero.temp.element
+                )
+                == ElementRelationships.ADVANTAGE
+            ):
+                return 1
+        return 0
 
     LifeChecks: LifeRequirementChecks
     PositionChecks: PositionRequirementChecks

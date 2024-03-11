@@ -966,18 +966,10 @@ class BuffTemps(Enum):
             ModifierEffect(
                 RS.always_true,
                 {ma.counterattack_range: 1, ma.is_restrict_by_obstacles: 1},
-            )
-        ],
-        [
-            EventListener(
-                EventTypes.battle_start,
-                1,
-                partial(RS.PositionChecks.in_range, 3),
-                partial(
-                    Effects.reduce_enemy_attributes,
-                    ["attack", "defense", "magic_attack", "magic_defense", "luck"],
-                    10,
-                ),
+            ),
+            ModifierEffect(
+                partial(RS.PositionChecks.in_range_of_enemy, 'xiongbagaoqi', 3),
+                {ma.magic_defense: -10, ma.defense: -10, ma.attack: -10, ma.magic_attack: -10, ma.luck: -10, ma.is_restrict_by_obstacles: 1}
             )
         ],
     )

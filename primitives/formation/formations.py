@@ -328,7 +328,7 @@ class Formations:
         [{"element": Elements.DARK}, {"element": Elements.WATER}],
         [
             ModifierEffect(
-                partial(Check.PositionChecks.enemy_in_range_count_bigger_than, 2, 3),
+                partial(Check.PositionChecks.in_range_enemy_count_with_limit, 2, 3),
                 {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5},
             )
         ],

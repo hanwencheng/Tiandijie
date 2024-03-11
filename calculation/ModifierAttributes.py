@@ -44,6 +44,7 @@ class ModifierAttributes:
     physical_protect_range = "physical_protect_range"
     magic_protect_range = "magic_protect_range"
     counterattack_first_limit = "counterattack_first_limit"
+    counterattack_range = "counterattack_range"
 
     element_attacker_multiplier = "element_attacker_multiplier"
     element_defender_multiplier = "element_defender_multiplier"
@@ -55,3 +56,5 @@ class ModifierAttributes:
     is_non_selectable = "non_selectable"
     is_non_healable = "non_healable"
     is_ignore_protector = "ignore_protector"
+    is_ignore_obstacle = "is_ignore_obstacle"
+    is_restrict_by_obstacles = "restrict_by_obstacles"

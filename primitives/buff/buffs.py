@@ -39,15 +39,20 @@ class BuffTemps(Enum):
         [
             [
                 ModifierEffect(
-                    RS.always_true, {ma.physical_protect_range: 1, ma.move_range: -1}
+                    RS.always_true,
+                    {
+                        ma.physical_protect_range: 0,
+                        ma.magic_protect_range: 0,
+                        ma.move_range: -1,
+                    },
                 )
             ],
             [
                 ModifierEffect(
                     RS.always_true,
                     {
-                        ma.physical_protect_range: 1,
-                        ma.magic_protect_range: 1,
+                        ma.physical_protect_range: 0,
+                        ma.magic_protect_range: 0,
                         ma.move_range: -2,
                     },
                 )
@@ -56,8 +61,8 @@ class BuffTemps(Enum):
                 ModifierEffect(
                     RS.always_true,
                     {
-                        ma.physical_protect_range: 1,
-                        ma.magic_protect_range: 1,
+                        ma.physical_protect_range: 0,
+                        ma.magic_protect_range: 0,
                         ma.move_range: -3,
                     },
                 )
@@ -707,8 +712,8 @@ class BuffTemps(Enum):
     )
 
     # 迅捷I	有益	可驱散	可扩散	可偷取	移动力+1
-    xunji = BuffTemp(
-        "xunji",
+    xunjie = BuffTemp(
+        "xunjie",
         BuffTypes.Benefit,
         True,
         True,
@@ -841,3 +846,150 @@ class BuffTemps(Enum):
         [],
     )
 
+    # 处刑    其他 不可驱散   不可扩散   不可偷取   射程和移动力+1，主动攻击后使目标携带的「有害状态」等级提升1级。
+    chuxing = BuffTemp(
+        "chuxing",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [ModifierEffect(RS.always_true, {ma.attack_range: 1, ma.move_range: 1})],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.increase_target_harm_buff_level, buff_level=1),
+            )
+        ],
+    )
+
+    # 复仇	有益	可驱散	可扩散	可偷取	反击伤害提高30%
+    fuchou = BuffTemp(
+        "fuchou",
+        BuffTypes.Benefit,
+        True,
+        True,
+        True,
+        [ModifierEffect(RS.always_true, {ma.counterattack_damage_percentage: 30})],
+        [],
+    )
+
+    # 天玑印	有益	可驱散	不可扩散	不可偷取	免疫所有「有害状态」，获得来自施加者触发的天赋效果（不可复制，不可偷取）
+    # 自身3格范围内每多1个其他友方，法攻提高6%（最多提高18%）。若本回合主动造成伤害，则行动结束时，为3格范围内其他友方恢复气血（恢复量为施术者法攻的0.5倍）；反之为自身3格范围内4个其他友方施加1个随机「有益状态」。
+    tianjiyin = BuffTemp(
+        "tianjiyin",
+        BuffTypes.Benefit,
+        True,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.PositionChecks.in_range_partner_count_with_limit, 3, 3),
+                {ma.magic_attack_percentage: 6},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(Effects.take_effect_of_tianjiyin),
+            )
+        ],
+    )
+
+    # 天魔护铠	其他	不可驱散	不可扩散	不可偷取	免伤提高50%（受到伤害后消失）
+    tianmohukai = BuffTemp(
+        "tianmohukai",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 50})],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.remove_actor_certain_buff, "tianmohukai"),
+            )
+        ],
+    )
+
+    # 天鼓法华	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，获得「迅捷I」状态，持续1回合。
+    tiangufahua = BuffTemp(
+        "tiangufahua",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.partner_action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(Effects.add_buffs, buff_temp=["xunjie"], duration=1),
+            )
+        ],
+    )
+
+    # 如燕	其他	不可驱散	不可扩散	不可偷取	主动攻击「对战中」暴击率提高20%，移动力+1，可跨越障碍（不可驱散）
+    ruyan = BuffTemp(
+        "ruyan",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.is_attacker),
+                {
+                    ma.critical_percentage: 20,
+                    ma.move_range: 1,
+                    ma.is_ignore_obstacle: 1,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 威慑	其他	不可驱散	不可扩散	不可偷取	自身反击射程+1，3格范围内所有敌人除气血外全属性降低10%，且具有轻功能力的角色翻越障碍能力失效
+    weishe = BuffTemp(
+        "weishe",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.counterattack_range: 1, ma.is_restrict_by_obstacles: 1},
+            ),
+            ModifierEffect(
+                partial(RS.PositionChecks.in_range_of_enemy, 'xiongbagaoqi', 3),
+                {ma.magic_defense: -10, ma.defense: -10, ma.attack: -10, ma.magic_attack: -10, ma.luck: -10, ma.is_restrict_by_obstacles: 1}
+            )
+        ],
+    )
+
+    # 定身	有害	不可驱散	不可扩散	不可偷取	无法移动，无法护卫
+    dingshen = BuffTemp(
+        "dingshen",
+        BuffTypes.Harm,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.move_range: 0,
+                    ma.physical_protect_range: 0,
+                    ma.magic_protect_range: 0,
+                },
+            )
+        ],
+        [],
+    )

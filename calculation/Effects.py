@@ -287,6 +287,20 @@ class Effects:
             _add_buffs(actor, partner, selected_harm_buff_temps, duration)
 
     @staticmethod
+    def add_partner_benefit_buffs(
+        buff_number: int,
+        range_value: int,
+        duration: int,
+        is_attacker: bool,
+        context: Context,
+    ):
+        actor = context.get_actor_by_side_in_battle(is_attacker)
+        partners = context.get_partners_in_diamond_range(actor, range_value)
+        selected_benefit_buff_temps = random_select(context.benefit_buffs, buff_number)
+        for partner in partners:
+            _add_buffs(actor, partner, selected_benefit_buff_temps, duration)
+
+    @staticmethod
     def remove_partner_selected_buffs(
         buff_temp: BuffTemp, range_value: int, is_attacker: bool, context: Context
     ):
@@ -413,6 +427,42 @@ class Effects:
         # collect all benefit buffs in target.buffs and remove count number of them
         harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
         for harm_buff in harm_buffs:
-            # _add_buffs(harm_buff .temp.id, target)
+            for i in range(buff_level):
+                harm_buff.temp.level += 1
 
-            pass
+    @staticmethod
+    def take_effect_of_tianjiyin(
+        actor: Hero, target: Hero, is_attacker: bool, context: Context
+    ):
+        damage = get_current_action(context).total_damage
+        if damage > 0:  # 为3格范围内其他友方恢复气血（恢复量为施术者法攻的0.5倍）
+            Effects.heal_self(
+                multiplier=0.5,
+                actor_instance=actor,
+                target_instance=target,
+                context=context,
+            )
+        else:  #  反之为自身3格范围内4个其他友方施加1个随机「有益状态」
+            Effects.add_partner_benefit_buffs(
+                buff_number=1,
+                range_value=3,
+                duration=2,
+                is_attacker=is_attacker,
+                context=Context,
+            )
+
+    @staticmethod
+    def reduce_enemy_attributes(
+        attributes_temp: List[str],
+        percentage_value: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+    ):
+        for attribute_name in attributes_temp:
+            if hasattr(target.temp.current_attributes, attribute_name):
+                setattr(
+                    target.temp.current_attributes,
+                    attribute_name,
+                    getattr(target.temp, attribute_name) * (1 - percentage_value),
+                )

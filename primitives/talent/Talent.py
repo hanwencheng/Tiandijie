@@ -7,7 +7,7 @@ from primitives.effects.ModifierEffect import ModifierEffect
 class Talent:
     def __init__(
         self,
-        talent_id: int,
+        talent_id: str,
         hero_id: str,
         effects: List[ModifierEffect] = None,
         event_listeners: List[EventListener] = None,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from helpers import compose_hero_id
 from primitives.RequirementCheck.CheckHelpers import check_buff_in_range, _is_attacker
 
 if TYPE_CHECKING:
@@ -16,27 +15,6 @@ from primitives.buff.BuffTemp import BuffTypes
 
 
 class PositionRequirementChecks:
-    @staticmethod
-    def in_range_of_enemy(
-        enemy_hero_temp_id: str,
-        range_value: int,
-        actor_hero: Hero,
-        target_hero: Hero,
-        context: Context,
-        buff: Buff,
-    ) -> int:
-        enemy_hero_player_id = context.get_counter_player_id()
-        base_hero_id = compose_hero_id(enemy_hero_temp_id, enemy_hero_player_id)
-        enemy_base_hero = context.get_hero_by_id(base_hero_id)
-        if enemy_base_hero.player_id != actor_hero.player_id:
-            actor_position = actor_hero.position
-            caster_position = enemy_base_hero.position
-            if calculate_if_targe_in_diamond_range(
-                actor_position, caster_position, range_value
-            ):
-                return 1
-        return 0
-
     @staticmethod
     def in_range_of_enemy_caster(
         range_value: int,

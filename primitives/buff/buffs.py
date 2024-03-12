@@ -259,15 +259,15 @@ class BuffTemps(Enum):
     )
 
     # 仙罪	其他	不可驱散	不可扩散	不可偷取	与「雪芝」「对战中」伤害、免伤-10%（上限3层）。主动绝学都在冷却中时，移动力-1。
-    xianzui = BuffTemp(
-        "xianzui",
+    xianzeui = BuffTemp(
+        "xianzeui",
         BuffTypes.Others,
         False,
         False,
         False,
         [
             ModifierEffect(
-                partial(RS.battle_with_certain_hero, "xuezhi"),
+                RS.always_true,
                 {
                     ma.battle_damage_reduction_percentage: 10,
                     ma.battle_damage_percentage: 10,

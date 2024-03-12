@@ -1109,8 +1109,8 @@ class BuffTemps(Enum):
         False,
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range, 2),
-                {ma.reduce_enemy_move_range: -3, ma.is_restrict_by_protect: True},
+                partial(RS.PositionChecks.in_range_of_enemy, "yinwuxie", 2),
+                {ma.move_range: -3, ma.physical_protect_range: 0, ma.magic_protect_range: 0},
             ),
         ],
         [],

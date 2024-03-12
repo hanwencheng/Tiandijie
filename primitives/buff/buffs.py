@@ -975,7 +975,7 @@ class BuffTemps(Enum):
                     ma.attack: -10,
                     ma.magic_attack: -10,
                     ma.luck: -10,
-                    ma.is_restrict_by_obstacles: True,
+                    ma.is_ignore_obstacle: False,
                 },
             ),
         ],
@@ -1411,7 +1411,7 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [ModifierEffect(RS.always_true, {ma.is_heal_disabled: True})],
+        [ModifierEffect(RS.always_true, {ma.is_non_healable: True})],
         [],
     )
 
@@ -1425,7 +1425,7 @@ class BuffTemps(Enum):
         [
             ModifierEffect(
                 RS.always_true,
-                {ma.move_range: 1, ma.is_ignore_obstacle: True},
+                {ma.move_range: 1, ma.is_ignore_block: True},
             )
         ],
         [],

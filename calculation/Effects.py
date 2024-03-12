@@ -520,7 +520,11 @@ class Effects:
 
     @staticmethod
     def add_caster_random_benefit_buff(
-        buff_count: int, actor: Hero, target: Hero, context: Context, buff: Buff,
+        buff_count: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        buff: Buff,
     ):
         benefit_buffs = random_select(context.benefit_buffs, buff_count)
         caster_hero = context.get_hero_by_id(buff.caster_id)
@@ -543,7 +547,12 @@ class Effects:
 
     @staticmethod
     def heal_partner_and_add_benefit_buff_by_caster(
-        multiplier: float, range_value: int, actor: Hero, target: Hero, context: Context, buff: Buff,
+        multiplier: float,
+        range_value: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        buff: Buff,
     ):
         caster_hero = context.get_hero_by_id(buff.caster_id)
         if caster_hero.alive:
@@ -587,7 +596,7 @@ class Effects:
 
     @staticmethod
     def take_effect_of_suhun(
-            multiplier: int, actor: Hero, target: Hero, context: Context
+        multiplier: int, actor: Hero, target: Hero, context: Context
     ):
         if not actor.is_taken_suhun:
             Effects.heal_self(multiplier, actor, target, context)

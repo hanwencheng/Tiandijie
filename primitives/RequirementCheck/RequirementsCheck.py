@@ -160,7 +160,11 @@ class RequirementCheck:
 
     @staticmethod
     def target_is_remote(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
-        if target_hero.temp.profession in [Professions.SORCERER, Professions.PRIEST, Professions.ARCHER]:
+        if target_hero.temp.profession in [
+            Professions.SORCERER,
+            Professions.PRIEST,
+            Professions.ARCHER,
+        ]:
             return 1
         return 0
 

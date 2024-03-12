@@ -25,7 +25,7 @@ buff_max_stack = {
             ma.physical_damage_percentage,
             ma.magic_damage_percentage,
             ma.physical_damage_reduction_percentage,
-            ma.magic_damage_reduction_percentage
+            ma.magic_damage_reduction_percentage,
         ],
     ),
     "ningbing": BuffStack(
@@ -33,7 +33,7 @@ buff_max_stack = {
         [
             ma.physical_damage_percentage,
             ma.magic_damage_percentage,
-            ma.physical_penetration_percentage
+            ma.physical_penetration_percentage,
         ],
     ),
     "yudi": BuffStack(
@@ -42,22 +42,16 @@ buff_max_stack = {
             ma.physical_damage_percentage,
             ma.magic_damage_percentage,
             ma.physical_damage_reduction_percentage,
-            ma.magic_damage_reduction_percentage
+            ma.magic_damage_reduction_percentage,
         ],
     ),
-    "chuti": BuffStack(
-        3,
-        [
-            ma.physical_damage_percentage,
-            ma.critical_percentage
-        ]
-    ),
+    "chuti": BuffStack(3, [ma.physical_damage_percentage, ma.critical_percentage]),
     "zhinian": BuffStack(
         4,
         [
             ma.physical_damage_percentage,
             ma.magic_damage_percentage,
-            ma.critical_percentage
+            ma.critical_percentage,
         ],
     ),
 }

@@ -1074,7 +1074,10 @@ class BuffTemps(Enum):
                 EventTypes.damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_fixed_damage_with_physical_and_magic_attack, multiplier=1),
+                partial(
+                    Effects.add_fixed_damage_with_physical_and_magic_attack,
+                    multiplier=1,
+                ),
             )
         ],
     )
@@ -1110,7 +1113,11 @@ class BuffTemps(Enum):
         [
             ModifierEffect(
                 partial(RS.PositionChecks.in_range_of_enemy, "yinwuxie", 2),
-                {ma.move_range: -3, ma.physical_protect_range: 0, ma.magic_protect_range: 0},
+                {
+                    ma.move_range: -3,
+                    ma.physical_protect_range: 0,
+                    ma.magic_protect_range: 0,
+                },
             ),
         ],
         [],
@@ -1468,7 +1475,9 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.heal_partner_and_add_benefit_buff_by_caster, multiplier=0.5),
+                partial(
+                    Effects.heal_partner_and_add_benefit_buff_by_caster, multiplier=0.5
+                ),
             ),
         ],
     )
@@ -1924,5 +1933,6 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.PositionChecks.in_range, 2),
                 partial(Effects.remove_actor_certain_buff, "kongxing"),
-            )],
+            )
+        ],
     )

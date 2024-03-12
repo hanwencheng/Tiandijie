@@ -488,7 +488,7 @@ class Effects:
                 setattr(
                     target.temp.current_attributes,
                     attribute_name,
-                    getattr(target.temp, attribute_name) * (1 - percentage_value),
+                    getattr(target.temp.current_attributes, attribute_name) * (1 - percentage_value),
                 )
 
     @staticmethod

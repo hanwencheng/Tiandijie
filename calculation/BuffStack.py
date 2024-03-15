@@ -54,6 +54,7 @@ buff_max_stack = {
             ma.critical_percentage,
         ],
     ),
+    "silie": BuffStack(3, [ma.physical_damage_percentage, ma.magic_damage_percentage]),
 }
 
 

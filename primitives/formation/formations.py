@@ -845,3 +845,34 @@ class Formations:
             ),
         ],
     )
+
+    # 六天自在阵:  上阵波旬尉迟良和「铁卫」，「祝由」英灵至少各一位时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，若自身气血百分比大于等于目标，主动攻击「对战中」伤害提高15%。
+    liutianzizai = FormationTemp(
+        "liutianzizai",
+        "boxun",
+        [{"profession": Professions.GUARD}, {"profession": Professions.PRIEST}],
+        [
+            ModifierEffect(
+                partial(Check.LifeChecks.self_life_is_higher_than_target),
+                {ma.battle_damage_percentage: 15},
+            )
+        ],
+    )
+
+    # 冰天照雪阵:  上阵禄存高皇君和至少2位「冰」属相英灵时，激活战阵。所有我方上阵角色物攻，物防，法攻，法防提高15%，2格范围内存在其他「冰」属相角色，伤害、穿透提高8%。
+    bingtianzhaoxue = FormationTemp(
+        "bingtianzhaoxue",
+        "lucong",
+        [{"element": Elements.WATER}, {"element": Elements.WATER}],
+        [
+            ModifierEffect(
+                partial(Check.PositionChecks.element_hero_in_range, [Elements.WATER], 2),
+                {
+                    ma.physical_damage_percentage: 8,
+                    ma.magic_damage_percentage: 8,
+                    ma.physical_penetration_percentage: 8,
+                    ma.magic_penetration_percentage: 8,
+                },
+            )
+        ],
+    )

@@ -476,23 +476,6 @@ class Effects:
             )
 
     @staticmethod
-    def reduce_enemy_attributes(
-        attributes_temp: List[str],
-        percentage_value: int,
-        actor: Hero,
-        target: Hero,
-        context: Context,
-    ):
-        for attribute_name in attributes_temp:
-            if hasattr(target.temp.current_attributes, attribute_name):
-                setattr(
-                    target.temp.current_attributes,
-                    attribute_name,
-                    getattr(target.temp.current_attributes, attribute_name)
-                    * (1 - percentage_value),
-                )
-
-    @staticmethod
     def reverse_actor_harm_buffs(
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
@@ -610,3 +593,79 @@ class Effects:
         actor.current_life += actor.magic_attack * multiplier
         if actor.current_life > actor.max_life:
             actor.current_life = actor.max_life
+
+    @staticmethod
+    def extend_enemy_harm_buffs(
+        buff_number: int,
+        range_value: int,
+        duration: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+    ):
+        targets = context.get_enemies_in_diamond_range(actor, range_value)
+        for enemy in targets:
+            for buff in enemy.buffs:
+                if buff.temp.type == BuffTypes.Harm:
+                    buff.duration += duration
+
+    @staticmethod
+    def extend_partner_benefit_buffs(
+        buff_number: int,
+        range_value: int,
+        duration: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+    ):
+        partners = context.get_partners_in_diamond_range(actor, range_value)
+        for partner in partners:
+            for buff in partner.buffs:
+                if buff.temp.type == BuffTypes.Benefit:
+                    buff.duration += duration
+
+    @staticmethod
+    def transfer_self_harm_buff_to_caster(
+        buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
+        selected_buffs = random_select(harm_buffs, buff_count)
+        caster = context.get_hero_by_id(target.caster_id)
+        for selected_buff in selected_buffs:
+            _remove_actor_certain_buff(selected_buff.temp.id, actor)
+            _add_buffs(caster, caster, selected_buff.temp.id, selected_buff.duration, context)
+
+    @staticmethod
+    def heal_least_partner_health_by_physical_attack_in_range(
+        multiplier: float, range_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        partners = context.get_partners_in_diamond_range(actor, range_value)
+        if not partners:
+            return
+        min_heal_actor = partners[0]
+        for partner in partners:
+            if partner.life < min_heal_actor.life:
+                min_heal_actor = partner
+        min_heal_actor.life += actor.attack * multiplier
+        actor_max_life = get_max_life(actor, target, context)
+        if min_heal_actor.life > actor_max_life:
+            min_heal_actor.life = actor_max_life
+
+    @staticmethod
+    def heal_self_and_caster_damage(
+        multiplier: float, actor: Hero, target: Hero, context: Context, buff: Buff
+    ):
+        caster = context.get_hero_by_id(buff.caster_id)
+        if caster.alive and actor.alive:
+            caster_damage = get_current_action(context).total_damage
+            if caster_damage > 0:
+                caster_damage = caster_damage * multiplier
+
+                actor_max_life = get_max_life(actor, target, context)
+                actor.life += caster_damage * multiplier
+                if actor.life > actor_max_life:
+                    actor.life = actor_max_life
+                actor_max_life = get_max_life(actor, target, context)
+                actor.life += caster_damage * multiplier
+                if actor.life > actor_max_life:
+                    actor.life = actor_max_life

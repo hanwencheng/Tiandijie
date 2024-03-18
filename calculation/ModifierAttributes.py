@@ -62,3 +62,4 @@ class ModifierAttributes:
     active_skill_range = "active_skill_range"
     is_active_skill_disabled = "active_skill_disabled"
     is_targetable_by_enemy = "targetable_by_enemy"
+    prevent_death = "prevent_death"

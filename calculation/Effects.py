@@ -607,11 +607,3 @@ class Effects:
             _add_buffs(
                 actor, actor, selected_buff.temp.id, selected_buff.duration, context
             )
-
-    @staticmethod
-    def take_effect_of_suhun(
-        multiplier: int, actor: Hero, target: Hero, context: Context
-    ):
-        if not actor.is_taken_suhun:
-            Effects.heal_self(multiplier, actor, target, context)
-            actor.is_taken_suhun = True

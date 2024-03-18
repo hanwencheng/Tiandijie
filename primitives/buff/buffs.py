@@ -1260,7 +1260,7 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [],
+        [ModifierEffect(RS.always_true, {ma.prevent_death: True})],
         [],
     )
 

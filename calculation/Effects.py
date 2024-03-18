@@ -185,6 +185,17 @@ class Effects:
         )
 
     @staticmethod
+    def heal_self_by_physical_attack(
+            multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context
+    ):
+        caster_magic_attack = get_attack(
+            actor_instance, target_instance, context, False, True
+        )
+        calculate_fix_heal(
+            caster_magic_attack * multiplier, actor_instance, target_instance, context
+        )
+
+    @staticmethod
     def remove_partner_harm_buffs(
         buff_count: int,
         range_value: int,
@@ -609,22 +620,6 @@ class Effects:
             )
 
     @staticmethod
-    def take_effect_of_suhun(
-        multiplier: int, actor: Hero, target: Hero, context: Context
-    ):
-        if not actor.is_taken_suhun:
-            Effects.heal_self(multiplier, actor, target, context)
-            actor.is_taken_suhun = True
-
-    @staticmethod
-    def heal_self_by_magic_attack(
-        multiplier: float, actor: Hero, target: Hero, context: Context
-    ):
-        actor.current_life += actor.magic_attack * multiplier
-        if actor.current_life > actor.max_life:
-            actor.current_life = actor.max_life
-
-    @staticmethod
     def extend_enemy_harm_buffs(
         buff_number: int,
         range_value: int,
@@ -674,12 +669,9 @@ class Effects:
             return
         min_heal_actor = partners[0]
         for partner in partners:
-            if partner.life < min_heal_actor.life:
+            if partner.current_life < min_heal_actor.current_life:
                 min_heal_actor = partner
-        min_heal_actor.life += actor.attack * multiplier
-        actor_max_life = get_max_life(actor, target, context)
-        if min_heal_actor.life > actor_max_life:
-            min_heal_actor.life = actor_max_life
+        Effects.heal_self_by_physical_attack(multiplier, actor, min_heal_actor, context)
 
     @staticmethod
     def heal_self_and_caster_damage(
@@ -690,12 +682,17 @@ class Effects:
             caster_damage = get_current_action(context).total_damage
             if caster_damage > 0:
                 caster_damage = caster_damage * multiplier
+        damage = get_current_action(context).total_damage
+        calculate_fix_heal(damage * multiplier, actor, caster, context)
+        calculate_fix_heal(damage * multiplier, actor, actor, context)
 
-                actor_max_life = get_max_life(actor, target, context)
-                actor.life += caster_damage * multiplier
-                if actor.life > actor_max_life:
-                    actor.life = actor_max_life
-                actor_max_life = get_max_life(actor, target, context)
-                actor.life += caster_damage * multiplier
-                if actor.life > actor_max_life:
-                    actor.life = actor_max_life
+    @staticmethod
+    def heal_self_and_transfer_self_harm_buff(
+            multiplier: float, actor: Hero, target: Hero, context: Context, buff: Buff
+    ):
+        caster = context.get_hero_by_id(buff.caster_id)
+        harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
+        for harm_buff in harm_buffs:
+            _remove_actor_certain_buff(harm_buff.temp.id, actor)
+            _add_buffs(caster, caster, harm_buff.temp.id, harm_buff.duration, context)
+        Effects.heal_self_by_magic_attack(multiplier, caster, actor, context)

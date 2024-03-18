@@ -678,10 +678,6 @@ class Effects:
         multiplier: float, actor: Hero, target: Hero, context: Context, buff: Buff
     ):
         caster = context.get_hero_by_id(buff.caster_id)
-        if caster.alive and actor.alive:
-            caster_damage = get_current_action(context).total_damage
-            if caster_damage > 0:
-                caster_damage = caster_damage * multiplier
         damage = get_current_action(context).total_damage
         calculate_fix_heal(damage * multiplier, actor, caster, context)
         calculate_fix_heal(damage * multiplier, actor, actor, context)

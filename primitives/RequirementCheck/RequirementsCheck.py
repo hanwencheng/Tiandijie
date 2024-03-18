@@ -159,12 +159,13 @@ class RequirementCheck:
         return _is_attacker(actor_hero, context)
 
     @staticmethod
-    def target_is_remote(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def target_is_battle_in_remote(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
         if target_hero.temp.profession in [
             Professions.SORCERER,
             Professions.PRIEST,
             Professions.ARCHER,
-        ]:
+        ] and action.is_in_battle:
             return 1
         return 0
 

@@ -1159,7 +1159,7 @@ class BuffTemps(Enum):
                 {ma.counterattack_range: 1},
             ),
             ModifierEffect(
-                partial(RS.target_is_remote),
+                partial(RS.target_is_battle_in_remote),
                 {
                     ma.defense_percentage: 20,
                     ma.magic_defense_percentage: 20,
@@ -1260,15 +1260,10 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [],
         [
-            EventListener(
-                EventTypes.hero_death,
-                1,
-                partial(RS.BuffChecks.self_has_certain_buff, "zhilu"),
-                partial(Effects.take_effect_of_suhun, multiplier=0.3),
-            )
+            ModifierEffect(RS.always_true, {ma.prevent_death: True}),
         ],
+        [],
     )
 
     # 寒岚	其他	不可驱散	不可扩散	不可偷取	使用冰属相绝学攻击时提高10%法穿（使用冰属相绝学后移除）。

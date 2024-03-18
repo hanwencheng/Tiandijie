@@ -6,6 +6,9 @@ from calculation.damage_calculator import (
     calculate_magic_damage,
     calculate_physical_damage,
 )
+from calculation.healCalculation import (
+    calculate_fix_heal,
+)
 from helpers import random_select
 
 if TYPE_CHECKING:
@@ -42,7 +45,7 @@ def _add_buffs(
         )
         if existing_buff is not None:
             # Replace the existing buff if the new buff has a higher level
-            if new_buff.temp.level > existing_buff.temp.level:
+            if new_buff.level > existing_buff.level:
                 target.buffs.remove(existing_buff)
                 target.buffs.append(new_buff)
             else:
@@ -449,10 +452,11 @@ class Effects:
     def increase_target_harm_buff_level(
         buff_level: int, actor: Hero, target: Hero, context: Context
     ):
-        # collect all benefit buffs in target.buffs and remove count number of them
         harm_buffs = [buff for buff in target.buffs if buff.temp.type == BuffTypes.Harm]
-        for i in range(buff_level):
-            _add_buffs(actor, target, harm_buffs, harm_buffs[i].duration, context)
+        for buff in harm_buffs:
+            if buff.temp.upgradable:
+                buff.level += buff_level
+                _add_buffs(actor, target, buff, buff.duration, context)
 
     @staticmethod
     def take_effect_of_tianjiyin(
@@ -559,9 +563,8 @@ class Effects:
         if caster_hero.alive:
             partners = context.get_partners_in_diamond_range(caster_hero, range_value)
             for partner in partners:
-                partner.current_life += caster_hero.magic_attack * multiplier
-                if partner.current_life > partner.max_life:
-                    partner.current_life = partner.max_life
+                healing = caster_hero.magic_attack * multiplier
+                calculate_fix_heal(healing, actor, partner, context)
                 benefit_buffs = random_select(context.benefit_buffs, 1)
                 _add_buffs(actor, partner, benefit_buffs, 2, context)
 

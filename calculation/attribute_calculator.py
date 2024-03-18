@@ -449,3 +449,24 @@ def get_fixed_damage_reduction_modifier(
         )
         / 100
     )
+
+
+def get_fixed_heal_reduction_modifier(
+    hero_instance: Hero, counter_instance: Hero, context: Context
+) -> float:
+    accumulated_passives_damage_reduction_modifier = accumulate_attribute(
+        hero_instance.temp.passives, ma.heal_percentage
+    )
+    return (
+        1
+        + (
+            get_level2_modifier(
+                hero_instance,
+                counter_instance,
+                ma.heal_percentage,
+                context,
+            )
+            + accumulated_passives_damage_reduction_modifier
+        )
+        / 100
+    )

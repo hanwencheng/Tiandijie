@@ -169,9 +169,20 @@ class Effects:
         multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context
     ):
         actor_max_life = get_max_life(actor_instance, target_instance, context)
-        actor_instance.life += actor_max_life * multiplier
-        if actor_instance.life > actor_max_life:
-            actor_instance.life = actor_max_life
+        calculate_fix_heal(
+            actor_max_life * multiplier, actor_instance, target_instance, context
+        )
+
+    @staticmethod
+    def heal_self_by_magic_attack(
+        multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context
+    ):
+        caster_magic_attack = get_attack(
+            actor_instance, target_instance, context, True, True
+        )
+        calculate_fix_heal(
+            caster_magic_attack * multiplier, actor_instance, target_instance, context
+        )
 
     @staticmethod
     def remove_partner_harm_buffs(
@@ -298,7 +309,7 @@ class Effects:
         action = context.get_action_by_side(is_attacker)
         if any(buff.temp == check_buff for buff in actor.buffs):
             for target in action.targets:
-                _add_buffs(actor, target, [add_buff], duration)
+                _add_buffs(actor, target, [add_buff], duration, context)
 
     @staticmethod
     def add_partner_harm_buffs(
@@ -312,7 +323,7 @@ class Effects:
         partners = context.get_partners_in_diamond_range(actor, range_value)
         selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
         for partner in partners:
-            _add_buffs(actor, partner, selected_harm_buff_temps, duration)
+            _add_buffs(actor, partner, selected_harm_buff_temps, duration, context)
 
     @staticmethod
     def add_partner_benefit_buffs(
@@ -326,7 +337,7 @@ class Effects:
         partners = context.get_partners_in_diamond_range(actor, range_value)
         selected_benefit_buff_temps = random_select(context.benefit_buffs, buff_number)
         for partner in partners:
-            _add_buffs(actor, partner, selected_benefit_buff_temps, duration)
+            _add_buffs(actor, partner, selected_benefit_buff_temps, duration, context)
 
     @staticmethod
     def remove_partner_selected_buffs(
@@ -464,7 +475,7 @@ class Effects:
     ):
         damage = get_current_action(context).total_damage
         if damage > 0:  # 为3格范围内其他友方恢复气血（恢复量为施术者法攻的0.5倍）
-            Effects.heal_self(
+            Effects.heal_self_by_magic_attack(
                 multiplier=0.5,
                 actor_instance=actor,
                 target_instance=target,
@@ -563,8 +574,7 @@ class Effects:
         if caster_hero.alive:
             partners = context.get_partners_in_diamond_range(caster_hero, range_value)
             for partner in partners:
-                healing = caster_hero.magic_attack * multiplier
-                calculate_fix_heal(healing, actor, partner, context)
+                Effects.heal_self_by_magic_attack(multiplier, actor, partner, context)
                 benefit_buffs = random_select(context.benefit_buffs, 1)
                 _add_buffs(actor, partner, benefit_buffs, 2, context)
 
@@ -605,11 +615,3 @@ class Effects:
         if not actor.is_taken_suhun:
             Effects.heal_self(multiplier, actor, target, context)
             actor.is_taken_suhun = True
-
-    @staticmethod
-    def heal_self_by_magic_attack(
-        multiplier: float, actor: Hero, target: Hero, context: Context
-    ):
-        actor.current_life += actor.magic_attack * multiplier
-        if actor.current_life > actor.max_life:
-            actor.current_life = actor.max_life

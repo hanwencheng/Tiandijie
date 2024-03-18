@@ -1261,14 +1261,7 @@ class BuffTemps(Enum):
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.hero_death,
-                1,
-                partial(RS.BuffChecks.self_has_certain_buff, "zhilu"),
-                partial(Effects.take_effect_of_suhun, multiplier=0.3),
-            )
-        ],
+        [],
     )
 
     # 寒岚	其他	不可驱散	不可扩散	不可偷取	使用冰属相绝学攻击时提高10%法穿（使用冰属相绝学后移除）。

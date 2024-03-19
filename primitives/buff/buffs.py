@@ -1444,7 +1444,7 @@ class BuffTemps(Enum):
                 EventTypes.partner_action_end,
                 1,
                 partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.receive_fixed_damage_with_life_by_self, multiplier=0.3),
+                partial(Effects.receive_fixed_damage_by_current_life_percentage, multiplier=0.3),
             ),
             EventListener(
                 EventTypes.partner_action_end,

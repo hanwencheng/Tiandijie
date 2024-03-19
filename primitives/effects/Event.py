@@ -92,4 +92,8 @@ class EventTypes(enum.Enum):
     enemy_battle_start = "enemy_battle_start"
     enemy_battle_end = "enemy_battle_end"
 
+    # buff
+    buff_start = "buff_start"
+    buff_end = "buff_end"
+
     hero_death = "hero_death"

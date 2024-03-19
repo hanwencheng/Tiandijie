@@ -11,19 +11,19 @@ if TYPE_CHECKING:
     from primitives.buff.Buff import Buff
 from typing import List
 from calculation.Range import calculate_if_targe_in_diamond_range
-from primitives.hero.HeroBasics import Professions, Gender
+from primitives.hero.HeroBasics import Gender
 from primitives.buff.BuffTemp import BuffTypes
 
 
 class PositionRequirementChecks:
     @staticmethod
     def in_range_of_enemy(
-            enemy_hero_temp_id: str,
-            range_value: int,
-            actor_hero: Hero,
-            target_hero: Hero,
-            context: Context,
-            buff: Buff,
+        enemy_hero_temp_id: str,
+        range_value: int,
+        actor_hero: Hero,
+        target_hero: Hero,
+        context: Context,
+        buff: Buff,
     ) -> int:
         enemy_hero_player_id = context.get_counter_player_id()
         base_hero_id = compose_hero_id(enemy_hero_temp_id, enemy_hero_player_id)
@@ -32,11 +32,10 @@ class PositionRequirementChecks:
             actor_position = actor_hero.position
             caster_position = enemy_base_hero.position
             if calculate_if_targe_in_diamond_range(
-                    actor_position, caster_position, range_value
+                actor_position, caster_position, range_value
             ):
                 return 1
         return 0
-
 
     @staticmethod
     def in_range_of_enemy_caster(

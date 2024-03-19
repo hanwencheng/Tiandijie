@@ -2,7 +2,8 @@ from calculation.Range import RangeType, Range
 from primitives.effects.SkillListener import SkillListener
 from primitives.hero.Element import Elements
 from primitives.skill.Distance import Distance, DistanceType
-from primitives.skill.Skill import Skill, SkillType
+from primitives.skill.Skill import Skill
+from primitives.skill.SkillTypes import SkillType, SkillTargetTypes
 from primitives.buff.buffs import *
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from primitives.effects.ModifierEffect import ModifierEffect
@@ -22,11 +23,12 @@ class Skills(Enum):
         2,
         Elements.NONE,
         SkillType.Physical,
+        SkillTargetTypes.ENEMY_SINGLE,
         2,
         Distance(DistanceType.NORMAL, 1),
         Range(RangeType.POINT, 0, 1, 1),
         1.3,
-        [ModifierEffect(RS.always_true, {ma.is_ignore_protector: 1})],
+        [ModifierEffect(RS.always_true, {ma.is_ignore_protector: True})],
         [],
     )
 
@@ -39,6 +41,7 @@ class Skills(Enum):
         2,
         Elements.ETHEREAL,
         SkillType.Physical,
+        SkillTargetTypes.ENEMY_SINGLE,
         2,
         Distance(DistanceType.NORMAL, 1),
         Range(RangeType.POINT, 0, 1, 1),
@@ -49,7 +52,7 @@ class Skills(Enum):
                     RS.PositionChecks.no_partners_in_target_range,
                     1,
                 ),
-                {ma.is_ignore_protector: 1, ma.physical_penetration_percentage: 30},
+                {ma.is_ignore_protector: True, ma.physical_penetration_percentage: 30},
             )
         ],
         [],
@@ -64,6 +67,7 @@ class Skills(Enum):
         1,
         Elements.ETHEREAL,
         SkillType.Move,
+        SkillTargetTypes.ENEMY_SINGLE,
         3,
         Distance(DistanceType.NORMAL, 4),
         Range(RangeType.POINT, 0, 1, 1),

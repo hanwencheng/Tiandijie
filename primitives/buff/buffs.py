@@ -259,15 +259,15 @@ class BuffTemps(Enum):
     )
 
     # 仙罪	其他	不可驱散	不可扩散	不可偷取	与「雪芝」「对战中」伤害、免伤-10%（上限3层）。主动绝学都在冷却中时，移动力-1。
-    xianzeui = BuffTemp(
-        "xianzeui",
+    xianzui = BuffTemp(
+        "xianzui",
         BuffTypes.Others,
         False,
         False,
         False,
         [
             ModifierEffect(
-                RS.always_true,
+                partial(RS.battle_with_certain_hero, "xuezhi"),
                 {
                     ma.battle_damage_reduction_percentage: 10,
                     ma.battle_damage_percentage: 10,
@@ -948,7 +948,7 @@ class BuffTemps(Enum):
                 {
                     ma.critical_percentage: 20,
                     ma.move_range: 1,
-                    ma.is_ignore_obstacle: 1,
+                    ma.is_ignore_obstacle: True,
                 },
             )
         ],
@@ -965,12 +965,19 @@ class BuffTemps(Enum):
         [
             ModifierEffect(
                 RS.always_true,
-                {ma.counterattack_range: 1, ma.is_restrict_by_obstacles: 1},
+                {ma.counterattack_range: 1},
             ),
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_of_enemy, 'xiongbagaoqi', 3),
-                {ma.magic_defense: -10, ma.defense: -10, ma.attack: -10, ma.magic_attack: -10, ma.luck: -10, ma.is_restrict_by_obstacles: 1}
-            )
+                partial(RS.PositionChecks.in_range_of_enemy, "xiongbagaoqi", 3),
+                {
+                    ma.magic_defense: -10,
+                    ma.defense: -10,
+                    ma.attack: -10,
+                    ma.magic_attack: -10,
+                    ma.luck: -10,
+                    ma.is_ignore_obstacle: False,
+                },
+            ),
         ],
     )
 
@@ -992,4 +999,478 @@ class BuffTemps(Enum):
             )
         ],
         [],
+    )
+
+    # 冲阵	其他	不可驱散	不可扩散	不可偷取	移动力+1，伤害和免伤提高12%（上限2层）
+    chongzhen = BuffTemp(
+        "chongzhen",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.move_range: 1,
+                    ma.physical_damage_percentage: 12,
+                    ma.magic_damage_percentage: 12,
+                    ma.physical_damage_reduction_percentage: 12,
+                    ma.magic_damage_reduction_percentage: 12,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 凝冰	有益	不可驱散	不可扩散	不可偷取	伤害提高1%，物理穿透提高1%（上限4层）
+    ningbing = BuffTemp(
+        "ningbing",
+        BuffTypes.Benefit,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.physical_damage_percentage: 1,
+                    ma.magic_damage_percentage: 1,
+                    ma.physical_penetration_percentage: 1,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 叹妙摩耶	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，反转1个「有害状态」。
+    miaotanmoye = BuffTemp(
+        "miaotanmoye",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.partner_action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(Effects.reverse_actor_harm_buffs, 1),
+            )
+        ],
+    )
+
+    # 剑意激荡	其他	不可驱散	不可扩散	不可偷取	目标（物攻+法攻）的伤害（无法被减免）
+    jianyijidang = BuffTemp(
+        "jianyijidang",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                RS.always_true,
+                partial(
+                    Effects.add_fixed_damage_with_physical_and_magic_attack,
+                    multiplier=1,
+                ),
+            )
+        ],
+    )
+
+    # 剑气	其他	不可驱散	不可扩散	不可偷取	造成伤害提升24%，遭受伤害降低24%
+    jianqi = BuffTemp(
+        "jianqi",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.physical_damage_percentage: 24,
+                    ma.magic_damage_percentage: 24,
+                    ma.physical_damage_reduction_percentage: 24,
+                    ma.magic_damage_reduction_percentage: 24,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 剑绝霜狱	其他	不可驱散	不可扩散	不可偷取	周围2格内所有敌人移动力-3，且无法护卫（无法驱散）
+    jianjueshuangyu = BuffTemp(
+        "jianjueshuangyu",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.PositionChecks.in_range_of_enemy, "yinwuxie", 2),
+                {
+                    ma.move_range: -3,
+                    ma.physical_protect_range: 0,
+                    ma.magic_protect_range: 0,
+                },
+            ),
+        ],
+        [],
+    )
+
+    # 劫烬	其他	不可驱散	不可扩散	不可偷取	全属性提升20%
+    jiejin = BuffTemp(
+        "jiejin",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.life: 20,
+                    ma.attack: 20,
+                    ma.defense: 20,
+                    ma.magic_attack: 20,
+                    ma.magic_defense: 20,
+                    ma.luck: 20,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 化形·反啄I	有益	不可驱散	不可扩散	不可偷取	反击射程+1，与远程作战「对战中」物防、法防提升20%
+    huaxing_fanzhuo = BuffTemp(
+        "huaxing_fanzhuo",
+        BuffTypes.Benefit,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.counterattack_range: 1},
+            ),
+            ModifierEffect(
+                partial(RS.target_is_battle_in_remote),
+                {
+                    ma.defense_percentage: 20,
+                    ma.magic_defense_percentage: 20,
+                },
+            ),
+        ],
+        [],
+    )
+
+    # 压制	其他	不可驱散	不可扩散	不可偷取	无法进行反击或先攻（不可驱散，遭受攻击「对战后」消失）
+    yazhi = BuffTemp(
+        "yazhi",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.is_counterattack_disabled: True, ma.is_counterattack_first: False},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.remove_actor_certain_buff, "yazhi"),
+            )
+        ],
+    )
+
+    # 同归	其他	不可驱散	不可扩散	不可偷取	暴击率提高100%，行动结束死亡
+    tonggui = BuffTemp(
+        "tonggui",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(RS.always_true, {ma.critical_percentage: 100}),
+        ],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.kill_self),
+            )
+        ],
+    )
+
+    # 启智	其他	不可驱散	不可扩散	不可偷取	遭受单体伤害绝学攻击时气血越高免伤和暴击抗性越高（最高提升20%）（遭受单体伤害绝学后移除）
+    qizhi = BuffTemp(
+        "qizhi",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.skill_is_single_target_damage_and_life_is_higher_percentage),
+                {ma.battle_damage_reduction_percentage: 20},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.skill_single_damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.remove_actor_certain_buff, "qizhi"),
+            )
+        ],
+    )
+
+    # 命蕴	有益	可驱散	可扩散	可偷取	行动结束时，恢复20%气血
+    mingyun = BuffTemp(
+        "mingyun",
+        BuffTypes.Benefit,
+        True,
+        True,
+        True,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.heal_self, multiplier=0.2),
+            )
+        ],
+    )
+
+    # 宿魂	其他	不可驱散	不可扩散	不可偷取	携带「执戮」状态时，若受到致命伤害时免除死亡，自身恢复30%气血（每场战斗触发1次）
+    suhun = BuffTemp(
+        "suhun",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [ModifierEffect(RS.always_true, {ma.prevent_death: True})],
+        [],
+    )
+
+    # 寒岚	其他	不可驱散	不可扩散	不可偷取	使用冰属相绝学攻击时提高10%法穿（使用冰属相绝学后移除）。
+    hanlan = BuffTemp(
+        "hanlan",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.skill_is_water_element),
+                {ma.magic_penetration_percentage: 10},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                partial(RS.skill_is_water_element),
+                partial(Effects.remove_actor_certain_buff, "hanlan"),
+            )
+        ],
+    )
+
+    # 封劲	有害	可驱散	可扩散	可偷取	主动绝学射程-1
+    fengjin = BuffTemp(
+        "fengjin",
+        BuffTypes.Harm,
+        True,
+        True,
+        True,
+        [ModifierEffect(RS.always_true, {ma.active_skill_range: -1})],
+        [],
+    )
+
+    # 封咒	有害	可驱散	可扩散	不可偷取	无法使用主动「绝学」
+    fengzhou = BuffTemp(
+        "fengzhou",
+        BuffTypes.Harm,
+        True,
+        True,
+        False,
+        [ModifierEffect(RS.always_true, {ma.is_active_skill_disabled: True})],
+        [],
+    )
+
+    # 封缄	有害	可驱散	可扩散	可偷取	范围绝学的范围-1
+    fengjian = BuffTemp(
+        "fengjian",
+        BuffTypes.Harm,
+        True,
+        True,
+        True,
+        [ModifierEffect(RS.always_true, {ma.range_skill_range: -1})],
+        [],
+    )
+
+    # 封脉	有害	可驱散	可扩散	不可偷取	所有被动「绝学」失效
+    fengmai = BuffTemp(
+        "fengmai",
+        BuffTypes.Harm,
+        True,
+        True,
+        False,
+        [ModifierEffect(RS.always_true, {ma.is_passives_disabled: True})],
+    )
+
+    # 屠戮	其他	不可驱散	不可扩散	不可偷取	无法护卫队友，主动攻击「对战后」造成1次「固定伤害」（物攻的50%）若目标气血低于50%，则本次「固定伤害」翻倍（下一次主动攻击「对战后」触发消耗）
+    tulu = BuffTemp(
+        "tulu",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.physical_protect_range: 0, ma.magic_protect_range: 0},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.add_fixed_damage_with_attack, multiplier=0.5),
+            ),
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                partial(RS.LifeChecks.target_life_is_below, 50),
+                partial(Effects.add_fixed_damage_with_attack, multiplier=0.5),
+            ),
+        ],
+    )
+
+    # 巨影	其他	不可驱散	不可扩散	不可偷取	主动攻击「对战中」免伤提高15%，且「对战后」恢复自身气血（恢复量为本次伤害的50%）（不可驱散）
+    juying = BuffTemp(
+        "juying",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.is_attacker),
+                {ma.battle_damage_reduction_percentage: 15},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.battle_end,
+                1,
+                partial(RS.is_attacker),
+                partial(Effects.heal_self, multiplier=0.5),
+            )
+        ],
+    )
+
+    # 幽煌邪焰	其他	不可驱散	不可扩散	不可偷取	除气血外所有属性提高10%
+    youhuangxieyan = BuffTemp(
+        "youhuangxieyan",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.attack: 10,
+                    ma.defense: 10,
+                    ma.magic_attack: 10,
+                    ma.magic_defense: 10,
+                    ma.luck: 10,
+                },
+            )
+        ],
+        [],
+    )
+
+    # 幽阙	有害	不可驱散	不可扩散	不可偷取	无法获得治疗（无法驱散）
+    youque = BuffTemp(
+        "youque",
+        BuffTypes.Harm,
+        False,
+        False,
+        False,
+        [ModifierEffect(RS.always_true, {ma.is_non_healable: True})],
+        [],
+    )
+
+    # 幽魂	其他	不可驱散	不可扩散	不可偷取	移动力+1，行动时无视敌方角色阻挡（不可驱散
+    youhun = BuffTemp(
+        "youhun",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.move_range: 1, ma.is_ignore_block: True},
+            )
+        ],
+        [],
+    )
+
+    # 异心	其他	不可驱散	不可扩散	不可偷取	3格内每有1名其他友方行动结束时携带者受到1次「固定伤害」（当前气血的30%）并获得1个随机「有害状态」（不可驱散）
+    yixin = BuffTemp(
+        "yixin",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.partner_action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(Effects.receive_fixed_damage_by_current_life_percentage, multiplier=0.3),
+            ),
+            EventListener(
+                EventTypes.partner_action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(Effects.add_self_random_harm_buff, 1),
+            ),
+        ],
+    )
+
+    # 归依	其他	不可驱散	不可扩散	不可偷取	行动结束时，使施加者恢复3格内所有施加者友方的气血（恢复量为施加者法攻的0.5倍）并施加1个随机「有益状态」（不可驱散）
+    guiyi = BuffTemp(
+        "guiyi",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.PositionChecks.in_range, 3),
+                partial(
+                    Effects.heal_partner_and_add_benefit_buff_by_caster, multiplier=0.5
+                ),
+            ),
+        ],
     )

@@ -6,7 +6,7 @@ immune_dict = {
 }
 
 # 阻止获得buff
-immune_all_benefit_list: List[str] = []
+immune_all_benefit_list: List[str] = ["wuhui"]
 immune_all_harm_list: List[str] = ["bingqing", "tianjiyin", "wucui_tianjiyin"]
 immune_xuanxun_list: List[str] = ["wuyouyu"]
 

@@ -546,6 +546,13 @@ class Effects:
         _add_buffs(actor, actor, harm_buffs, 2, context)
 
     @staticmethod
+    def add_self_random_benefit_buff(
+            buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        benefit_buffs = random_select(context.benefit_buffs, buff_count)
+        _add_buffs(actor, actor, benefit_buffs, 2, context)
+
+    @staticmethod
     def add_caster_random_benefit_buff(
         buff_count: int,
         actor: Hero,
@@ -692,3 +699,22 @@ class Effects:
             _remove_actor_certain_buff(harm_buff.temp.id, actor)
             _add_buffs(caster, caster, harm_buff.temp.id, harm_buff.duration, context)
         Effects.heal_self_by_magic_attack(multiplier, caster, actor, context)
+
+    @staticmethod
+    def heal_self_and_remove_harm_buffs(
+        multiplier: float, buff_count: int,  actor: Hero, target: Hero, context: Context
+    ):
+        harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
+        for i in range(buff_count):
+            harm_buff = random_select(harm_buffs, 1)
+            _remove_actor_certain_buff(harm_buff.temp.id, actor)
+            harm_buffs.remove(harm_buff)
+        Effects.heal_self(multiplier, actor, actor, context)
+
+    @staticmethod
+    def add_fixed_damage_with_maxlife_and_losslife(
+        multiplier: float, multiplier2: float, actor: Hero, target: Hero, context: Context
+    ):
+        actor_max_life = get_max_life(actor, target, context)
+        damage = actor_max_life * multiplier + (actor_max_life - actor.current_life) * multiplier2
+        calculate_fix_damage(damage, actor, target, context)

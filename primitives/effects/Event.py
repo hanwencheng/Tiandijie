@@ -17,6 +17,8 @@ class EventTypes(enum.Enum):
     damage_end = "damage_end"
     under_damage_start = "under_damage_start"
     under_damage_end = "under_damage_end"
+    under_magic_damage_start = "under_magic_damage_start"
+    under_magic_damage_end = "under_magic_damage_end"
     # battle
     battle_start = "battle_start"
     battle_end = "battle_end"
@@ -100,3 +102,9 @@ class EventTypes(enum.Enum):
     buff_end = "buff_end"
 
     hero_death = "hero_death"
+
+    # double_attack
+    double_attack_start = "double_attack_start"
+    double_attack_end = "double_attack_end"
+    under_double_attack_start = "under_double_attack_start"
+    under_double_attack_end = "under_double_attack_end"

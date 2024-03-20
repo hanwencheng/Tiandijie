@@ -204,7 +204,7 @@ class RequirementCheck:
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(target_hero, context):
-            if not target_hero.temp.flyable:
+            if not target_hero.temp.flyable and action.is_in_battle:
                 return 1
         return 0
 

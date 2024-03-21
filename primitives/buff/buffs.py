@@ -1431,7 +1431,7 @@ class BuffTemps(Enum):
                 EventTypes.partner_action_end,
                 1,
                 partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.receive_fixed_damage_with_life_by_self, multiplier=0.3),
+                partial(Effects.receive_fixed_damage_by_current_life_percentage, multiplier=0.3),
             ),
             EventListener(
                 EventTypes.partner_action_end,
@@ -1708,7 +1708,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.receive_fixed_damage_with_life_by_self, multiplier=0.5),
+                partial(Effects.receive_fixed_damage_by_current_life_percentage, multiplier=0.5),
             )
         ],
     )
@@ -2436,7 +2436,7 @@ class BuffTemps(Enum):
                     ma.range_skill_range: 2,
                     ma.single_skill_range: 2,
                     ma.attack_range: 2,
-                    ma.current_move_range: 0,
+                    ma.max_move_range: 0,
                 },
             ),
         ],

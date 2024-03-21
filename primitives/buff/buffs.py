@@ -1790,7 +1790,7 @@ class BuffTemps(Enum):
                 partial(RS.is_attacked_by_non_flyer),
                 {
                     ma.battle_damage_reduction_percentage: 15,
-                    ma.critical_percentage_reduction: 15,
+                    ma.critical_damage_reduction_percentage: 15,
                 },
             ),
         ],
@@ -2523,8 +2523,50 @@ class BuffTemps(Enum):
     )
 
     # 暗铠	有益	可驱散	可扩散	可偷取	受到克制伤害降低20%，受到伤害后，40%概率对攻击者施加1个随机「有害状态」（受到伤害后消耗）
+    ankai = BuffTemp(
+        "ankai",
+        BuffTypes.Benefit,
+        True,
+        True,
+        True,
+        [
+            ModifierEffect(
+                partial(RS.under_attack_by_advantage_elements),
+                {ma.physical_damage_reduction_percentage: 20, ma.magic_damage_reduction_percentage: 20},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.under_damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.add_attacker_random_harm_buff, 0.4),
+            ),
+        ],
+    )
 
     # 暴风眼	其他	不可驱散	不可扩散	不可偷取	伤害和暴击率+5%（最多叠加3层）本回合若释放过绝学，行动结束时对1圈内所有敌人造成0.15倍范围伤害（触发后移除1层）。
+    baofengyan = BuffTemp(
+        "baofengyan",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {ma.physical_damage_percentage: 5, ma.magic_damage_percentage: 5, ma.critical_percentage: 5},
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_is_used_skill),
+                partial(Effects.remove_actor_certain_buff, "baofengyan"),
+            ),
+        ],
+    )
 
     # 机巧·坚壳	其他	不可驱散	不可扩散	不可偷取	友方「阿秋」行动结束时拾取，恢复自身气血50%，获得「甲力」状态。
 

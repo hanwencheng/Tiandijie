@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from random import random
 from typing import TYPE_CHECKING
 
 from calculation.damage_calculator import (
@@ -563,6 +565,18 @@ class Effects:
         benefit_buffs = random_select(context.benefit_buffs, buff_count)
         caster_hero = context.get_hero_by_id(buff.caster_id)
         _add_buffs(actor, caster_hero, benefit_buffs, 2, context)
+
+    @staticmethod
+    def add_attacker_random_harm_buff(
+            buff_count: int,
+            actor: Hero,
+            target: Hero,
+            context: Context,
+            buff: Buff,
+    ):
+        harm_buffs = random_select(context.harm_buffs, buff_count)
+        if check_is_attacker(target, context) and random() < 0.4:
+            _add_buffs(actor, target, harm_buffs, 2, context)
 
     @staticmethod
     def add_partner_random_benefit_buff(

@@ -1790,7 +1790,7 @@ class BuffTemps(Enum):
                 partial(RS.is_attacked_by_non_flyer),
                 {
                     ma.battle_damage_reduction_percentage: 15,
-                    ma.critical_percentage_reduction: 15,
+                    ma.critical_damage_reduction_percentage: 15,
                 },
             ),
         ],

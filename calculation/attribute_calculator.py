@@ -403,6 +403,24 @@ def get_critical_hit_resistance(
     return 1 - (level_2_hit_resistance + critical_stones_percentage_modifier) / 100
 
 
+def get_critical_hit_suffer(
+        actor_hero: Hero, counter_instance: Hero, context: Context, is_basic: bool = False
+) -> float:
+    # Calculate buffs
+    level_2_hit_suffer = get_level2_modifier(
+        actor_hero,
+        counter_instance,
+        ma.suffer_critical_percentage,
+        context,
+        is_basic,
+    )
+    suffer_critical_stones_percentage_modifier = accumulate_attribute(
+        actor_hero.stones.percentage, ma.suffer_critical_percentage
+    )
+
+    return (level_2_hit_suffer + suffer_critical_stones_percentage_modifier) / 100
+
+
 def get_critical_damage_modifier(
     actor_hero: Hero, counter_instance: Hero, context: Context
 ) -> float:

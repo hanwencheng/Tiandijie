@@ -212,7 +212,6 @@ class RequirementCheck:
     def attack_to_advantage_elements(
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
-        action = context.get_last_action()
         if _is_attacker(actor_hero, context):
             if (
                 get_elemental_relationship(
@@ -221,6 +220,29 @@ class RequirementCheck:
                 == ElementRelationships.ADVANTAGE
             ):
                 return 1
+        return 0
+
+    @staticmethod
+    def under_attack_by_advantage_elements(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if _is_attacker(target_hero, context):
+            if (
+                get_elemental_relationship(
+                    actor_hero.temp.element, target_hero.temp.element
+                )
+                == ElementRelationships.ADVANTAGE
+            ):
+                return 1
+        return 0
+
+    @staticmethod
+    def self_is_used_skill(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if action.actor == actor_hero:
+            return 1
         return 0
 
     LifeChecks: LifeRequirementChecks

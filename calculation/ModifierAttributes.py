@@ -41,7 +41,7 @@ class ModifierAttributes:
     critical_damage_reduction_percentage = "critical_damage_reduction_percentage"
     fixed_damage_reduction_percentage = "fixed_damage_reduction_percentage"
     move_range = "move_range"
-    current_move_range = "current_move_range"
+    max_move_range = "max_move_range "
     attack_range = "attack_range"
     move_range_max = "move_range_max"
     physical_protect_range = "physical_protect_range"

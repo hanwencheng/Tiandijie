@@ -977,7 +977,7 @@ class BuffTemps(Enum):
             ModifierEffect(
                 RS.always_true,
                 {
-                    ma.current_move_range: 0,
+                    ma.max_move_range: 0,
                     ma.physical_protect_range: 0,
                     ma.magic_protect_range: 0,
                 },

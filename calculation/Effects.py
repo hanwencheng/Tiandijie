@@ -271,7 +271,7 @@ class Effects:
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
     @staticmethod
-    def receive_fixed_damage_with_life_by_self(
+    def receive_fixed_damage_by_current_life_percentage(
         multiplier: float,
         is_magic: bool,
         actor_instance: Hero,

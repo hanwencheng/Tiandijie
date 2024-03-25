@@ -7,7 +7,7 @@ from state.state_calculator import (
     check_if_counterattack_first,
     check_if_in_battle,
     check_protector,
-    check_if_counterattack,
+    check_if_double_attack,
 )
 
 if TYPE_CHECKING:
@@ -166,14 +166,14 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
         counterattack_actions(context)  # take damage
         if is_hero_live(actor, target, context):
             skill_events(actor, target, action, context, apply_damage)
-            if check_if_counterattack(actor, target, context):
+            if check_if_double_attack(action, context):
                 double_attack(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
         event_listener_calculator(target, actor, EventTypes.under_battle_end, context)
         is_hero_live(target, actor, context)
     else:
         skill_events(actor, target, action, context, apply_damage)
-        if check_if_counterattack(actor, target, context):
+        if check_if_double_attack(action, context):
             double_attack(context)
         if is_hero_live(target, actor, context):
             counterattack_actions(context)

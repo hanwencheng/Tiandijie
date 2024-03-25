@@ -17,8 +17,6 @@ class EventTypes(enum.Enum):
     damage_end = "damage_end"
     under_damage_start = "under_damage_start"
     under_damage_end = "under_damage_end"
-    under_magic_damage_start = "under_magic_damage_start"
-    under_magic_damage_end = "under_magic_damage_end"
     # battle
     battle_start = "battle_start"
     battle_end = "battle_end"

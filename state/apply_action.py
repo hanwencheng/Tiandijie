@@ -7,6 +7,7 @@ from state.state_calculator import (
     check_if_counterattack_first,
     check_if_in_battle,
     check_protector,
+    check_if_counterattack,
 )
 
 if TYPE_CHECKING:
@@ -119,6 +120,25 @@ def counterattack_actions(context: Context):
     )
 
 
+def double_attack(context: Context):
+    action = context.get_last_action()
+    target = action.get_defender_hero_in_battle()
+    actor = action.actor
+    event_listener_calculator(
+        actor, target, EventTypes.double_attack_start, context
+    )
+    event_listener_calculator(
+        target, actor, EventTypes.double_attack_start, context
+    )
+    apply_damage(actor, action.actor, action, context)
+    event_listener_calculator(
+        actor, target, EventTypes.double_attack_end, context
+    )
+    event_listener_calculator(
+        target, actor, EventTypes.double_attack_end, context
+    )
+
+
 def calculation_events(
     actor: Hero,
     target: Hero,
@@ -146,11 +166,15 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
         counterattack_actions(context)  # take damage
         if is_hero_live(actor, target, context):
             skill_events(actor, target, action, context, apply_damage)
+            if check_if_counterattack(actor, target, context):
+                double_attack(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
         event_listener_calculator(target, actor, EventTypes.under_battle_end, context)
         is_hero_live(target, actor, context)
     else:
         skill_events(actor, target, action, context, apply_damage)
+        if check_if_counterattack(actor, target, context):
+            double_attack(context)
         if is_hero_live(target, actor, context):
             counterattack_actions(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
@@ -174,6 +198,9 @@ def skill_events(
         action.skill.temp.target_type
     ][1]
     event_listener_calculator(
+        actor_instance, counter_instance, EventTypes.skill_start, context
+    )
+    event_listener_calculator(
         actor_instance, counter_instance, skill_start_event_type, context
     )
     event_listener_calculator(
@@ -185,6 +212,9 @@ def skill_events(
     )
     event_listener_calculator(
         counter_instance, actor_instance, under_skill_end_event_type, context
+    )
+    event_listener_calculator(
+        actor_instance, counter_instance, EventTypes.skill_end, context
     )
 
 

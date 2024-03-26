@@ -69,4 +69,6 @@ class ModifierAttributes:
     prevent_death = "prevent_death"
     is_double_attack = "double_attack"
     is_extra_move_disabled = "extra_move_disabled"
+    is_extra_action_disabled = "extra_action_disabled"
     is_certain_skill_disabled = "certain_skill_disabled"
+    is_dodge_attack = "is_dodge_attack"

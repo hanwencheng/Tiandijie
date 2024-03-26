@@ -46,6 +46,7 @@ buff_max_stack = {
         ],
     ),
     "chuti": BuffStack(3, [ma.physical_damage_percentage, ma.critical_percentage]),
+    "changming": BuffStack(4, [ma.magic_attack_percentage]),
     "zhinian": BuffStack(
         4,
         [
@@ -54,7 +55,8 @@ buff_max_stack = {
             ma.critical_percentage,
         ],
     ),
-    "silie": BuffStack(3, [ma.physical_damage_percentage, ma.magic_damage_percentage]),
+    "silie": BuffStack(7, []),
+    "baofengyan": BuffStack(5, [ma.physical_damage_percentage, ma.critical_percentage]),
 }
 
 

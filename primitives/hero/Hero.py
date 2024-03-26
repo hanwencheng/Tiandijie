@@ -53,7 +53,7 @@ class Hero:
 
     def update_position(self, position: Position):
         self.position = position
-        #TODO move_path
+        # TODO move_path
 
     def add_counter_attack_count(self):
         self.counterattack_count += 1

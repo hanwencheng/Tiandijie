@@ -79,7 +79,10 @@ class Skills(Enum):
                 1,
                 RS.always_true,
                 partial(
-                    Effects.extend_enemy_harm_buffs, buff_number=2, range=2, duration=2
+                    Effects.extend_enemy_harm_buffs,
+                    buff_number=2,
+                    range_value=2,
+                    duration=1,
                 ),
             ),
             EventListener(
@@ -89,8 +92,8 @@ class Skills(Enum):
                 partial(
                     Effects.extend_partner_benefit_buffs,
                     buff_number=2,
-                    range=2,
-                    duration=2,
+                    range_value=2,
+                    duration=1,
                 ),
             ),
         ],

@@ -75,3 +75,9 @@ class LifeRequirementChecks:
                     return 0
             return 1
         return 0
+
+    @staticmethod
+    def self_life_is_higher_than_target(
+        _percentage: float, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        return 1 if actor_hero.current_life < target_hero.current_life else 0

@@ -60,9 +60,11 @@ def calculate_skill_damage(
         )
     )
 
-    critical_probability = get_critical_hit_probability(
-        attacker_instance, target_instance, context
-    ) - get_critical_hit_resistance(target_instance, attacker_instance, context)
+    critical_probability = (
+        get_critical_hit_probability(attacker_instance, target_instance, context)
+        - get_critical_hit_resistance(attacker_instance, target_instance, context)
+        + get_critical_hit_suffer(target_instance, attacker_instance, context)
+    )
 
     critical_damage_multiplier = (
         CRIT_MULTIPLIER

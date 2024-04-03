@@ -611,7 +611,7 @@ class Effects:
                 _add_buffs(actor, partner, benefit_buffs, 2, context)
 
     @staticmethod
-    def increase_self_loongest_skill_cooldown(
+    def increase_self_longest_skill_cooldown(
         cooldown_reduction: int, actor: Hero, target: Hero, context: Context
     ):
         longest_skill = max(actor.enabled_skills, key=lambda x: x.cool_down)

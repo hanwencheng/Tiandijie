@@ -1588,7 +1588,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 RS.always_true,
-                partial(Effects.increase_self_loongest_skill_cooldown, 1),
+                partial(Effects.increase_self_longest_skill_cooldown, 1),
             )
         ],
     )

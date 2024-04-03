@@ -61,10 +61,3 @@ class HeroTemp:
         )
         self.current_life = self.current_attributes.life
 
-    def take_harm(self, harm_value: float):
-        if harm_value > 0:
-            self.current_life -= harm_value
-
-    def take_healing(self, healing_value: float):
-        if healing_value > 0:
-            self.current_life += healing_value

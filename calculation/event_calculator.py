@@ -7,6 +7,8 @@ from primitives.effects.EventListener import EventListener
 from primitives.hero.Hero import Hero
 
 skill_related_events = [
+    EventTypes.skill_start,
+    EventTypes.skill_end,
     EventTypes.damage_start,
     EventTypes.damage_end,
     EventTypes.skill_single_damage_start,

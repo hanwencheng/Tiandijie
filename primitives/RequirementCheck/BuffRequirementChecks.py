@@ -6,6 +6,7 @@ from primitives.RequirementCheck.CheckHelpers import check_buff_on_target
 if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
+    from primitives.buff.Buff import Buff
 from primitives.buff.BuffTemp import BuffTypes
 
 
@@ -151,3 +152,9 @@ class BuffRequirementChecks:
                 if k == "move_range" and v > 0:
                     return 1
         return 0
+
+    @staticmethod
+    def buff_stack_bigger_than(
+        stack_value: int, actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff,
+    ) -> int:
+        return 0 if buff.stack >= stack_value else 1

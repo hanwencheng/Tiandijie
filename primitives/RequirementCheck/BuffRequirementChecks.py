@@ -126,6 +126,12 @@ class BuffRequirementChecks:
         return 1 if harm_buff_count > count else 0
 
     @staticmethod
+    def huahuo_stack_count(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> float:
+        return (buff.stack+3)/3
+
+    @staticmethod
     def target_has_certain_buff(
         buff_id: str, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:

@@ -35,10 +35,10 @@ def calculate_skill_damage(
 
     attacker_elemental_multiplier = get_element_attacker_multiplier(
         attacker_instance, target_instance, action, context
-    )
+    )   # 克制攻击加成
     defender_elemental_multiplier = get_element_defender_multiplier(
         attacker_instance, target_instance, action, context
-    )
+    )   # 克制防御加成
 
     # Calculating attack-defense difference
     attack_defense_difference = (

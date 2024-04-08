@@ -57,6 +57,17 @@ buff_max_stack = {
     ),
     "silie": BuffStack(7, []),
     "baofengyan": BuffStack(5, [ma.physical_damage_percentage, ma.critical_percentage]),
+    "tuipi": BuffStack(
+        4,
+        [
+            ma.life_percentage,
+            ma.attack_percentage,
+            ma.defense_percentage,
+            ma.magic_attack_percentage,
+            ma.magic_defense_percentage,
+            ma.critical_percentage,
+        ],
+    ),
 }
 
 

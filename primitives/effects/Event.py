@@ -106,6 +106,9 @@ class EventTypes(enum.Enum):
 
     hero_death = "hero_death"
 
+    kill_enemy_start = "kill_enemy_start"
+    kill_enemy_end = "kill_enemy_end"
+
     # double_attack
     double_attack_start = "double_attack_start"
     double_attack_end = "double_attack_end"

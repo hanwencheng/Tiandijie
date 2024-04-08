@@ -267,7 +267,13 @@ class Formations:
             ModifierEffect(
                 partial(Check.battle_with_no_element_advantage),
                 {
-                    ma.element_attacker_multiplier: 0.08,
+                    ma.physical_damage_percentage: 8,
+                    ma.magic_damage_percentage: 8,
+                },
+            ),
+            ModifierEffect(
+                Check.always_true,
+                {
                     ma.element_defender_multiplier: 0.08,
                 },
             )
@@ -705,7 +711,7 @@ class Formations:
         [{"profession": Professions.SORCERER}, {"profession": Professions.PRIEST}],
         [
             ModifierEffect(
-                partial(Check.target_all_active_skills_in_cooldown),
+                partial(Check.target_has_active_skills_in_cooldown),
                 {ma.physical_damage_percentage: 10, ma.magic_damage_percentage: 10},
             )
         ],

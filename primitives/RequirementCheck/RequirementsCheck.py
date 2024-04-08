@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from primitives.hero.Element import Elements
 
 
+from typing import List
 from primitives.hero.Element import get_elemental_relationship, ElementRelationships
+from primitives.Action import ActionTypes
 
 from primitives.hero.HeroBasics import Professions, Gender
 
@@ -53,6 +55,15 @@ class RequirementCheck:
         return 0
 
     @staticmethod
+    def attack_certain_hero(
+        hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if _is_attacker(actor_hero, context):
+            if target_hero.temp.id == hero_temp_id:
+                return 1
+        return 0
+
+    @staticmethod
     def battle_with_caster(
         actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
     ) -> int:
@@ -85,31 +96,41 @@ class RequirementCheck:
         return False
 
     @staticmethod
-    def all_skills_in_cooldown(
-        actor_hero: Hero, target_hero: Hero, context: Context
-    ) -> int:
-        for skill in actor_hero.enabled_skills:
-            if skill.cool_down > 0:
-                return 0
-        return 1
+    def move_more_than(
+        max_move: int, actor_hero: Hero, target_hero: Hero, context: Context
+    ):
+        action = context.get_last_action()
+        if actor_hero == action.actor:
+            if action.moves > max_move:
+                return True
+        return False
 
     @staticmethod
     def self_all_active_skills_in_cooldown(
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         for skill in actor_hero.enabled_skills:
-            if skill not in actor_hero.temp.passives and skill.cool_down > 0:
+            if skill not in actor_hero.temp.passives and skill.cool_down <= 0:
                 return 0
         return 1
 
     @staticmethod
-    def target_all_active_skills_in_cooldown(
+    def self_has_active_skills_in_cooldown(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        for skill in actor_hero.enabled_skills:
+            if skill not in actor_hero.temp.passives and skill.cool_down > 0:
+                return 1
+        return 0
+
+    @staticmethod
+    def target_has_active_skills_in_cooldown(
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         for skill in target_hero.enabled_skills:
             if skill not in target_hero.temp.passives and skill.cool_down > 0:
-                return 0
-        return 1
+                return 1
+        return 0
 
     @staticmethod
     def in_battle_with_non_flyable(
@@ -159,13 +180,47 @@ class RequirementCheck:
         return _is_attacker(actor_hero, context)
 
     @staticmethod
-    def target_is_battle_in_remote(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def is_in_battle(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         action = context.get_last_action()
-        if target_hero.temp.profession in [
-            Professions.SORCERER,
-            Professions.PRIEST,
-            Professions.ARCHER,
-        ] and action.is_in_battle:
+        return action.is_in_battle
+
+    @staticmethod
+    def is_attack_target(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        return _is_attacker(target_hero, context)
+
+    @staticmethod
+    def is_battle_with_remote(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if (
+            target_hero.temp.profession
+            in [
+                Professions.SORCERER,
+                Professions.PRIEST,
+                Professions.ARCHER,
+            ]
+            and action.is_in_battle
+        ):
+            return 1
+        return 0
+
+    @staticmethod
+    def attacked_by_melee_attack(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if (
+            target_hero.temp.profession
+            in [
+                Professions.GUARD,
+                Professions.SWORDSMAN,
+                Professions.RIDER,
+                Professions.WARRIOR,
+            ]
+            and action.is_in_battle
+            and _is_attacker(target_hero, context)
+        ):
             return 1
         return 0
 
@@ -179,13 +234,32 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def skill_is_water_element(
-        actor_hero: Hero, target_hero: Hero, context: Context
+    def skill_is_certain_element(
+        element_value: Elements, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context):
-            if action.skill.temp.skill_element == Elements.WATER:
+            if action.skill.temp.skill_element == element_value:
                 return 1
+        return 0
+
+    @staticmethod
+    def skill_is_in_element_list(
+        element_list: List[Elements],
+        actor_hero: Hero,
+        target_hero: Hero,
+        context: Context,
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(actor_hero, context):
+            if action.skill.temp.skill_element in element_list:
+                return 1
+        return 0
+
+    @staticmethod
+    def action_is_active_skill(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        if context.get_last_action().type == ActionTypes.SKILL_ATTACK:
+            return 1
         return 0
 
     @staticmethod
@@ -237,13 +311,37 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def self_is_used_skill(
+    def self_is_used_active_skill(
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         action = context.get_last_action()
-        if action.actor == actor_hero:
+        if _is_attacker(actor_hero, context):
+            if action.skill.temp in actor_hero.enabled_skills:
+                return 1
+        return 0
+
+    @staticmethod
+    def is_target_by_fire_element(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(target_hero, context):
+            if action.skill.temp.skill_element == Elements.FIRE:
+                return 1
+        return 0
+
+    @staticmethod
+    def is_magic_attack(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        if action.skill.temp.is_magic():
             return 1
         return 0
+
+    @staticmethod
+    def is_in_terrain(
+        terrain_value: str, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        return 1
 
     LifeChecks: LifeRequirementChecks
     PositionChecks: PositionRequirementChecks

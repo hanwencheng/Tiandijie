@@ -48,6 +48,11 @@ def get_element_attacker_multiplier(
 ) -> float:
     skill = action.skill
     attr_name = ma.element_attacker_multiplier
+    is_ignore_element = get_skill_modifier(
+        "ignore_element_advantage", attacker_instance, target_instance, skill, context
+    )
+    if is_ignore_element:
+        return 1
     basic_elemental_multiplier = get_elemental_multiplier(
         get_elemental_relationship(skill.temp.element, target_instance.temp.element)
     )
@@ -404,7 +409,7 @@ def get_critical_hit_resistance(
 
 
 def get_critical_hit_suffer(
-        actor_hero: Hero, counter_instance: Hero, context: Context, is_basic: bool = False
+    actor_hero: Hero, counter_instance: Hero, context: Context, is_basic: bool = False
 ) -> float:
     # Calculate buffs
     level_2_hit_suffer = get_level2_modifier(
@@ -454,16 +459,33 @@ def get_fixed_damage_reduction_modifier(
     accumulated_passives_damage_reduction_modifier = accumulate_attribute(
         hero_instance.temp.passives, ma.fixed_damage_reduction_percentage
     )
+    accumulated_passives_damage_modifier = accumulate_attribute(
+        hero_instance.temp.passives, ma.fixed_damage_percentage
+    )
     return (
         1
         - (
-            get_level2_modifier(
-                hero_instance,
-                counter_instance,
-                ma.fixed_damage_reduction_percentage,
-                context,
+            (
+                get_level2_modifier(
+                    hero_instance,
+                    counter_instance,
+                    ma.fixed_damage_reduction_percentage,
+                    context,
+                )
+                + accumulated_passives_damage_reduction_modifier
             )
-            - accumulated_passives_damage_reduction_modifier
+            - (
+                (
+                    get_level2_modifier(
+                        hero_instance,
+                        counter_instance,
+                        ma.fixed_damage_percentage,
+                        context,
+                    )
+                    + accumulated_passives_damage_reduction_modifier
+                )
+                + accumulated_passives_damage_modifier
+            )
         )
         / 100
     )

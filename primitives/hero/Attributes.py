@@ -76,7 +76,21 @@ class Attributes(tuple):
         return 6
 
     def __getitem__(self, index):
-        return self.values[index]  # Implement subscriptability directly on the class
+        if index == "life":
+            return self.life
+        elif index == "attack":
+            return self.attack
+        elif index == "defense":
+            return self.defense
+        elif index == "magic_attack":
+            return self.magic_attack
+        elif index == "magic_defense":
+            return self.magic_defense
+        elif index == "luck":
+            return self.luck
+        else:
+            raise IndexError("Index out of range")
+        # return self.values[index]  # Implement subscriptability directly on the class
 
     @property
     def value(self):

@@ -36,7 +36,7 @@ class Action:
         self.is_in_battle: bool = False
         self.is_with_protector: bool = False
         self.protector: Hero or None = None
-        self.skill: Skill = skill
+        self.skill: Skill or None = None
         self.type: ActionTypes = ActionTypes.PASS
         self.move_range: int = 0
         self.moves: List[Position] = []

@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 
 from calculation.attribute_calculator import *
 from primitives.hero import Hero
+from calculation.event_calculator import event_listener_calculator
+from primitives.effects.Event import EventTypes
 
 CRIT_MULTIPLIER = 1.3
 LIEXING_DAMAGE_REDUCTION = 4
@@ -16,7 +18,9 @@ LIEXING_DAMAGE_INCREASE = 4
 
 
 def apply_damage(actor: Hero, target: Hero, action: Action, context: Context):
+    event_listener_calculator(actor, target, EventTypes.damage_start, context)
     calculate_skill_damage(actor, target, action, context)
+    event_listener_calculator(actor, target, EventTypes.damage_end, context)
 
 
 def apply_counterattack_damage(

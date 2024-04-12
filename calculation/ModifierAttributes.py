@@ -104,3 +104,4 @@ class ModifierAttributes:
     is_only_attack_to_caster = "is_only_attack_to_caster"               # 只能攻击施法者
 
     is_wufangjiejie_disabled = "wufangjiejie_disabled"
+    is_jixing_disabled = "jixing_disabled"

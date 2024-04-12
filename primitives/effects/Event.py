@@ -29,6 +29,11 @@ class EventTypes(enum.Enum):
     normal_attack_end = "normal_attack_end"
     under_normal_attack_start = "under_normal_attack_start"
     under_normal_attack_end = "under_normal_attack_end"
+    # skill_attack
+    skill_attack_start = "skill_attack_start"
+    skill_attack_end = "skill_attack_end"
+    under_skill_attack_start = "under_normal_attack_start"
+    under_skill_attack_end = "under_normal_attack_end"
     # protect
     protect_start = "protect_start"
     protect_end = "protect_end"

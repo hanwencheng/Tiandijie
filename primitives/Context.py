@@ -40,6 +40,16 @@ class Context:
             and hero.player_id == hero.player_id
         ]
 
+    def get_enemies_in_diamond_range(self, hero: Hero, range_value: int) -> List[Hero]:
+        base_position = hero.position
+        positions_list_in_range = calculate_diamond_area(base_position, range_value)
+        return [
+            hero
+            for hero in self.heroes
+            if hero.position in positions_list_in_range
+            and hero.player_id != hero.player_id
+        ]
+
     def get_enemies_in_square_range(self, hero: Hero, range_value: int) -> List[Hero]:
         base_position = hero.position
         positions_list_in_range = calculate_square_area(base_position, range_value)

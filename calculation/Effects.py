@@ -24,6 +24,7 @@ from typing import List
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
 from primitives.buff.BuffTemp import BuffTypes
 from calculation.BuffStack import get_buff_max_stack
+from calculation.BuffTriggerLimit import get_buff_max_trigger_limit
 
 
 def get_current_action(context: Context) -> Action:
@@ -52,7 +53,6 @@ def _add_buffs(
                 target.buffs.remove(existing_buff)
                 target.buffs.append(new_buff)
             else:
-                _increase_actor_certain_buff_stack(new_buff.temp.id, target, 1)
                 existing_buff.duration = duration
         else:
             target.buffs.append(new_buff)
@@ -82,6 +82,14 @@ def _increase_actor_certain_buff_stack(
                 return
             buff.stack += increase_stack
             break
+
+
+def _increase_actor_energy(actor: Hero, increase_stack: int):
+    pass
+
+
+def _reduce_actor_energy(actor: Hero, increase_stack: int):
+    pass
 
 
 def _increase_actor_certain_buff_max_stack(buff_temp_id: str, actor: Hero):
@@ -263,7 +271,11 @@ class Effects:
 
     @staticmethod
     def reduce_actor_certain_buff_stack(
-        buff_id: str, stack_value: int, actor_instance: Hero, target_instance: Hero, context: Context
+        buff_id: str,
+        stack_value: int,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
     ):
         _reduce_actor_certain_buff_stack(buff_id, actor_instance, stack_value)
 
@@ -389,17 +401,15 @@ class Effects:
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
     @staticmethod
-    def add_fixed_damage_with_attack(
+    def add_fixed_damage_with_physical_attack(
         multiplier: float,
-        is_magic: bool,
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
     ):
         if check_is_attacker(actor_instance, context):
             damage = (
-                get_attack(actor_instance, target_instance, context, is_magic)
-                * multiplier
+                get_attack(actor_instance, target_instance, context, False) * multiplier
             )
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
@@ -720,9 +730,7 @@ class Effects:
         move_count = len(action.moves)
         actor_max_life = get_max_life(actor, is_attacker, context)
         multiplier = min(percentage * move_count, max_percentage)
-        calculate_fix_damage(
-            actor_max_life * multiplier, is_attacker, actor, context
-        )
+        calculate_fix_damage(actor_max_life * multiplier, is_attacker, actor, context)
 
     @staticmethod
     def remove_actor_certain_buff(
@@ -983,7 +991,11 @@ class Effects:
             _remove_actor_certain_buff(selected_buff.temp.id, actor)
             selected_buff_caster = context.get_hero_by_id(selected_buff.caster_id)
             _add_buffs(
-                selected_buff_caster, caster, selected_buff.temp.id, selected_buff.duration, context
+                selected_buff_caster,
+                caster,
+                selected_buff.temp.id,
+                selected_buff.duration,
+                context,
             )
 
     @staticmethod
@@ -1132,6 +1144,38 @@ class Effects:
         calculate_fix_heal(damage * multiplier, actor, actor, context)
 
     @staticmethod
+    def refresh_buff_trigger(actor: Hero, target: Hero, context: Context, buff: Buff):
+        Buff.trigger = 0
+
+    # energy
+    @staticmethod
+    def increase_self_energy(
+        energy_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        _increase_actor_energy(actor, energy_value)
+
+    @staticmethod
+    def increase_target_energy(
+        energy_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        _increase_actor_energy(target, energy_value)
+
+    @staticmethod
+    def reduce_target_energy(
+        energy_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        _reduce_actor_energy(target, energy_value)
+
+    @staticmethod
+    def reduce_target_energy_in_range(
+        range_value: int, energy_value: int, actor: Hero, target: Hero, context: Context
+    ):
+        enemies = context.get_enemies_in_diamond_range(actor, range_value)
+        for enemy in enemies:
+            _reduce_actor_energy(enemy, energy_value)
+
+    # shield
+    @staticmethod
     def add_shield():
         pass
 
@@ -1157,6 +1201,10 @@ class Effects:
         context: Context,
         buff: Buff,
     ):
+        max_trigger = get_buff_max_trigger_limit("zhuijia")
+        if buff.trigger >= max_trigger:
+            return
+        buff.trigger += 1
         Effects.heal_self(0.25, actor, actor, context)
         Effects.remove_actor_harm_buffs(1, actor, actor, context)
 
@@ -1168,6 +1216,10 @@ class Effects:
         context: Context,
         buff: Buff,
     ):
+        max_trigger_limit = get_buff_max_trigger_limit("tandi")
+        if buff.trigger >= max_trigger_limit:
+            return
+        buff.trigger += 1
         caster = context.get_hero_by_id(buff.caster_id)
         _add_buffs(actor, caster, ["yudi"], 1, context)
 
@@ -1219,9 +1271,94 @@ class Effects:
             _add_buffs(actor, actor, ["jinbi"], 1, context)
 
     @staticmethod
-    def transfer_certain_buff_to_random_partner(
-        buff_id: str, range_value: int, actor: Hero, target: Hero, context: Context
+    def take_effect_of_jianyi_jidang(
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        buff: Buff,
     ):
+        actor_luck = actor.initial_attribute.luck
+        target_luck = target.initial_attribute.luck
+        damage = get_attack(actor, target, context, False) + get_attack(
+            actor, target, context, True
+        )
+        if actor_luck > target_luck:
+            calculate_fix_damage(damage, actor, target, context)
+        else:
+            calculate_fix_damage(damage * 0.75, actor, target, context)
+
+    @staticmethod
+    def take_effect_of_longyan(actor: Hero, target: Hero, context: Context, buff: Buff):
+        action = context.get_last_action()
+        caster = context.get_hero_by_id(buff.caster_id)
+        Effects.increase_target_energy(action.targets, actor, caster, context)
+
+    @staticmethod
+    def take_effect_of_ruizou(actor: Hero, target: Hero, context: Context, buff: Buff):
+        action = context.get_last_action()
+        caster = context.get_hero_by_id(buff.caster_id)
+        Effects.increase_self_energy(1, actor, actor, context)
+        Effects.increase_target_energy(1, actor, caster, context)
+
+    @staticmethod
+    def take_effect_of_feiyu(
+        actor_instance: Hero, target_instance: Hero, context: Context
+    ):
+        context.get_last_action().update_additional_move(2)
+
+    @staticmethod
+    def take_effect_of_youkai(
+        actor_instance: Hero, target_instance: Hero, context: Context
+    ):
+        pass
+
+    @staticmethod
+    def take_effect_of_chuliang(
+        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+    ):
+        calculate_fix_damage(
+            buff.content * 0.5, actor_instance, actor_instance, context
+        )
+
+    @staticmethod
+    def take_effect_of_xunlie(
+        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+    ):
+        max_trigger_limit = get_buff_max_trigger_limit("xunlie")
+        if buff.trigger >= max_trigger_limit:
+            return
+        caster = context.get_hero_by_id(buff.caster_id)
+        if caster.alive and target_instance.alive:
+            damage = get_attack(caster, target_instance, context, False, True)
+            calculate_fix_damage(damage * 0.5, caster, target_instance, context)
+
+    @staticmethod
+    def take_effect_of_songqingming(
+        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+    ):
+        if actor_instance.id == "niexiaoqian":
+            _add_buffs(actor_instance, actor_instance, ["jiyi", "shenhu"], 1, context)
+            Effects.reduce_self_all_skill_cooldown(
+                1, actor_instance, actor_instance, context
+            )
+        max_trigger_limit = get_buff_max_trigger_limit("songqingming")
+        if buff.trigger >= max_trigger_limit:
+            return
+        caster = context.get_hero_by_id(buff.caster_id)
+        _add_buffs(actor_instance, caster, ["mingyun"], 1, context)
+
+    @staticmethod
+    def transfer_certain_buff_to_random_partner(
+        buff_id: str,
+        range_value: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        buff: Buff,
+    ):
+        max_trigger_limit = get_buff_max_trigger_limit(buff_id)
+        if buff.trigger >= max_trigger_limit:
+            return
         partners = context.get_partners_in_diamond_range(actor, range_value)
         partner = random_select(partners, 1)
         _remove_actor_certain_buff(buff_id, actor)
@@ -1235,3 +1372,19 @@ class Effects:
         _add_buffs(
             actor, target, [context.get_buff_temp_by_id(target_buff_id)], 2, context
         )
+
+    @staticmethod
+    def take_effect_of_kongxing(
+        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+    ):
+        caster = context.get_hero_by_id(buff.caster_id)
+        action = context.get_last_action()
+        hero_count = len(action.targets)
+        caster_physical_attack = get_attack(caster, actor_instance, context, True, True)
+        calculate_fix_damage(
+            min(hero_count, 5) * 0.1 * caster_physical_attack,
+            caster,
+            actor_instance,
+            context,
+        )
+        _add_buffs(caster, caster, ["baonu"], 1, context)

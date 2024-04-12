@@ -5,27 +5,17 @@ if TYPE_CHECKING:
     from primitives.effects import EventListener
     from calculation.Modifier import Modifier
     from primitives.effects.ModifierEffect import ModifierEffect
-    from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
-    from primitives.fieldbuff.fieldbuffs import fieldbuffs
 import enum
 import string
 from typing import List
 
 
-class BuffTypes(enum.IntEnum):
-    Benefit = 0
-    Harm = 1
-    Others = 2
-
-
-class BuffTemp:
+class FieldBuffTemp:
     def __init__(
         self,
-        buff_id: string,
-        buff_type: BuffTypes,
-        dispellable,
-        expandable,
-        stealable,
+        buff_id: str,
+        buff_hero: str,
+        buff_range: int,
         modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = None,
         on_event: List[EventListener] = None,
     ):
@@ -40,13 +30,10 @@ class BuffTemp:
         if on_event is None:
             on_event = []
         self.id = buff_id
-        self.type: BuffTypes = buff_type
-        self.dispellable: bool = dispellable
-        self.stealable: bool = stealable
-        self.expandable: bool = expandable
+        self.buff_hero = buff_hero
+        self.buff_range = buff_range
         self.modifier_effects: List[ModifierEffect] = modifier_effects
         self.event_listeners: List[EventListener] = on_event
-        self.field_buffs: List[FieldBuffTemp] = fieldbuffs.get_FieldBuff(buff_id)
 
     def __getitem__(self, key):
         return getattr(self, key)

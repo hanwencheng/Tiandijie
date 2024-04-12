@@ -183,12 +183,15 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 RS.always_true,
-                partial(Effects.receive_fixed_magic_damage_by_caster_magic_attack, multiplier=0.5),
+                partial(
+                    Effects.receive_fixed_magic_damage_by_caster_magic_attack,
+                    multiplier=0.5,
+                ),
             )
         ],
     )
 
-    # 中毒	有害	可驱散	可扩散	可偷取	行动结束时，损失10%气血，若每多移动1格，则额外损失5%气血（最多15%）
+    # 中毒	有害	可驱散	可扩散	可偷取	行动结束时，损失10%气血，若每多格，则额外损失5%气血（最多15%）
     zhongdu = BuffTemp(
         "zhongdu",
         BuffTypes.Harm,
@@ -303,7 +306,9 @@ class BuffTemps(Enum):
                     ma.battle_damage_percentage: -10,
                 },
             ),
-            ModifierEffect(partial(RS.self_all_active_skills_in_cooldown), {ma.move_range: -1}),
+            ModifierEffect(
+                partial(RS.self_all_active_skills_in_cooldown), {ma.move_range: -1}
+            ),
         ],
     )
 
@@ -332,7 +337,7 @@ class BuffTemps(Enum):
                 3,
                 RS.always_true,
                 partial(Effects.heal_self, multiplier=0.5),
-            )
+            ),
         ],
     )
 
@@ -395,7 +400,7 @@ class BuffTemps(Enum):
                 partial(Effects.remove_self_harm_buffs, 1),
             ),
             EventListener(
-                EventTypes.skill_range_damage_end,
+                EventTypes.under_skill_range_damage_end,
                 1,
                 RS.always_true,
                 partial(Effects.remove_target_certain_buff, "guangkai"),
@@ -719,16 +724,8 @@ class BuffTemps(Enum):
         True,
         False,
         [
-            [
-                ModifierEffect(
-                    RS.always_true, {ma.defense_percentage: -20}
-                )
-            ],
-            [
-                ModifierEffect(
-                    RS.always_true, {ma.defense_percentage: -25}
-                )
-            ],
+            [ModifierEffect(RS.always_true, {ma.defense_percentage: -20})],
+            [ModifierEffect(RS.always_true, {ma.defense_percentage: -25})],
         ],
         [],
     )
@@ -843,9 +840,8 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
                 partial(
-                    Effects.add_fixed_damage_with_attack,
+                    Effects.receive_fixed_damage_by_caster_physical_attack,
                     multiplier=0.15,
-                    is_magic=False,
                 ),
             ),
         ],
@@ -877,7 +873,19 @@ class BuffTemps(Enum):
         [ModifierEffect(RS.always_true, {ma.attack_range: 1, ma.move_range: 1})],
         [
             EventListener(
-                EventTypes.damage_end,
+                EventTypes.normal_attack_end,
+                1,
+                RS.always_true,
+                partial(Effects.increase_target_harm_buff_level, buff_level=1),
+            ),
+            EventListener(
+                EventTypes.skill_single_damage_end,
+                1,
+                RS.always_true,
+                partial(Effects.increase_target_harm_buff_level, buff_level=1),
+            ),
+            EventListener(
+                EventTypes.skill_range_damage_end,
                 1,
                 RS.always_true,
                 partial(Effects.increase_target_harm_buff_level, buff_level=1),
@@ -927,7 +935,15 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [ModifierEffect(RS.always_true, {ma.magic_damage_reduction_percentage: 50})],
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.physical_damage_reduction_percentage: 50,
+                    ma.magic_damage_reduction_percentage: 50,
+                },
+            )
+        ],
         [
             EventListener(
                 EventTypes.damage_end,
@@ -951,7 +967,7 @@ class BuffTemps(Enum):
                 EventTypes.partner_action_end,
                 1,
                 partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.add_self_buffs, buff_temp=["xunjie"], duration=1),
+                partial(Effects.add_buffs, buff_temp=["xunjie"], duration=1),
             )
         ],
     )
@@ -968,6 +984,11 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 {
                     ma.critical_percentage: 20,
+                },
+            ),
+            ModifierEffect(
+                RS.always_true,
+                {
                     ma.move_range: 1,
                     ma.is_ignore_obstacle: True,
                 },
@@ -1082,7 +1103,7 @@ class BuffTemps(Enum):
         ],
     )
 
-    # 剑意激荡	其他	不可驱散	不可扩散	不可偷取	目标（物攻+法攻）的伤害（无法被减免）
+    # 剑意激荡	其他	不可驱散	不可扩散	不可偷取	普攻附带0.5目标（物攻+法攻）的伤害（无法被减免）。魔天凛意附带0.75目标（物攻+法攻）的伤害（无法被减免）；若会心大于对方，则附带1目标（物攻+法攻）的伤害（无法被减免）
     jianyijidang = BuffTemp(
         "jianyijidang",
         BuffTypes.Others,
@@ -1092,14 +1113,22 @@ class BuffTemps(Enum):
         [],
         [
             EventListener(
-                EventTypes.damage_end,
+                EventTypes.normal_attack_end,
                 1,
                 RS.always_true,
                 partial(
                     Effects.add_fixed_damage_with_physical_and_magic_attack,
-                    multiplier=1,
+                    multiplier=0.5,
                 ),
-            )
+            ),
+            EventListener(
+                EventTypes.skill_end,
+                1,
+                partial(RS.self_use_certain_skill, "motianlingyi"),
+                partial(
+                    Effects.take_effect_of_jianyi_jidang,
+                ),
+            ),
         ],
     )
 
@@ -1284,7 +1313,7 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.skill_single_damage_end,
+                EventTypes.under_skill_single_damage_end,
                 1,
                 RS.always_true,
                 partial(Effects.remove_actor_certain_buff, "qizhi"),
@@ -1324,7 +1353,7 @@ class BuffTemps(Enum):
     )
 
     # 寄形	其他	不可驱散	不可扩散	不可偷取	与施加者作战，「对战前」被施加者偷取3个随机「有益状态」（不可驱散，触发后消失）
-    jixing = BuffTemp(
+    jixing_renduanli = BuffTemp(
         "jixing",
         BuffTypes.Others,
         False,
@@ -1445,13 +1474,13 @@ class BuffTemps(Enum):
                 EventTypes.damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_fixed_damage_with_attack, multiplier=0.5),
+                partial(Effects.add_fixed_damage_with_physical_attack, multiplier=0.5),
             ),
             EventListener(
                 EventTypes.damage_end,
                 1,
                 partial(RS.LifeChecks.target_life_is_below, 50),
-                partial(Effects.add_fixed_damage_with_attack, multiplier=0.5),
+                partial(Effects.add_fixed_damage_with_physical_attack, multiplier=0.5),
             ),
         ],
     )
@@ -1595,7 +1624,7 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.skill_range_damage_end,
+                EventTypes.under_skill_range_damage_end,
                 1,
                 RS.always_true,
                 partial(Effects.remove_actor_certain_buff, "yingdun"),
@@ -1810,7 +1839,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_self_buffs, "chuti"),
+                partial(Effects.increase_actor_certain_buff_stack, "chuti"),
             )
         ],
     )
@@ -2151,17 +2180,11 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.skill_single_damage_end,
+                EventTypes.skill_attack_end,
                 1,
                 RS.always_true,
                 partial(Effects.remove_actor_certain_buff, "wangong"),
-            ),
-            EventListener(
-                EventTypes.skill_range_damage_end,
-                1,
-                RS.always_true,
-                partial(Effects.remove_actor_certain_buff, "wangong"),
-            ),
+            )
         ],
     )
 
@@ -2184,6 +2207,24 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.is_attacker),
                 partial(Effects.take_effect_of_tandi),
+            ),
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
+            EventListener(
+                EventTypes.partner_action_end,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
+            EventListener(
+                EventTypes.enemy_action_end,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
             ),
         ],
     )
@@ -2228,13 +2269,13 @@ class BuffTemps(Enum):
             [
                 ModifierEffect(
                     RS.always_true,
-                    {ma.move_range_max: 4},
+                    {ma.max_move_range: 4},
                 ),
             ],
             [
                 ModifierEffect(
                     RS.always_true,
-                    {ma.move_range_max: 3},
+                    {ma.max_move_range: 3},
                 ),
             ],
         ],
@@ -2281,7 +2322,7 @@ class BuffTemps(Enum):
         [],
     )
 
-    # 施咒	其他	不可驱散	不可扩散	不可偷取	其他友方在自身2格范围内发起对战，且优先攻击时，则为其施加「神睿」「御魔」状态，持续1回合（每回合只能触发1次）
+    # 施咒	其他	不可驱散	不可扩散	不可偷取	其他友方在自身2格范围内发起对战，且优先攻击时，则为其施加「神睿」「御魔」状态，持续1回合（每回合只能触发1次）(领域)
     shizhou = BuffTemp(
         "shizhou",
         BuffTypes.Others,
@@ -2295,6 +2336,12 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.PositionChecks.in_range, 2),
                 partial(Effects.add_buffs, buff_temp=["shenrui", "yumo"], duration=1),
+            ),
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
             ),
         ],
     )
@@ -2722,7 +2769,7 @@ class BuffTemps(Enum):
                     partial(Effects.remove_actor_certain_buff, "fantian"),
                 ),
                 EventListener(
-                    EventTypes.buff_end,
+                    EventTypes.battle_end,
                     1,
                     RS.always_true,
                     partial(Effects.remove_target_harm_buffs_in_range, 2, 2),
@@ -2736,10 +2783,16 @@ class BuffTemps(Enum):
                     partial(Effects.remove_actor_certain_buff, "fantian"),
                 ),
                 EventListener(
-                    EventTypes.buff_end,
+                    EventTypes.battle_end,
                     1,
                     RS.always_true,
-                    partial(Effects.reverse_target_benefit_buffs_in_range, 2, 2),
+                    partial(Effects.reverse_target_benefit_buffs_in_range, 3, 2),
+                ),
+                EventListener(
+                    EventTypes.battle_end,
+                    1,
+                    RS.always_true,
+                    partial(Effects.reduce_target_energy_in_range, 2, 2),
                 ),
             ],
         ],
@@ -5514,7 +5567,7 @@ class BuffTemps(Enum):
                 EventTypes.critical_damage_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_actor_and_caster_energy, 1),
+                partial(Effects.take_effect_of_ruizou),
             ),
             EventListener(
                 EventTypes.critical_damage_end,
@@ -5525,22 +5578,41 @@ class BuffTemps(Enum):
         ],
     )
 
-    # 拢烟	其他	不可驱散	不可扩散	不可偷取	主动攻击每命中1个敌人给施加者回复1点气力（最多3点，不可驱散）
-    longyan = BuffTemp(
-        "longyan",
+    # 星云	有益	可驱散	不可扩散	不可偷取	遭受攻击时，敌方「对战前」每移动1格则伤害降低10%（最多降低30%，状态触发后消失，并使施加者获得2点「星屑」）
+    xingyun = BuffTemp(
+        "xingyun",
+        BuffTypes.Benefit,
+        True,
+        False,
+        False,
+        [
+            ModifierEffect(partial(RS.xingyun_requires_check), {ma.battle_damage_reduction_percentage: 10}),
+        ],
+        [
+            EventListener(
+                EventTypes.under_battle_start,
+                1,
+                partial(RS.xingyun_requires_check),
+                partial(Effects.remove_actor_certain_buff, "xingyun"),
+            ),
+            EventListener(
+                EventTypes.under_battle_start,
+                1,
+                partial(RS.xingyun_requires_check),
+                partial(Effects.increase_actor_certain_buff_stack, "xingxue", 2),
+            ),
+        ],
+    )
+
+    # 星屑	其他	不可驱散	不可扩散	不可偷取	愿我如星君如月，夜夜流光相皎洁。消耗「星屑」，以强化或开启「摇光破军界」（上限10点）。
+    xingxue = BuffTemp(
+        "xingxue",
         BuffTypes.Others,
         False,
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.damage_end,
-                1,
-                RS.is_attacker,
-                partial(Effects.add_caster_energy, 1),
-            )
-        ],
+        [],
     )
 
     # 飞羽	其他	不可驱散	不可扩散	不可偷取	攻击射程+1，主动攻击「对战后」获得再移动（2格）（不可驱散）
@@ -5561,28 +5633,48 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_extra_move, 2),
+                partial(Effects.take_effect_of_feiyu, 2),
             ),
         ],
     )
 
-    # # 既行	其他	不可驱散	不可扩散	不可偷取	无法被再次激活（不可驱散，下回合开始时移除）
-    # jixing = BuffTemp(
-    #     "jixing",
-    #     BuffTypes.Others,
-    #     False,
-    #     False,
-    #     False,
-    #     [],
-    #     [
-    #         EventListener(
-    #             EventTypes.battle_start,
-    #             1,
-    #             RS.always_true,
-    #             partial(Effects.remove_actor_certain_buff, "jixing"),
-    #         )
-    #     ],
-    # )
+    # 拢烟	其他	不可驱散	不可扩散	不可偷取	主动攻击每命中1个敌人给施加者回复1点气力（最多3点，不可驱散）
+    longyan = BuffTemp(
+        "longyan",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.damage_end,
+                1,
+                partial(RS.is_attacker),
+                partial(Effects.take_effect_of_longyan),
+            )
+        ],
+    )
+
+    # 既行	其他	不可驱散	不可扩散	不可偷取	无法被再次激活（不可驱散，下回合开始时移除）
+    jixing_yuqin = BuffTemp(
+        "jixing",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(RS.always_true, {ma.is_jixing_disabled: True}),
+        ],
+        [
+            EventListener(
+                EventTypes.battle_start,
+                1,
+                RS.always_true,
+                partial(Effects.remove_actor_certain_buff, "jixing"),
+            )
+        ],
+    )
 
     # # 极乐	其他	不可驱散	不可扩散	不可偷取	全属性提升15%，敌方行动结束若处于自身3格范围内则被夺取1个「有益状态」，若为召唤物且气血值低于自身则被吞蚀（受到最大气血100%固定伤害）并恢复自身50%气血（「极乐」状态下，无法获得餍足」状态）
     # jile = BuffTemp(
@@ -5614,8 +5706,6 @@ class BuffTemps(Enum):
     #     ],
     # )
 
-    # 波旬降临	其他	不可驱散	不可扩散	不可偷取	射程+1，移动无视敌方角色阻挡，自身气血外全属性提高携带「链锁」状态的敌方基础属性的30%（最多不超过自身基础属性的50%），状态结束时移除自身施加的「链锁」状态。
-    # 空性	其他	不可驱散	不可扩散	不可偷取	物攻的15%附加至物防、法防上，自身3格范围内友方受到攻击后，对攻击者造成1次物理伤害（受击人数（上限5人）*（物攻的0.4倍）），并进入「报怒」状态，持续2回合（不可驱散）
     # # 福灵	其他	不可驱散	不可扩散	不可偷取	移动力+2，可跨越障碍，物攻的15%附加至物防、法防上
     # fuling = BuffTemp(
     #     "fuling",
@@ -5636,8 +5726,6 @@ class BuffTemps(Enum):
     #     [],
     # )
 
-    # 审判	其他	不可驱散	不可扩散	不可偷取	当敌方行动结束时，如果在警戒范围内，则立刻对其1圈范围内所有敌人造成0.4倍物攻伤害，驱散1个「有益状态」（累积触发3次后消失）
-    # 审判·贰	其他	不可驱散	不可扩散	不可偷取	当敌方行动结束时，如果在警戒范围内，则立刻对其1圈范围内所有敌人造成0.5倍物攻伤害，反转1个「有益状态」（累积触发3次后消失，每触发1次降低「弥伽诫喻」1回合冷却）
 
     # 灵辉	其他	不可驱散	不可扩散	不可偷取	行动结束时，如果携带不少于7层「灵辉」，消耗7层「灵辉」，再激活自身十字7格内1名法攻/物攻最高已结束行动的其他友方。（间隔2回合触发）
     # 疫瘴	其他	不可驱散	不可扩散	不可偷取	携带者受到驱散「有害状态」的效果作用时，每层本状态防止1个「有害状态」（仅限满足可驱散）被驱散，并消耗对应层数（最多叠加3层，不可驱散）
@@ -5655,62 +5743,154 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.battle_start,
                 1,
-                RS.always_true,
-                partial(Effects.remove_actor_certain_buff, "youkai"),
+                partial(RS.is_attack_target),
+                partial(Effects.take_effect_of_youkai),
             ),
-            EventListener(
-                EventTypes.under_battle_start,
-                1,
-
-            )
         ],
     )
 
-
-
     # 优先攻击
+    # 慑服	其他	不可驱散	不可扩散	不可偷取	行动结束时若处于施加者3格内，反转自身1个「有益状态」并发生1格内「扰动」效果（不可驱散，触发后移除）。
+    shefu = BuffTemp(
+        "shefu",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
     # 送清明	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方主动发起对战，且优先攻击时，则在「对战前」为其施加「命蕴」效果，持续2回合（每回合只能触发2次）[若协攻对象为聂小倩，则「对战前」为其施加「极意II」「神护II」效果，持续1回合，且聂小倩所有主动绝学冷却时间减少1回合]
+    songqingming = BuffTemp(
+        "songqingming",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
     # 寻猎	其他	不可驱散	不可扩散	不可偷取	若队友主动攻击自身2格范围内的敌人，且优先攻击时，则在「对战中」双方交战后，立刻对敌方造成额外一次0.3倍物攻伤害（每回合只能触发1次）
+    xunlie = BuffTemp(
+        "xunlie",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
     # 灭破空间	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方主动发起对战，且优先攻击时，「对战中」伤害提高10%，若攻击者气血不满额外提升15%。（1回合限定发动2次）
+    miepokongjian = BuffTemp(
+        "miepokongjian",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
     # 号令	其他	不可驱散	不可扩散	不可偷取	自身两格范围内，若有友方主动发起对战，且优先攻击时，伤害提高10%，
+    haoling = BuffTemp(
+        "haoling",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
     # 焕焱烈阵	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，若有友方主动发起对战，且优先攻击时，使其本次战斗中伤害提高15%，若目标携带「燃烧」状态，伤害额外提高15%（每回合发动3次）
+    huanyanliezhen = BuffTemp(
+        "huanyanliezhen",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
     # 炎狱空间	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方角色主动发起对战，且优先攻击时，「对战中」伤害提高10%，对雷属相敌人额外提升10%。（1回合限定发动2次）
     # 炎狱空间·壹	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方角色主动发起对战，且优先攻击时，「对战中」暴击率、伤害提高10%，对雷属相敌人额外提升10%。（1回合限定发动2次）
     # 炎狱空间·贰	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方角色主动发起对战，且优先攻击时，「对战中」暴击率、伤害提高10%，对雷属相敌人额外提升15%。（1回合限定发动3次）
-    # yanyukongjian = BuffTemp(
-    #     "yanyukongjian",
-    #     BuffTypes.Others,
-    #     False,
-    #     False,
-    #     False,
-    #     [],
-    #     [
-    #         EventListener(
-    #             EventTypes.partner_battle_start,
-    #             1,
-    #             partial(RS.PositionChecks.in_range, 2),
-    #             partial(Effects.increase_damage_and_critical_rate, 0.1),
-    #         ),
-    #     ],
-    # )
+    yanyukongjian = BuffTemp(
+        "yanyukongjian",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
 
     # 护象	其他	不可驱散	不可扩散	不可偷取	范围内所有友方遭受「固定伤害」减免50% ，且施术者自身免伤额外提高10%（无法驱散）
+    huxiang = BuffTemp(
+        "huxiang",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
+    # 空性	其他	不可驱散	不可扩散	不可偷取	物攻的15%附加至物防、法防上，自身3格范围内友方受到攻击后，对攻击者造成1次物理伤害（受击人数（上限5人）*（物攻的0.4倍）），并进入「报怒」状态，持续2回合（不可驱散）
+    kongxing = BuffTemp(
+        "kongxing",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(RS.always_true, {ma.defense_percentage: "attack_15", ma.magic_defense_percentage: "attack_15"}),
+        ],
+        [],
+    )
 
     # 储存
     # 贮酿	其他	不可驱散	不可扩散	不可偷取	最多储存自身最大气血的50%，行动结束时，自身受到1次伤害（储存总量的50%）（不可驱散，不可免疫，必定在2回合内消化储存总量）
+    chuliang = BuffTemp(
+        "chuliang",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.take_effect_of_chuliang),
+            ),
+        ],
+    )
+
     # 匿鞘	其他	不可驱散	不可扩散	不可偷取	最多储存自身最大气血的100%（不可驱散，必定在2回合内消化储存总量）
+    niqiao = BuffTemp(
+        "niqiao",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
     # 火源	其他	不可驱散	不可扩散	不可偷取	最多储存「梦种灯」最大气血的100%，行动结束时消化50%储存总量为3格内其他友方恢复气血（必定在2回合内消化储存总量）
 
     # 传送	其他	不可驱散	不可扩散	不可偷取	传送效果包含：「传送」、「扰动」、「牵引」
     # 位移	其他	不可驱散	不可扩散	不可偷取	位移效果包含：「击退」、「拉拽」
-    # 慑服	其他	不可驱散	不可扩散	不可偷取	行动结束时若处于施加者3格内，反转自身1个「有益状态」并发生1格内「扰动」效果（不可驱散，触发后移除）。
     # 命杀	其他	不可驱散	不可扩散	不可偷取	免疫「属性类降低」有害状态，主动攻击「对战后」，使目标发生1圈内「扰动」效果。
 
-    # 星屑
-    # 星云	有益	可驱散	不可扩散	不可偷取	遭受攻击时，敌方「对战前」每移动1格则伤害降低10%（最多降低30%，状态触发后消失，并使施加者获得2点「星屑」）
-    # 星屑	其他	不可驱散	不可扩散	不可偷取	愿我如星君如月，夜夜流光相皎洁。消耗「星屑」，以强化或开启「摇光破军界」（上限10点）。
 
     # 地形(领域)
+    # 审判	其他	不可驱散	不可扩散	不可偷取	当敌方行动结束时，如果在警戒范围内，则立刻对其1圈范围内所有敌人造成0.4倍物攻伤害，驱散1个「有益状态」（累积触发3次后消失）
+    # 审判·贰	其他	不可驱散	不可扩散	不可偷取	当敌方行动结束时，如果在警戒范围内，则立刻对其1圈范围内所有敌人造成0.5倍物攻伤害，反转1个「有益状态」（累积触发3次后消失，每触发1次降低「弥伽诫喻」1回合冷却）
     # 回灵界	其他	不可驱散	不可扩散	不可偷取	法阵内友方免疫「属性降低」类「有害状态」（不可驱散）
     # 回灵阵式	其他	不可驱散	不可扩散	不可偷取	友方落位时触发，对「回灵界」内的所有友方施加1个随机「有益状态」，并恢复最大气血的30%。
     # 眩灭阵式	其他	不可驱散	不可扩散	不可偷取	友方落位时触发，对「眩灭界」内的阵眼外其他敌方造成1次固定伤害（最大气血的20%），且发生「眩灭界」内的「扰动」

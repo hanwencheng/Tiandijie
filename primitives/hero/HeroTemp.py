@@ -54,6 +54,9 @@ class HeroTemp:
         # Attributes initialization
         self.current_attributes: Attributes = None
         self.initialize_attributes()
+        self.content: int = 0
+        self.energy: int = 0
+        self.sheild: int = 0
 
     def initialize_attributes(self):
         generate_max_level_attributes(

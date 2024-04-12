@@ -29,7 +29,7 @@ from primitives.skill.SkillTemp import SkillTargetTypes
 action_type_to_event_dict: dict[ActionTypes, tuple[EventTypes, EventTypes]] = {
     ActionTypes.HEAL: (EventTypes.heal_start, EventTypes.heal_end),
     ActionTypes.TELEPORT: (EventTypes.teleport_start, EventTypes.teleport_end),
-    ActionTypes.SKILL_ATTACK: (EventTypes.damage_start, EventTypes.damage_end),
+    ActionTypes.SKILL_ATTACK: (EventTypes.skill_attack_start, EventTypes.skill_attack_end),
     ActionTypes.NORMAL_ATTACK: (
         EventTypes.normal_attack_start,
         EventTypes.normal_attack_end,
@@ -44,8 +44,8 @@ under_action_type_to_event_dict: dict[ActionTypes, tuple[EventTypes, EventTypes]
     ActionTypes.HEAL: (EventTypes.under_heal_start, EventTypes.under_heal_end),
     ActionTypes.TELEPORT: (None, None),
     ActionTypes.SKILL_ATTACK: (
-        EventTypes.under_damage_start,
-        EventTypes.under_damage_end,
+        EventTypes.skill_attack_start,
+        EventTypes.skill_attack_end,
     ),
     ActionTypes.NORMAL_ATTACK: (
         EventTypes.under_normal_attack_start,
@@ -120,7 +120,7 @@ def counterattack_actions(context: Context):
     )
 
 
-def double_attack(context: Context):
+def double_attack_event(context: Context):
     action = context.get_last_action()
     target = action.get_defender_hero_in_battle()
     actor = action.actor
@@ -165,16 +165,17 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
     if check_if_counterattack_first(action, context):
         counterattack_actions(context)  # take damage
         if is_hero_live(actor, target, context):
-            skill_events(actor, target, action, context, apply_damage)
+            attack_or_skill_events(actor, target, action, context, apply_damage)
             if check_if_double_attack(action, context):
-                double_attack(context)
+                double_attack_event(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
         event_listener_calculator(target, actor, EventTypes.under_battle_end, context)
         is_hero_live(target, actor, context)
     else:
-        skill_events(actor, target, action, context, apply_damage)
+        if is_hero_live(actor, target, context):
+            attack_or_skill_events(actor, target, action, context, apply_damage)
         if check_if_double_attack(action, context):
-            double_attack(context)
+            double_attack_event(context)
         if is_hero_live(target, actor, context):
             counterattack_actions(context)
         event_listener_calculator(actor, target, EventTypes.battle_end, context)
@@ -182,40 +183,43 @@ def battle_events(actor: Hero, target: Hero, action: Action, context: Context):
         is_hero_live(actor, target, context)
 
 
-def skill_events(
+def attack_or_skill_events(
     actor_instance: Hero,
     counter_instance: Hero or None,
     action: Action,
     context: Context,
     apply_func: Callable[[Hero, Hero or None, Action, Context], None],
 ):
-    skill_start_event_type = skill_type_to_event_dict[action.skill.temp.target_type][0]
-    under_skill_start_event_type = under_skill_type_to_event_dict[
-        action.skill.temp.target_type
-    ][0]
-    skill_end_event_type = skill_type_to_event_dict[action.skill.temp.target_type][1]
-    under_skill_end_event_type = under_skill_type_to_event_dict[
-        action.skill.temp.target_type
-    ][1]
-    event_listener_calculator(
-        actor_instance, counter_instance, EventTypes.skill_start, context
-    )
-    event_listener_calculator(
-        actor_instance, counter_instance, skill_start_event_type, context
-    )
-    event_listener_calculator(
-        counter_instance, actor_instance, under_skill_start_event_type, context
-    )
-    calculation_events(actor_instance, counter_instance, action, context, apply_func)
-    event_listener_calculator(
-        actor_instance, counter_instance, skill_end_event_type, context
-    )
-    event_listener_calculator(
-        counter_instance, actor_instance, under_skill_end_event_type, context
-    )
-    event_listener_calculator(
-        actor_instance, counter_instance, EventTypes.skill_end, context
-    )
+    if action.skill:
+        skill_start_event_type = skill_type_to_event_dict[action.skill.temp.target_type][0]
+        under_skill_start_event_type = under_skill_type_to_event_dict[
+            action.skill.temp.target_type
+        ][0]
+        skill_end_event_type = skill_type_to_event_dict[action.skill.temp.target_type][1]
+        under_skill_end_event_type = under_skill_type_to_event_dict[
+            action.skill.temp.target_type
+        ][1]
+        event_listener_calculator(
+            actor_instance, counter_instance, EventTypes.skill_start, context
+        )
+        event_listener_calculator(
+            actor_instance, counter_instance, skill_start_event_type, context
+        )
+        event_listener_calculator(
+            counter_instance, actor_instance, under_skill_start_event_type, context
+        )
+        calculation_events(actor_instance, counter_instance, action, context, apply_func)
+        event_listener_calculator(
+            actor_instance, counter_instance, skill_end_event_type, context
+        )
+        event_listener_calculator(
+            counter_instance, actor_instance, under_skill_end_event_type, context
+        )
+        event_listener_calculator(
+            actor_instance, counter_instance, EventTypes.skill_end, context
+        )
+    else:
+        calculation_events(actor_instance, counter_instance, action, context, apply_func)
 
 
 def is_hero_live(hero_instance: Hero, counter_instance: Hero or None, context: Context):
@@ -262,7 +266,7 @@ def apply_action(context: Context, action: Action):
             is_hero_live(action.actor, True, context)
         else:
             for target in action.targets:
-                skill_events(actor, target, action, context, apply_damage)
+                attack_or_skill_events(actor, target, action, context, apply_damage)
                 is_hero_live(target, actor, context)
 
         # check liveness of all the heroes
@@ -272,16 +276,16 @@ def apply_action(context: Context, action: Action):
 
     elif action.type == ActionTypes.HEAL:
         for target in action.targets:
-            skill_events(actor, target, action, context, apply_heal)
+            attack_or_skill_events(actor, target, action, context, apply_heal)
 
     elif action.type == ActionTypes.SUMMON:
-        skill_events(actor, None, action, context, apply_summon)
+        attack_or_skill_events(actor, None, action, context, apply_summon)
 
     elif action.type == ActionTypes.SELF:
-        skill_events(actor, None, action, context, apply_self)
+        attack_or_skill_events(actor, None, action, context, apply_self)
 
     elif action.type == ActionTypes.TELEPORT:
-        skill_events(actor, None, action, context, apply_teleport)
+        attack_or_skill_events(actor, None, action, context, apply_teleport)
 
     elif action.type == ActionTypes.PASS:
         pass
@@ -290,7 +294,7 @@ def apply_action(context: Context, action: Action):
         move_event(actor, action, context, apply_additional_move)
 
     if action.additional_skill is not None:
-        skill_events(
+        attack_or_skill_events(
             actor,
             action.additional_skill.targets,
             action,

@@ -16,6 +16,7 @@ class Buff:
         caster_id: str,
         level: int = 1,
         stack: int = 1,
+        trigger: int = 0,
         content: int = 0,
     ):
         # Copying attributes from BuffTemp
@@ -26,6 +27,7 @@ class Buff:
         self.caster_id = caster_id
         self.level = level
         self.stack = stack
+        self.trigger = trigger
         self.content = content
 
 

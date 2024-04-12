@@ -15,11 +15,14 @@ from typing import List
 from calculation.BuffStack import calculate_buff_with_max_stack
 
 
-def get_modifier_attribute_value(modifier_effect: dict, attr_name: str) -> float:
+def get_modifier_attribute_value(actor_instance, modifier_effect: dict, attr_name: str) -> float:
     get_value: bool or float or int = modifier_effect.get(attr_name)
     if get_value is not None:
         if get_value is bool:
             return 1 if get_value else 0
+        elif get_value is str:
+            basic_name, percentage = get_value.split("_")
+            return (actor_instance.initial_attributes[basic_name])*int(percentage)
         else:
             return get_value
     return 0
@@ -76,7 +79,7 @@ def get_formation_modifier(
                 )
                 if multiplier > 0:
                     basic_modifier_value += (
-                        get_modifier_attribute_value(effect.modifier, attr_name)
+                        get_modifier_attribute_value(actor_instance, effect.modifier, attr_name)
                         * multiplier
                     )
     return basic_modifier_value
@@ -98,7 +101,7 @@ def get_buff_modifier(
                 )
                 if is_requirement_meet > 0:
                     modifier_value = get_modifier_attribute_value(
-                        modifier_effects.modifier, attr_name
+                        actor_instance, modifier_effects.modifier, attr_name
                     )
                     basic_modifier_value += calculate_buff_with_max_stack(
                         buff, modifier_value, attr_name
@@ -200,7 +203,7 @@ def get_skill_modifier(
             multiplier = effect.requirement(actor_instance, counter_instance, context)
             if multiplier > 0:
                 basic_modifier_value += (
-                    get_modifier_attribute_value(effect.modifier, attr_name)
+                    get_modifier_attribute_value(actor_instance, effect.modifier, attr_name)
                     * multiplier
                 )
     return basic_modifier_value

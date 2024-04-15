@@ -130,7 +130,7 @@ class Effects:
 
     @staticmethod
     def remove_caster_harm_buff(
-        buff_count: 1,
+        buff_count: int,
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
@@ -1388,3 +1388,21 @@ class Effects:
             context,
         )
         _add_buffs(caster, caster, ["baonu"], 1, context)
+
+    @staticmethod
+    def take_effect_of_shengyao(
+        level_value: int,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        buff: Buff,
+    ):
+        caster = context.get_hero_by_id(buff.caster_id)
+        if actor_instance.player_id == caster.player_id:
+            _add_buffs(caster, actor_instance, ["hunchuang"], 1, context)
+            get_max_life(caster, actor_instance, context)
+            calculate_fix_heal(0.3 * caster.max_life, actor_instance, caster, context)
+            if level_value == 2:
+                Effects.remove_caster_harm_buff(
+                    1, actor_instance, caster, context, buff
+                )

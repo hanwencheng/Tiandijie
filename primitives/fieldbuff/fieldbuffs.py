@@ -1,4 +1,5 @@
 from functools import partial
+from enum import Enum
 
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
@@ -13,7 +14,7 @@ from calculation.ModifierAttributes import ModifierAttributes as ma
 from typing import List, Any
 
 
-class FieldBuffs:
+class FieldBuffsTemps(Enum):
     # 慑服	其他	不可驱散	不可扩散	不可偷取	行动结束时若处于施加者3格内，反转自身1个「有益状态」并发生1格内「扰动」效果（不可驱散，触发后移除）。
     shefu = FieldBuffTemp("shefu", "yinqianyang", 3, [], [])
 
@@ -58,11 +59,15 @@ class FieldBuffs:
         "zhenyi",
         2,
         [
-            ModifierEffect(partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}),
-            ModifierEffect(partial(RS.miepokongjian_requires_check), {ma.battle_damage_percentage: 15}),
+            ModifierEffect(
+                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+            ),
+            ModifierEffect(
+                partial(RS.miepokongjian_requires_check),
+                {ma.battle_damage_percentage: 15},
+            ),
         ],
-        [
-        ],
+        [],
     )
 
     # 号令	其他	不可驱散	不可扩散	不可偷取	自身两格范围内，若有友方主动发起对战，且优先攻击时，伤害提高10%，
@@ -70,7 +75,11 @@ class FieldBuffs:
         "haoling",
         "yinma",
         2,
-        [ModifierEffect(partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10})],
+        [
+            ModifierEffect(
+                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+            )
+        ],
         [],
     )
 
@@ -80,10 +89,43 @@ class FieldBuffs:
         "yunxiang",
         2,
         [
-            ModifierEffect(partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 15}),
-            ModifierEffect(partial(RS.huanyanliezhen_requires_check), {ma.battle_damage_percentage: 15}),
+            ModifierEffect(
+                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 15}
+            ),
+            ModifierEffect(
+                partial(RS.huanyanliezhen_requires_check),
+                {ma.battle_damage_percentage: 15},
+            ),
         ],
         [],
+    )
+    #  圣耀	其他	不可驱散	不可扩散	不可偷取	3格内的敌人行动结束时获得「魂创」状态，并恢复施加者30%最大气血。(领域)
+    # 圣耀·贰	其他	不可驱散	不可扩散	不可偷取	自身免伤+15%，3格内的敌人行动结束时获得「魂创」状态，驱散施加者1个「有害状态」并恢复施加者30%最大气血。
+    shengyao = FieldBuffTemp(
+        "shengyao",
+        "wuyingzhong",
+        3,
+        [
+            ModifierEffect(RS.always_true, {ma.life_percentage: 30}),
+        ],
+        [
+            [
+                EventListener(
+                    EventTypes.action_end,
+                    1,
+                    partial(RS.PositionChecks.in_range_of_enemy_caster),
+                    partial(Effects.take_effect_of_shengyao, 1),
+                )
+            ],
+            [
+                EventListener(
+                    EventTypes.action_end,
+                    1,
+                    partial(RS.PositionChecks.in_range_of_enemy_caster),
+                    partial(Effects.take_effect_of_shengyao, 2),
+                )
+            ],
+        ],
     )
 
     # 炎狱空间	其他	不可驱散	不可扩散	不可偷取	自身2格范围内，友方角色主动发起对战，且优先攻击时，「对战中」伤害提高10%，对雷属相敌人额外提升10%。（1回合限定发动2次）
@@ -95,16 +137,33 @@ class FieldBuffs:
         2,
         [
             [
-                ModifierEffect(partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}),
-                ModifierEffect(partial(RS.yanyukongjian_requires_check), {ma.battle_damage_percentage: 10}),
+                ModifierEffect(
+                    partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+                ),
+                ModifierEffect(
+                    partial(RS.yanyukongjian_requires_check),
+                    {ma.battle_damage_percentage: 10},
+                ),
             ],
             [
-                ModifierEffect(partial(RS.self_is_first_attack), {ma.critical_percentage: 10, ma.battle_damage_percentage: 10}),
-                ModifierEffect(partial(RS.yanyukongjian_requires_check), {ma.battle_damage_percentage: 10}),
+                ModifierEffect(
+                    partial(RS.self_is_first_attack),
+                    {ma.critical_percentage: 10, ma.battle_damage_percentage: 10},
+                ),
+                ModifierEffect(
+                    partial(RS.yanyukongjian_requires_check),
+                    {ma.battle_damage_percentage: 10},
+                ),
             ],
             [
-                ModifierEffect(partial(RS.self_is_first_attack), {ma.critical_percentage: 10, ma.battle_damage_percentage: 10}),
-                ModifierEffect(partial(RS.yanyukongjian_requires_check), {ma.battle_damage_percentage: 15}),
+                ModifierEffect(
+                    partial(RS.self_is_first_attack),
+                    {ma.critical_percentage: 10, ma.battle_damage_percentage: 10},
+                ),
+                ModifierEffect(
+                    partial(RS.yanyukongjian_requires_check),
+                    {ma.battle_damage_percentage: 15},
+                ),
             ],
         ],
         [],
@@ -120,6 +179,7 @@ class FieldBuffs:
         ],
         [],
     )
+
     # 空性	其他	不可驱散	不可扩散	不可偷取	物攻的15%附加至物防、法防上，自身3格范围内友方受到攻击后，对攻击者造成1次物理伤害（受击人数（上限5人）*（物攻的0.4倍）），并进入「报怒」状态，持续2回合（不可驱散）
     kongxing = FieldBuffTemp(
         "kongxing",
@@ -136,5 +196,10 @@ class FieldBuffs:
         ],
     )
 
-    def get_FieldBuff(self, buff_id: str):
-        return getattr(self, buff_id)
+    @classmethod
+    def get_buff_temp_by_id(cls, buff_id):
+        """Return the BuffTemp with the specified ID, or None if not found."""
+        for buff_temp in cls:
+            if buff_temp.value["id"] == buff_id:
+                return buff_temp.value
+        return None

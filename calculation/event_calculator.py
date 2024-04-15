@@ -4,6 +4,7 @@ from primitives.Context import Context
 from primitives.buff.Buff import Buff
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
+from calculation.Range import calculate_if_targe_in_diamond_range
 from primitives.hero.Hero import Hero
 
 skill_related_events = [
@@ -50,6 +51,23 @@ def event_listener_calculator(
                 event_listener_containers.append(
                     EventListenerContainer(event_listener, buff)
                 )
+
+    # Calculated FieldBuffs
+    for field_buff in context.fieldbuffs_temps.values():
+        target_instance = context.get_hero_by_id(field_buff.buff_hero)
+        if (
+            target_instance
+            and target_instance.get_buff_by_id(field_buff.id)
+            and calculate_if_targe_in_diamond_range(
+            actor_instance, target_instance, field_buff.buff_range
+            )
+        ):
+            field_buff_event_listeners: List[EventListener] = field_buff.event_listeners
+            for event_listener in field_buff_event_listeners:
+                if event_listener.event_type == event_type:
+                    event_listener_containers.append(
+                        EventListenerContainer(event_listener, field_buff)
+                    )
 
     # Calculated Skills
     if event_type in skill_related_events:

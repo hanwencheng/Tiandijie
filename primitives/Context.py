@@ -4,9 +4,11 @@ from typing import List, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from primitives.buff.buffs import BuffTemps
+    from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
     from primitives import Action
     from primitives.formation.Formation import Formation
     from primitives.buff.BuffTemp import BuffTemp, BuffTypes
+    from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
     from primitives.hero import Hero
 
 from calculation.Range import calculate_square_area, calculate_diamond_area
@@ -19,6 +21,7 @@ class Context:
         self.actions: List[Action] = []
         self.harm_buffs_temps: Dict[str, BuffTemp] = {}
         self.benefit_buffs_temps: Dict[str, BuffTemp] = {}
+        self.fieldbuffs_temps: Dict[str, FieldBuffTemp] = {}
         self.all_buffs_temps: Dict[str, BuffTemp] = {}
 
     def add_action(self, action):
@@ -66,6 +69,7 @@ class Context:
         all_buffs = {}
         harm_buffs = {}
         benefit_buffs = {}
+        fieldbuffs = {}
         for buff in BuffTemps:
             all_buffs[buff.value.id] = buff.value
             if buff.value.buff_type == BuffTypes.Harm:
@@ -75,6 +79,10 @@ class Context:
         self.all_buffs_temps = all_buffs
         self.harm_buffs_temps = harm_buffs
         self.benefit_buffs_temps = benefit_buffs
+        from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
+        for buff in FieldBuffsTemps:
+            benefit_buffs[buff.value.id] = buff.value
+        self.fieldbuffs_temps = fieldbuffs
 
     def init_heroes(self, heroes: List[Hero]):
         self.heroes = heroes
@@ -162,3 +170,6 @@ class Context:
 
     def get_buff_by_id(self, buff_id: str) -> BuffTemp:
         return self.all_buffs_temps[buff_id]
+
+    def get_enemy_by_id(self, hero: Hero, hero_id: str) -> Hero:
+        return [h for h in self.heroes if h.id == hero_id and h.player_id != hero.player_id][0]

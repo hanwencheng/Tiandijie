@@ -781,43 +781,19 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [],
         [
+            [],
             [
-                EventListener(
-                    EventTypes.enemy_action_end,
-                    1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                    partial(Effects.add_buffs, buff_temp=["hunchuang"]),
-                ),
-                EventListener(
-                    EventTypes.enemy_action_end,
-                    1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                    partial(Effects.heal_self, multiplier=0.3),
-                ),
-            ],
-            [
-                EventListener(
-                    EventTypes.enemy_action_end,
-                    1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                    partial(Effects.add_buffs, buff_temp=["hunchuang"]),
-                ),
-                EventListener(
-                    EventTypes.enemy_action_end,
-                    1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                    partial(Effects.heal_self, multiplier=0.3),
-                ),
-                EventListener(
-                    EventTypes.enemy_action_end,
-                    1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                    partial(Effects.remove_caster_harm_buff, buff_count=1),
-                ),
+                ModifierEffect(
+                    RS.always_true,
+                    {
+                        ma.physical_damage_reduction_percentage: 15,
+                        ma.magic_damage_reduction_percentage: 15,
+                    },
+                )
             ],
         ],
+        [],
     )
 
     #   地火焚狱	其他	不可驱散	不可扩散	不可偷取	若敌人行动结束时，位于施加者3格范围内，驱散2个「有益状态」，并受到1次「固定伤害」（施术者物攻的15%）
@@ -889,7 +865,7 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(Effects.increase_target_harm_buff_level, buff_level=1),
-            )
+            ),
         ],
     )
 
@@ -992,7 +968,7 @@ class BuffTemps(Enum):
                     ma.move_range: 1,
                     ma.is_ignore_obstacle: True,
                 },
-            )
+            ),
         ],
         [],
     )
@@ -5586,7 +5562,10 @@ class BuffTemps(Enum):
         False,
         False,
         [
-            ModifierEffect(partial(RS.xingyun_requires_check), {ma.battle_damage_reduction_percentage: 10}),
+            ModifierEffect(
+                partial(RS.xingyun_requires_check),
+                {ma.battle_damage_reduction_percentage: 10},
+            ),
         ],
         [
             EventListener(
@@ -5726,7 +5705,6 @@ class BuffTemps(Enum):
     #     [],
     # )
 
-
     # 灵辉	其他	不可驱散	不可扩散	不可偷取	行动结束时，如果携带不少于7层「灵辉」，消耗7层「灵辉」，再激活自身十字7格内1名法攻/物攻最高已结束行动的其他友方。（间隔2回合触发）
     # 疫瘴	其他	不可驱散	不可扩散	不可偷取	携带者受到驱散「有害状态」的效果作用时，每层本状态防止1个「有害状态」（仅限满足可驱散）被驱散，并消耗对应层数（最多叠加3层，不可驱散）
     # 禁咒烨域	其他	不可驱散	不可扩散	不可偷取	3格范围内敌方释放法术伤害绝学时法攻降低50%。(已入「遮天蔽日」套餐)
@@ -5847,7 +5825,13 @@ class BuffTemps(Enum):
         False,
         False,
         [
-            ModifierEffect(RS.always_true, {ma.defense_percentage: "attack_15", ma.magic_defense_percentage: "attack_15"}),
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.defense_percentage: "attack_15",
+                    ma.magic_defense_percentage: "attack_15",
+                },
+            ),
         ],
         [],
     )
@@ -5886,7 +5870,6 @@ class BuffTemps(Enum):
     # 传送	其他	不可驱散	不可扩散	不可偷取	传送效果包含：「传送」、「扰动」、「牵引」
     # 位移	其他	不可驱散	不可扩散	不可偷取	位移效果包含：「击退」、「拉拽」
     # 命杀	其他	不可驱散	不可扩散	不可偷取	免疫「属性类降低」有害状态，主动攻击「对战后」，使目标发生1圈内「扰动」效果。
-
 
     # 地形(领域)
     # 审判	其他	不可驱散	不可扩散	不可偷取	当敌方行动结束时，如果在警戒范围内，则立刻对其1圈范围内所有敌人造成0.4倍物攻伤害，驱散1个「有益状态」（累积触发3次后消失）

@@ -57,3 +57,6 @@ class Hero:
 
     def add_counter_attack_count(self):
         self.counterattack_count += 1
+
+    def get_buff_by_id(self, buff_id: str) -> Buff:
+        return [buff for buff in self.buffs if buff.id == buff_id][0]

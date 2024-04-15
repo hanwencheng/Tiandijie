@@ -5813,7 +5813,9 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [],
+        [
+            ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 10, ma.magic_damage_reduction_percentage: 10}),
+        ],
         [],
     )
 

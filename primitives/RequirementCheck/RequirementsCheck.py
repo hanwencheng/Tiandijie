@@ -390,27 +390,43 @@ class RequirementCheck:
 
     @staticmethod
     def miepokongjian_requires_check(
-        actor_hero: Hero, target_hero: Hero, context: Context
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
     ) -> int:
+        caster = context.get_hero_by_id(buff.caster_id)
+        if caster.player_id != actor_hero.player_id:
+            return 0
         return LifeRequirementChecks.life_not_full(
             actor_hero, target_hero, context
         ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context)
 
     @staticmethod
     def huanyanliezhen_requires_check(
-        actor_hero: Hero, target_hero: Hero, context: Context
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
     ) -> int:
+        caster = context.get_hero_by_id(buff.caster_id)
+        if caster.player_id != actor_hero.player_id:
+            return 0
         return BuffRequirementChecks.target_has_certain_buff(
             "ranshao", actor_hero, target_hero, context
         ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context)
 
     @staticmethod
     def yanyukongjian_requires_check(
-        actor_hero: Hero, target_hero: Hero, context: Context
+        level_value: int, actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
     ) -> int:
-        return RequirementCheck.target_is_certain_element(
-            Elements.THUNDER, actor_hero, target_hero, context
-        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context)
+        caster = context.get_hero_by_id(buff.caster_id)
+        if caster.player_id != actor_hero.player_id:
+            return 0
+        if RequirementCheck.target_is_certain_element(
+                Elements.THUNDER, actor_hero, target_hero, context
+        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context):
+            if (level_value == 1 or level_value == 2) and buff.trigger <= 2:
+                buff.trigger += 1
+                return 1
+            elif level_value == 3 and buff.trigger <= 3:
+                buff.trigger += 1
+                return 1
+        return 0
 
     @staticmethod
     def self_is_first_attack(
@@ -418,6 +434,17 @@ class RequirementCheck:
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context) and action.is_in_battle():
+            if RequirementCheck.target_has_counterattack_first(action, context):
+                return 1
+        return 0
+
+    @staticmethod
+    def self_and_caster_is_partner_and_first_attack(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
+        action = context.get_last_action()
+        caster = context.get_hero_by_id(buff.caster_id)
+        if _is_attacker(actor_hero, context) and action.is_in_battle() and actor_hero.player_id == caster.player_id:
             if RequirementCheck.target_has_counterattack_first(action, context):
                 return 1
         return 0
@@ -436,6 +463,32 @@ class RequirementCheck:
             is_counterattack_first
             and counterattack_first_limit > target.counterattack_count
         )
+
+    @staticmethod
+    def self_and_caster_is_enemy(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
+        action = context.get_last_action()
+        caster = context.get_hero_by_id(buff.caster_id)
+        return caster.player_id != actor_hero.player_id
+
+    @staticmethod
+    def self_and_caster_is_partner(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
+        action = context.get_last_action()
+        caster = context.get_hero_by_id(buff.caster_id)
+        return caster.player_id == actor_hero.player_id
+
+    @staticmethod
+    def self_and_caster_is_partner_and_is_attacked_target(
+        actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
+    ) -> int:
+        caster = context.get_hero_by_id(buff.caster_id)
+        if _is_attacker(target_hero, context) and caster.player_id == actor_hero.player_id:
+            return 1
+        return 0
+
 
     LifeChecks: LifeRequirementChecks
     PositionChecks: PositionRequirementChecks

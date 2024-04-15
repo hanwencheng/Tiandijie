@@ -127,6 +127,9 @@ class Context:
     def get_hero_by_id(self, hero_id: str) -> Hero:
         return [hero for hero in self.heroes if hero.id == hero_id][0]
 
+    def get_hero_list_by_id(self, hero_id: str) -> List[Hero]:
+        return [hero for hero in self.heroes if hero.id == hero_id]
+
     def init_formation(self):
         for hero in self.heroes:
             formation_temp = hero.temp.formation_temp

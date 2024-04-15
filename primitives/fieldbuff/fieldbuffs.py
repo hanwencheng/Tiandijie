@@ -5,7 +5,6 @@ from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from primitives.effects.ModifierEffect import ModifierEffect
 from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
-from primitives.buff.BuffTemp import BuffTemp, BuffTypes
 
 from calculation.Effects import Effects
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
@@ -31,7 +30,7 @@ class FieldBuffsTemps(Enum):
             EventListener(
                 EventTypes.battle_start,
                 1,
-                partial(RS.self_is_first_attack),
+                partial(RS.self_and_caster_is_partner_and_first_attack),
                 partial(Effects.take_effect_of_songqingming),
             )
         ],
@@ -47,7 +46,7 @@ class FieldBuffsTemps(Enum):
             EventListener(
                 EventTypes.battle_end,
                 1,
-                partial(RS.self_is_first_attack),
+                partial(RS.self_and_caster_is_partner_and_first_attack),
                 partial(Effects.take_effect_of_xunlie),
             )
         ],
@@ -60,7 +59,7 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
             ),
             ModifierEffect(
                 partial(RS.miepokongjian_requires_check),
@@ -77,7 +76,7 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
             )
         ],
         [],
@@ -90,7 +89,7 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 15}
+                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 15}
             ),
             ModifierEffect(
                 partial(RS.huanyanliezhen_requires_check),
@@ -105,15 +104,13 @@ class FieldBuffsTemps(Enum):
         "shengyao",
         "wuyingzhong",
         3,
-        [
-            ModifierEffect(RS.always_true, {ma.life_percentage: 30}),
-        ],
+        [],
         [
             [
                 EventListener(
                     EventTypes.action_end,
                     1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster),
+                    partial(RS.self_and_caster_is_enemy),
                     partial(Effects.take_effect_of_shengyao, 1),
                 )
             ],
@@ -121,7 +118,7 @@ class FieldBuffsTemps(Enum):
                 EventListener(
                     EventTypes.action_end,
                     1,
-                    partial(RS.PositionChecks.in_range_of_enemy_caster),
+                    partial(RS.self_and_caster_is_enemy),
                     partial(Effects.take_effect_of_shengyao, 2),
                 )
             ],
@@ -138,30 +135,30 @@ class FieldBuffsTemps(Enum):
         [
             [
                 ModifierEffect(
-                    partial(RS.self_is_first_attack), {ma.battle_damage_percentage: 10}
+                    partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
                 ),
                 ModifierEffect(
-                    partial(RS.yanyukongjian_requires_check),
+                    partial(RS.yanyukongjian_requires_check, 1),
                     {ma.battle_damage_percentage: 10},
                 ),
             ],
             [
                 ModifierEffect(
-                    partial(RS.self_is_first_attack),
+                    partial(RS.self_and_caster_is_partner_and_first_attack),
                     {ma.critical_percentage: 10, ma.battle_damage_percentage: 10},
                 ),
                 ModifierEffect(
-                    partial(RS.yanyukongjian_requires_check),
+                    partial(RS.yanyukongjian_requires_check, 2),
                     {ma.battle_damage_percentage: 10},
                 ),
             ],
             [
                 ModifierEffect(
-                    partial(RS.self_is_first_attack),
+                    partial(RS.self_and_caster_is_partner_and_first_attack),
                     {ma.critical_percentage: 10, ma.battle_damage_percentage: 10},
                 ),
                 ModifierEffect(
-                    partial(RS.yanyukongjian_requires_check),
+                    partial(RS.yanyukongjian_requires_check, 3),
                     {ma.battle_damage_percentage: 15},
                 ),
             ],
@@ -175,7 +172,7 @@ class FieldBuffsTemps(Enum):
         "chunlan",
         2,
         [
-            ModifierEffect(RS.always_true, {ma.fixed_damage_reduction_percentage: 10}),
+            ModifierEffect(partial(RS.self_and_caster_is_partner), {ma.fixed_damage_reduction_percentage: 10}),
         ],
         [],
     )
@@ -190,7 +187,7 @@ class FieldBuffsTemps(Enum):
             EventListener(
                 EventTypes.under_damage_end,
                 1,
-                partial(RS.is_attack_target),
+                partial(RS.self_and_caster_is_partner_and_is_attacked_target),
                 partial(Effects.take_effect_of_kongxing),
             )
         ],

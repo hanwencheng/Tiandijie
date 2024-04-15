@@ -1328,9 +1328,8 @@ class Effects:
         if buff.trigger >= max_trigger_limit:
             return
         caster = context.get_hero_by_id(buff.caster_id)
-        if caster.alive and target_instance.alive:
-            damage = get_attack(caster, target_instance, context, False, True)
-            calculate_fix_damage(damage * 0.5, caster, target_instance, context)
+        damage = get_attack(caster, target_instance, context, False, True)
+        calculate_fix_damage(damage * 0.5, caster, target_instance, context)
 
     @staticmethod
     def take_effect_of_songqingming(

@@ -32,7 +32,13 @@ class FieldBuffsTemps(Enum):
                 1,
                 partial(RS.self_and_caster_is_partner_and_first_attack),
                 partial(Effects.take_effect_of_songqingming),
-            )
+            ),
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
         ],
     )
 
@@ -48,7 +54,13 @@ class FieldBuffsTemps(Enum):
                 1,
                 partial(RS.self_and_caster_is_partner_and_first_attack),
                 partial(Effects.take_effect_of_xunlie),
-            )
+            ),
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
         ],
     )
 
@@ -66,7 +78,14 @@ class FieldBuffsTemps(Enum):
                 {ma.battle_damage_percentage: 15},
             ),
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            )
+        ],
     )
 
     # 号令	其他	不可驱散	不可扩散	不可偷取	自身两格范围内，若有友方主动发起对战，且优先攻击时，伤害提高10%，
@@ -96,7 +115,14 @@ class FieldBuffsTemps(Enum):
                 {ma.battle_damage_percentage: 15},
             ),
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            )
+        ],
     )
     #  圣耀	其他	不可驱散	不可扩散	不可偷取	3格内的敌人行动结束时获得「魂创」状态，并恢复施加者30%最大气血。(领域)
     # 圣耀·贰	其他	不可驱散	不可扩散	不可偷取	自身免伤+15%，3格内的敌人行动结束时获得「魂创」状态，驱散施加者1个「有害状态」并恢复施加者30%最大气血。
@@ -163,7 +189,14 @@ class FieldBuffsTemps(Enum):
                 ),
             ],
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            )
+        ],
     )
 
     # 护象	其他	不可驱散	不可扩散	不可偷取	范围内所有友方遭受「固定伤害」减免50% ，且施术者自身免伤额外提高10%（无法驱散）

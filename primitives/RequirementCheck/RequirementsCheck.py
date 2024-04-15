@@ -395,9 +395,13 @@ class RequirementCheck:
         caster = context.get_hero_by_id(buff.caster_id)
         if caster.player_id != actor_hero.player_id:
             return 0
-        return LifeRequirementChecks.life_not_full(
+        if LifeRequirementChecks.life_not_full(
             actor_hero, target_hero, context
-        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context)
+        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context):
+            if buff.trigger < 2:
+                buff.trigger += 1
+                return 1
+        return 0
 
     @staticmethod
     def huanyanliezhen_requires_check(
@@ -406,9 +410,14 @@ class RequirementCheck:
         caster = context.get_hero_by_id(buff.caster_id)
         if caster.player_id != actor_hero.player_id:
             return 0
-        return BuffRequirementChecks.target_has_certain_buff(
+        if BuffRequirementChecks.target_has_certain_buff(
             "ranshao", actor_hero, target_hero, context
-        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context)
+        ) and RequirementCheck.self_is_first_attack(actor_hero, target_hero, context):
+            if buff.trigger < 3:
+                buff.trigger += 1
+                return 1
+        return 0
+
 
     @staticmethod
     def yanyukongjian_requires_check(

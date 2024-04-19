@@ -77,3 +77,6 @@ class Action:
 
     def update_additional_move(self, additional_move: int):
         self.additional_move = additional_move
+
+    def update_additional_skill(self, additional_skill: AdditionalSkill):
+        self.additional_skill = additional_skill

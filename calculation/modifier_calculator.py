@@ -39,7 +39,7 @@ def merge_modifier(total: Modifier, hero: Hero, attr_name: str) -> Modifier:
     setattr(
         total,
         attr_name,
-        getattr(total, attr_name, 0) + getattr(hero.temp.talents, attr_name, 0),
+        getattr(total, attr_name, 0) + getattr(hero.temp.talent, attr_name, 0),
     )
     return total
 
@@ -108,38 +108,45 @@ def get_buff_modifier(
                     modifier_value = get_modifier_attribute_value(
                         actor_instance, modifier_effects.modifier, attr_name
                     )
-                    basic_modifier_value += calculate_buff_with_max_stack(
-                        buff, modifier_value, attr_name
+                    basic_modifier_value += (
+                        is_requirement_meet
+                        * calculate_buff_with_max_stack(buff, modifier_value, attr_name)
                     )
 
     for field_buff in context.fieldbuffs_temps.values():
-        field_target_instances = context.get_hero_list_by_id(field_buff.buff_hero)
-        for field_target_instance in field_target_instances:
+        field_target_instances = context.get_hero_list_by_id(field_buff.caster_id)
+        for (
+            field_target_instance
+        ) in field_target_instances:  # 双方同时上阵相同hero的情况
             if (
                 field_target_instance
-                and field_target_instance.get_buff_by_id(field_buff.id)
+                and field_target_instance.get_field_buff_by_id(field_buff.id)
                 and calculate_if_targe_in_diamond_range(
                     actor_instance, field_target_instance, field_buff.buff_range
                 )
             ):
-                buff = target_instance.get_buff_by_id(field_buff.id)
-                field_buff = buff.temp.field_buffs
-                field_buff_modifier_levels_effects = field_buff.modifier_effects
-                field_buff_modifier_effects: List[ModifierEffect] = field_buff_modifier_levels_effects[
-                    buff.level - 1
-                ]
+                field_buff_instance = field_target_instance.get_field_buff_by_id(
+                    field_buff.id
+                )
+                field_buff_modifier_levels_effects = (
+                    field_buff_instance.temp.modifier_effects
+                )
+                field_buff_modifier_effects: List[ModifierEffect] = (
+                    field_buff_modifier_levels_effects[field_buff_instance.level - 1]
+                )
                 for modifier_effects in field_buff_modifier_effects:
                     if hasattr(modifier_effects.modifier, attr_name):
                         is_requirement_meet = modifier_effects.requirement(
-                            actor_instance, target_instance, context, buff
+                            actor_instance,
+                            target_instance,
+                            context,
+                            field_buff_instance,
                         )
                         if is_requirement_meet > 0:
                             modifier_value = get_modifier_attribute_value(
                                 actor_instance, modifier_effects.modifier, attr_name
                             )
-                            basic_modifier_value += calculate_buff_with_max_stack(
-                                buff, modifier_value, attr_name
-                            )
+                            basic_modifier_value += modifier_value
 
     return basic_modifier_value
 

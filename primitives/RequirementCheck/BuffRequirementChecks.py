@@ -12,7 +12,7 @@ from primitives.buff.BuffTemp import BuffTypes
 
 class BuffRequirementChecks:
     @staticmethod
-    def buff_stack_reach(
+    def target_buff_stack_reach(
         reach_number: int,
         buff_id: str,
         actor_hero: Hero,
@@ -20,6 +20,20 @@ class BuffRequirementChecks:
         context: Context,
     ) -> int:
         for buff in target_hero.buffs:
+            if buff.temp.id == buff_id:
+                if buff.stack >= reach_number:
+                    return 1
+        return 0
+
+    @staticmethod
+    def self_buff_stack_reach(
+        reach_number: int,
+        buff_id: str,
+        actor_hero: Hero,
+        target_hero: Hero,
+        context: Context,
+    ) -> int:
+        for buff in actor_hero.buffs:
             if buff.temp.id == buff_id:
                 if buff.stack >= reach_number:
                     return 1
@@ -106,6 +120,16 @@ class BuffRequirementChecks:
         return min(3, benefit_buff_count)
 
     @staticmethod
+    def self_benefit_buff_count(
+        max_count: int, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        benefit_buff_count = 0
+        for buff in actor_hero.buffs:
+            if buff.temp.type == BuffTypes.Benefit:
+                benefit_buff_count += 1
+        return min(max_count, benefit_buff_count)
+
+    @staticmethod
     def self_harm_buff_count_smaller_than(
         count: int, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
@@ -113,7 +137,7 @@ class BuffRequirementChecks:
         for buff in actor_hero.buffs:
             if buff.temp.type == BuffTypes.Harm:
                 harm_buff_count += 1
-        return 1 if harm_buff_count < count else 0
+        return 0 if harm_buff_count < count else 1
 
     @staticmethod
     def target_harm_buff_count_bigger_than(
@@ -129,7 +153,7 @@ class BuffRequirementChecks:
     def huahuo_stack_count(
         actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff
     ) -> float:
-        return (buff.stack+3)/3
+        return (buff.stack + 3) / 3
 
     @staticmethod
     def target_has_certain_buff(
@@ -161,6 +185,10 @@ class BuffRequirementChecks:
 
     @staticmethod
     def buff_stack_bigger_than(
-        stack_value: int, actor_hero: Hero, target_hero: Hero, context: Context, buff: Buff,
+        stack_value: int,
+        actor_hero: Hero,
+        target_hero: Hero,
+        context: Context,
+        buff: Buff,
     ) -> int:
         return 0 if buff.stack >= stack_value else 1

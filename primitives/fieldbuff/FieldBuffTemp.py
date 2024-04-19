@@ -3,10 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from primitives.effects import EventListener
-    from calculation.Modifier import Modifier
     from primitives.effects.ModifierEffect import ModifierEffect
-import enum
-import string
 from typing import List
 
 
@@ -30,7 +27,7 @@ class FieldBuffTemp:
         if on_event is None:
             on_event = []
         self.id = buff_id
-        self.buff_hero = buff_hero
+        self.caster_id = buff_hero
         self.buff_range = buff_range
         self.modifier_effects: List[ModifierEffect] = modifier_effects
         self.event_listeners: List[EventListener] = on_event

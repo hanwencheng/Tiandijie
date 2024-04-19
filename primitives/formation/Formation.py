@@ -8,7 +8,7 @@ class Formation:
         self.is_active = False
 
     def check_active(self):
-        #TODO
+        # TODO
         return False
 
     def active_formation(self):

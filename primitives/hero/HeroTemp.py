@@ -63,4 +63,3 @@ class HeroTemp:
             self.current_attributes, self.growth_coefficients, self.profession
         )
         self.current_life = self.current_attributes.life
-

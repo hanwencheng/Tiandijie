@@ -43,6 +43,9 @@ class Context:
             and hero.player_id == hero.player_id
         ]
 
+    def get_all_partners(self, hero: Hero) -> List[Hero]:
+        return [hero for hero in self.heroes if hero.player_id == hero.player_id]
+
     def get_enemies_in_diamond_range(self, hero: Hero, range_value: int) -> List[Hero]:
         base_position = hero.position
         positions_list_in_range = calculate_diamond_area(base_position, range_value)
@@ -63,6 +66,16 @@ class Context:
             and hero.player_id != hero.player_id
         ]
 
+    def get_partner_in_square_range(self, hero: Hero, range_value: int) -> List[Hero]:
+        base_position = hero.position
+        positions_list_in_range = calculate_square_area(base_position, range_value)
+        return [
+            hero
+            for hero in self.heroes
+            if hero.position in positions_list_in_range
+            and hero.player_id == hero.player_id
+        ]
+
     def load_buffs(self):
         from primitives.buff.buffs import BuffTemps
 
@@ -80,6 +93,7 @@ class Context:
         self.harm_buffs_temps = harm_buffs
         self.benefit_buffs_temps = benefit_buffs
         from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
+
         for buff in FieldBuffsTemps:
             benefit_buffs[buff.value.id] = buff.value
         self.fieldbuffs_temps = fieldbuffs
@@ -174,5 +188,10 @@ class Context:
     def get_buff_by_id(self, buff_id: str) -> BuffTemp:
         return self.all_buffs_temps[buff_id]
 
+    def get_field_buff_temp_by_id(self, buff_id: str) -> FieldBuffTemp:
+        return self.fieldbuffs_temps[buff_id]
+
     def get_enemy_by_id(self, hero: Hero, hero_id: str) -> Hero:
-        return [h for h in self.heroes if h.id == hero_id and h.player_id != hero.player_id][0]
+        return [
+            h for h in self.heroes if h.id == hero_id and h.player_id != hero.player_id
+        ][0]

@@ -29,6 +29,7 @@ immune_dict = {
     "zhilu": ["juexin"],
     "shengqiangzhili": ["juexingzhili"],
     "wendulengque": ["zhuneng"],
+    "chaozai": "hunpozhili",
 }
 
 # 阻止获得buff

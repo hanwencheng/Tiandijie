@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from primitives import Context
     from primitives.buff.BuffTemp import BuffTemp, BuffTypes
+    from primitives.fieldbuff.FieldBuff import FieldBuff
+    from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
+
 
 from primitives.buff.BuffImmuneList import *
 
@@ -28,6 +31,7 @@ class Buff:
         self.level = level
         self.stack = stack
         self.trigger = trigger
+        self.cooldown: int = 0
         self.content = content
 
 
@@ -76,4 +80,15 @@ def cast_buff(
                 elif buff.temp.id == immune_buff_id:
                     target_hero.buffs.remove(buff)
     target_hero.buffs.append(Buff(buff_temp, duration, caster_id, level, stack, 0, 0))
-    
+    if FieldBuffsTemps.get_buff_temp_by_id(buff_temp.id):
+        target_hero.field_buffs.append(
+            FieldBuff(
+                FieldBuffsTemps.get_buff_temp_by_id(buff_temp.id),
+                duration,
+                caster_id,
+                level,
+                stack,
+                0,
+                0,
+            )
+        )

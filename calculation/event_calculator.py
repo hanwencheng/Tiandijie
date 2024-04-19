@@ -1,11 +1,11 @@
 from typing import List, Any
 from primitives.Action import Action
 from primitives.Context import Context
-from primitives.buff.Buff import Buff
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from calculation.Range import calculate_if_targe_in_diamond_range
 from primitives.hero.Hero import Hero
+from random import random
 
 skill_related_events = [
     EventTypes.skill_start,
@@ -54,12 +54,12 @@ def event_listener_calculator(
 
     # Calculated FieldBuffs
     for field_buff in context.fieldbuffs_temps.values():
-        target_instance = context.get_hero_by_id(field_buff.buff_hero)
+        target_instance = context.get_hero_by_id(field_buff.caster_id)
         if (
             target_instance
-            and target_instance.get_buff_by_id(field_buff.id)
+            and target_instance.get_field_buff_by_id(field_buff.id)
             and calculate_if_targe_in_diamond_range(
-            actor_instance, target_instance, field_buff.buff_range
+                actor_instance, target_instance, field_buff.buff_range
             )
         ):
             field_buff_event_listeners: List[EventListener] = field_buff.event_listeners
@@ -102,7 +102,7 @@ def event_listener_calculator(
             context,
             event_listener_container.instance_self,
         )
-        if round(multiplier) > 0:
+        if multiplier > 0 and random() < multiplier:
             event_listener_container.event_listener.listener_effects(
                 actor_instance,
                 counter_instance,

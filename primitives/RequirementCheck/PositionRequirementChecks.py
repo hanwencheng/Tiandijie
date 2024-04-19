@@ -293,7 +293,7 @@ class PositionRequirementChecks:
         context: Context,
     ) -> int:
         actor_position = actor_hero.position
-        enemy_count = 0
+        partner_count = 0
         for hero in context.heroes:
             if hero.id == actor_hero.id:
                 continue
@@ -301,8 +301,8 @@ class PositionRequirementChecks:
                 if calculate_if_targe_in_diamond_range(
                     actor_position, hero.position, range_value
                 ):
-                    enemy_count += 1
-        return 1 if enemy_count >= count_requirement else 0
+                    partner_count += 1
+        return 1 if partner_count >= count_requirement else 0
 
     def attack_enemy_in_range_count_bigger_than_with_base_2(
         self,
@@ -363,4 +363,36 @@ class PositionRequirementChecks:
             ):
                 if hero.current_life < hero.max_life:
                     return 1
+        return 0
+
+    @staticmethod
+    def is_actionable_in_range(
+        range_value: int, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        actor_position = actor_hero.position
+        for hero in context.heroes:
+            if calculate_if_targe_in_diamond_range(
+                actor_position, hero.position, range_value
+            ):
+                if hero.actionable:
+                    return 1
+        return 0
+
+    # enemy_battle:
+
+    @staticmethod
+    def enemy_attack_in_caster_range(
+        range_value: int,
+        actor_hero: Hero,
+        target_hero: Hero,
+        partner: Hero,
+        context: Context,
+        buff: Buff,
+    ) -> int:
+        target_position = target_hero.position
+        actor_position = actor_hero.position
+        if calculate_if_targe_in_diamond_range(
+            actor_position, target_position, range_value
+        ):
+            return 1
         return 0

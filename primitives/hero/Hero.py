@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from primitives.hero.HeroTemp import HeroTemp
     from primitives.skill.Skill import Skill
     from primitives.buff import Buff
+    from primitives.fieldbuff.FieldBuff import FieldBuff
     from basics import Position
 
 
@@ -25,6 +26,7 @@ class Hero:
         self.position = (0, 0)
         self.stones = Stone()
         self.buffs: List[Buff] = []
+        self.field_buffs: List[FieldBuff] = []
         self.initial_attributes = None
         self.current_life: float = 1.0
         self.is_alive: bool = True
@@ -43,14 +45,6 @@ class Hero:
         self.initial_attributes = initial_attributes
         self.current_life = self.initial_attributes.life
 
-    def take_harm(self, harm_value: float):
-        if harm_value > 0:
-            self.current_life = max(self.current_life - harm_value, 0)
-
-    def take_healing(self, healing_value: float):
-        if healing_value > 0:
-            self.current_life = min(self.current_life + healing_value, self.max_life)
-
     def update_position(self, position: Position):
         self.position = position
         # TODO move_path
@@ -60,3 +54,9 @@ class Hero:
 
     def get_buff_by_id(self, buff_id: str) -> Buff:
         return [buff for buff in self.buffs if buff.id == buff_id][0]
+
+    def get_field_buff_by_id(self, field_name: str) -> FieldBuff:
+        return [buff for buff in self.field_buffs if buff.temp.id == field_name][0]
+
+    def reset_actionable(self):
+        self.actionable = True

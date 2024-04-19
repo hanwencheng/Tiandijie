@@ -276,7 +276,7 @@ class Formations:
                 {
                     ma.element_defender_multiplier: 0.08,
                 },
-            )
+            ),
         ],
     )
 
@@ -872,7 +872,9 @@ class Formations:
         [{"element": Elements.WATER}, {"element": Elements.WATER}],
         [
             ModifierEffect(
-                partial(Check.PositionChecks.element_hero_in_range, [Elements.WATER], 2),
+                partial(
+                    Check.PositionChecks.element_hero_in_range, [Elements.WATER], 2
+                ),
                 {
                     ma.physical_damage_percentage: 8,
                     ma.magic_damage_percentage: 8,

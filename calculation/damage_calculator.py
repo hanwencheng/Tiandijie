@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from primitives.Action import Action
-    from primitives import Context
 
 from calculation.attribute_calculator import *
 from primitives.hero import Hero
@@ -39,10 +38,10 @@ def calculate_skill_damage(
 
     attacker_elemental_multiplier = get_element_attacker_multiplier(
         attacker_instance, target_instance, action, context
-    )   # 克制攻击加成
+    )  # 克制攻击加成
     defender_elemental_multiplier = get_element_defender_multiplier(
         attacker_instance, target_instance, action, context
-    )   # 克制防御加成
+    )  # 克制防御加成
 
     # Calculating attack-defense difference
     attack_defense_difference = (

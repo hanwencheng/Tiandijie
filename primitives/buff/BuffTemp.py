@@ -3,10 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from primitives.effects import EventListener
-    from calculation.Modifier import Modifier
     from primitives.effects.ModifierEffect import ModifierEffect
-    from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
-    from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
 import enum
 import string
 from typing import List
@@ -46,7 +43,7 @@ class BuffTemp:
         self.expandable: bool = expandable
         self.modifier_effects: List[ModifierEffect] = modifier_effects
         self.event_listeners: List[EventListener] = on_event
-        self.field_buffs: List[FieldBuffTemp] = FieldBuffsTemps.get_buff_temp_by_id(buff_id)
+        # self.field_buff: FieldBuffTemp = FieldBuffsTemps.get_buff_temp_by_id(buff_id)
 
     def __getitem__(self, key):
         return getattr(self, key)

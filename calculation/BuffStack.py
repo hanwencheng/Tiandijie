@@ -68,6 +68,9 @@ buff_max_stack = {
             ma.critical_percentage,
         ],
     ),
+    "lingxi": BuffStack(14, []),
+    "hunpozhili": BuffStack(5, []),
+    "yingwei": BuffStack(6, []),
 }
 
 

@@ -288,7 +288,14 @@ class BuffTemps(Enum):
                 {ma.is_non_selectable: True},
             ),
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.battle_end,
+                1,
+                RS.always_true,
+                partial(Effects.remove_actor_certain_buff, "xianling"),
+            ),
+        ],
     )
 
     # 仙罪	其他	不可驱散	不可扩散	不可偷取	与「雪芝」「对战中」伤害、免伤-10%（上限3层）。主动绝学都在冷却中时，移动力-1。
@@ -371,7 +378,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.BuffChecks.buff_stack_reach, 3, buff_id="xiayi"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 3, buff_id="xiayi"),
                 partial(Effects.take_effect_of_xiayi),
             ),
         ],
@@ -930,24 +937,6 @@ class BuffTemps(Enum):
         ],
     )
 
-    # 天鼓法华	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，获得「迅捷I」状态，持续1回合。
-    tiangufahua = BuffTemp(
-        "tiangufahua",
-        BuffTypes.Others,
-        False,
-        False,
-        False,
-        [],
-        [
-            EventListener(
-                EventTypes.partner_action_end,
-                1,
-                partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.add_buffs, buff_temp=["xunjie"], duration=1),
-            )
-        ],
-    )
-
     # 如燕	其他	不可驱散	不可扩散	不可偷取	主动攻击「对战中」暴击率提高20%，移动力+1，可跨越障碍（不可驱散）
     ruyan = BuffTemp(
         "ruyan",
@@ -985,18 +974,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 {ma.counterattack_range: 1},
             ),
-            ModifierEffect(
-                partial(RS.PositionChecks.in_range_of_enemy, "xiongbagaoqi", 3),
-                {
-                    ma.attack_percentage: -10,
-                    ma.magic_attack_percentage: -10,
-                    ma.defense_percentage: -10,
-                    ma.magic_defense_percentage: -10,
-                    ma.critical_percentage: -10,
-                    ma.restrict_by_obstacles_range: 3,
-                },
-            ),
         ],
+        [],
     )
 
     # 定身	有害	不可驱散	不可扩散	不可偷取	无法移动，无法护卫
@@ -1059,24 +1038,6 @@ class BuffTemps(Enum):
             )
         ],
         [],
-    )
-
-    # 叹妙摩耶	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，反转1个「有害状态」。
-    miaotanmoye = BuffTemp(
-        "miaotanmoye",
-        BuffTypes.Others,
-        False,
-        False,
-        False,
-        [],
-        [
-            EventListener(
-                EventTypes.partner_action_end,
-                1,
-                partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.reverse_target_harm_buffs, 1),
-            )
-        ],
     )
 
     # 剑意激荡	其他	不可驱散	不可扩散	不可偷取	普攻附带0.5目标（物攻+法攻）的伤害（无法被减免）。魔天凛意附带0.75目标（物攻+法攻）的伤害（无法被减免）；若会心大于对方，则附带1目标（物攻+法攻）的伤害（无法被减免）
@@ -1151,12 +1112,12 @@ class BuffTemps(Enum):
                 EventTypes.under_damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_self_buffs, buff_temp=["jianjue"]),
+                partial(Effects.increase_actor_certain_buff_stack, "jianjue"),
             ),
             EventListener(
                 EventTypes.skill_single_damage_end,
                 1,
-                partial(RS.BuffChecks.buff_stack_reach, 3, buff_id="jianjue"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 3, buff_id="jianjue"),
                 partial(
                     Effects.reduce_actor_certain_buff_stack,
                     buff_id="jianjue",
@@ -1201,7 +1162,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 20,
                     ma.defense_percentage: 20,
                     ma.magic_defense_percentage: 20,
-                    ma.critical_percentage: 20,
+                    ma.luck_percentage: 20,
                 },
             )
         ],
@@ -1284,7 +1245,10 @@ class BuffTemps(Enum):
         [
             ModifierEffect(
                 partial(RS.skill_is_single_target_damage_and_life_is_higher_percentage),
-                {ma.battle_damage_reduction_percentage: 20},
+                {
+                    ma.battle_damage_reduction_percentage: 20,
+                    ma.suffer_critical_damage_percentage: 20,
+                },
             ),
         ],
         [
@@ -1323,7 +1287,7 @@ class BuffTemps(Enum):
         False,
         False,
         [
-            ModifierEffect(RS.always_true, {ma.prevent_death: True}),
+            ModifierEffect(RS.always_true, {ma.prevent_death: 0.3}),
         ],
         [],
     )
@@ -1499,7 +1463,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 10,
                     ma.defense_percentage: 10,
                     ma.magic_defense_percentage: 10,
-                    ma.critical_percentage: 10,
+                    ma.luck_percentage: 10,
                 },
             )
         ],
@@ -1620,7 +1584,7 @@ class BuffTemps(Enum):
         ],
     )
 
-    # 御敌	其他	不可驱散	不可扩散	不可偷取	每层伤害、免伤+15%（上限4层）。
+    # 御敌	其他	不可驱散	不可扩散	不可偷取	每层伤害、免伤+15%（上限4层）, 「御敌」状态消失时，以3格范围内物攻/法攻最高的敌人为中心，对其2格范围内所有敌方造成1次「固定伤害」伤害（最大气血的12%），并施加1层「燃烧」状态，持续2回合。。
     yudi = BuffTemp(
         "yudi",
         BuffTypes.Others,
@@ -1638,7 +1602,14 @@ class BuffTemps(Enum):
                 },
             ),
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.buff_end,
+                1,
+                RS.always_true,
+                partial(Effects.take_effect_of_yudi),
+            ),
+        ],
     )
 
     # 御火	其他	不可驱散	不可扩散	不可偷取	火属相免伤80%，受到攻击后消失。
@@ -1732,7 +1703,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 10,
                     ma.defense_percentage: 10,
                     ma.magic_defense_percentage: 10,
-                    ma.critical_percentage: 10,
+                    ma.luck_percentage: 10,
                 },
             )
         ],
@@ -1779,7 +1750,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: -20,
                     ma.defense_percentage: -20,
                     ma.magic_defense_percentage: -20,
-                    ma.critical_percentage: -20,
+                    ma.luck_percentage: -20,
                 },
             ),
             ModifierEffect(
@@ -1899,7 +1870,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 20,
                     ma.defense_percentage: 20,
                     ma.magic_defense_percentage: 20,
-                    ma.critical_percentage: 20,
+                    ma.luck_percentage: 20,
                     ma.attack_range: 2,
                 },
             )
@@ -2185,19 +2156,7 @@ class BuffTemps(Enum):
                 partial(Effects.take_effect_of_tandi),
             ),
             EventListener(
-                EventTypes.action_end,
-                1,
-                RS.always_true,
-                partial(Effects.refresh_buff_trigger),
-            ),
-            EventListener(
-                EventTypes.partner_action_end,
-                1,
-                RS.always_true,
-                partial(Effects.refresh_buff_trigger),
-            ),
-            EventListener(
-                EventTypes.enemy_action_end,
+                EventTypes.turn_start,
                 1,
                 RS.always_true,
                 partial(Effects.refresh_buff_trigger),
@@ -2228,7 +2187,7 @@ class BuffTemps(Enum):
                 EventTypes.under_damage_end,
                 1,
                 partial(RS.attacked_by_caster),
-                partial(Effects.add_self_buffs, "silie"),
+                partial(Effects.increase_actor_certain_buff_stack, "silie"),
             ),
         ],
     )
@@ -3087,7 +3046,7 @@ class BuffTemps(Enum):
                     ma.defense_percentage: 10,
                     ma.magic_attack_percentage: 10,
                     ma.magic_defense_percentage: 10,
-                    ma.critical_percentage: 10,
+                    ma.luck_percentage: 10,
                     ma.move_range: 1,
                 },
             ),
@@ -3987,8 +3946,8 @@ class BuffTemps(Enum):
             ModifierEffect(
                 RS.always_true,
                 {
-                    ma.is_extra_action_disabled: 2,
-                    ma.is_extra_move_disabled: 2,
+                    ma.is_extra_action_disabled: True,
+                    ma.is_extra_move_disabled: True,
                 },
             ),
         ],
@@ -4038,7 +3997,7 @@ class BuffTemps(Enum):
                     ma.defense_percentage: 5,
                     ma.magic_attack_percentage: 5,
                     ma.magic_defense_percentage: 5,
-                    ma.critical_percentage: 5,
+                    ma.luck_percentage: 5,
                 },
             ),
         ],
@@ -4266,7 +4225,7 @@ class BuffTemps(Enum):
         False,
         [
             ModifierEffect(
-                partial(RS.move_less_or_equal_than, 1),
+                partial(RS.move_more_than, 1),
                 {ma.physical_damage_percentage: -20, ma.critical_percentage: -20},
             ),
         ],
@@ -4337,6 +4296,18 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.is_attacker),
                 partial(Effects.take_effect_of_chaozai),
+            ),
+            EventListener(
+                EventTypes.buff_end,
+                1,
+                RS.always_true,
+                partial(Effects.add_self_buffs, ["xuruo"], 1),
+            ),
+            EventListener(
+                EventTypes.buff_end,
+                1,
+                RS.always_true,
+                partial(Effects.reduce_actor_certain_buff_stack, ["hunpozhili"], 3),
             ),
         ],
     )
@@ -4518,7 +4489,7 @@ class BuffTemps(Enum):
                         ma.magic_attack_percentage: -20,
                         ma.defense_percentage: -20,
                         ma.magic_defense_percentage: -20,
-                        ma.critical_percentage: -20,
+                        ma.luck_percentage: -20,
                     },
                 )
             ],
@@ -4572,7 +4543,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: -20,
                     ma.defense_percentage: -20,
                     ma.magic_defense_percentage: -20,
-                    ma.critical_percentage: -20,
+                    ma.luck_percentage: -20,
                 },
             ),
         ],
@@ -4687,7 +4658,7 @@ class BuffTemps(Enum):
                     {ma.attack_percentage: 4, ma.physical_penetration_percentage: 2},
                 ),
                 ModifierEffect(
-                    partial(RS.BuffChecks.buff_stack_reach, 4, "kuli"),
+                    partial(RS.BuffChecks.self_buff_stack_reach, 4, "kuli"),
                     {ma.single_skill_range: 1, ma.range_skill_range: 1},
                 ),
             ],
@@ -4698,7 +4669,7 @@ class BuffTemps(Enum):
                 EventListener(
                     EventTypes.buff_start,
                     1,
-                    partial(RS.BuffChecks.buff_stack_reach, 6, "kuli"),
+                    partial(RS.BuffChecks.self_buff_stack_reach, 6, "kuli"),
                     partial(Effects.reduce_self_ramdon_damage_skill_cooldown, 2),
                 )
             ],
@@ -4726,8 +4697,8 @@ class BuffTemps(Enum):
     )
 
     # 重击·崩山	其他	不可驱散	不可扩散	不可偷取	暴击率提升20%，发动「追击」（首击的0.3倍伤害）
-    zhongjifengshan = BuffTemp(
-        "zhongjifengshan",
+    zhongjibengshan = BuffTemp(
+        "zhongjibengshan",
         BuffTypes.Others,
         False,
         False,
@@ -5241,7 +5212,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.buff_start,
                 1,
-                partial(RS.BuffChecks.buff_stack_reach, 6, "juexingzhili"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 6, "juexingzhili"),
                 partial(Effects.add_buffs, buff_temp=["shengqiangzhili"], duration=2),
             ),
         ],
@@ -5263,7 +5234,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 20,
                     ma.defense_percentage: 20,
                     ma.magic_defense_percentage: 20,
-                    ma.critical_percentage: 20,
+                    ma.luck_percentage: 20,
                     ma.thunder_damage_reduction_percentage: 30,
                     ma.dark_damage_reduction_percentage: 30,
                 },
@@ -5288,7 +5259,7 @@ class BuffTemps(Enum):
                     ma.magic_attack_percentage: 4,
                     ma.defense_percentage: 4,
                     ma.magic_defense_percentage: 4,
-                    ma.critical_percentage: 4,
+                    ma.luck_percentage: 4,
                 },
             ),
         ],
@@ -5296,7 +5267,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.buff_start,
                 1,
-                partial(RS.BuffChecks.buff_stack_reach, 5, "juexin"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 5, "juexin"),
                 partial(Effects.transfer_buff_to_other_buff, "juexin", "zhilu"),
             ),
         ],
@@ -5314,7 +5285,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.buff_start,
                 1,
-                partial(RS.BuffChecks.buff_stack_reach, 2, "xinnian"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 2, "xinnian"),
                 partial(Effects.add_buffs, buff_temp=["boxunjianglin"]),
             ),
         ],
@@ -5393,7 +5364,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 {
                     ma.critical_percentage: -20,
-                    ma.critical_damage_reduction_percentage: -20,
+                    ma.suffer_critical_damage_percentage: -20,
                     ma.is_only_attack_to_caster: True,
                 },
             ),
@@ -5671,7 +5642,7 @@ class BuffTemps(Enum):
     #                 ma.magic_attack_percentage: 15,
     #                 ma.defense_percentage: 15,
     #                 ma.magic_defense_percentage: 15,
-    #                 ma.critical_percentage: 15,
+    #                 ma.luck_percentage: 15,
     #             },
     #         ),
     #     ],
@@ -5685,30 +5656,80 @@ class BuffTemps(Enum):
     #     ],
     # )
 
-    # # 福灵	其他	不可驱散	不可扩散	不可偷取	移动力+2，可跨越障碍，物攻的15%附加至物防、法防上
-    # fuling = BuffTemp(
-    #     "fuling",
-    #     BuffTypes.Others,
-    #     False,
-    #     False,
-    #     False,
-    #     [
-    #         ModifierEffect(
-    #             RS.always_true,
-    #             {
-    #                 ma.move_range: 2,
-    #                 ma.is_ignore_obstacle: True,
-    #                 ma.physical_damage_percentage: 15,
-    #             },
-    #         ),
-    #     ],
-    #     [],
-    # )
+    # 福灵	其他	不可驱散	不可扩散	不可偷取	移动力+2，可跨越障碍，物攻的15%附加至物防、法防上
+    fuling = BuffTemp(
+        "fuling",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.move_range: 2,
+                    ma.is_ignore_obstacle: True,
+                    ma.defense_percentage: "attack_15",
+                    ma.magic_defense_percentage: "attack_15",
+                },
+            ),
+        ],
+        [],
+    )
 
     # 灵辉	其他	不可驱散	不可扩散	不可偷取	行动结束时，如果携带不少于7层「灵辉」，消耗7层「灵辉」，再激活自身十字7格内1名法攻/物攻最高已结束行动的其他友方。（间隔2回合触发）
+    linghui = BuffTemp(
+        "linghui",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.BuffChecks.self_buff_stack_reach, 7, "linghui"),
+                partial(Effects.take_effect_of_linghui),
+            ),
+        ],
+    )
+
     # 疫瘴	其他	不可驱散	不可扩散	不可偷取	携带者受到驱散「有害状态」的效果作用时，每层本状态防止1个「有害状态」（仅限满足可驱散）被驱散，并消耗对应层数（最多叠加3层，不可驱散）
     # 禁咒烨域	其他	不可驱散	不可扩散	不可偷取	3格范围内敌方释放法术伤害绝学时法攻降低50%。(已入「遮天蔽日」套餐)
     # 循血	其他	不可驱散	不可扩散	不可偷取	自身每携带1个「有益状态」状态，伤害、物理免伤提升5%（最多提升15%）；「对战后」反转自身2个「有害状态」，恢复自身气血（最大气血的30%），并将自身最多2个「有益状态」复制给3格内的其他友方。（每回合只能触发1次）
+    xunxue = BuffTemp(
+        "xunxue",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                partial(RS.BuffChecks.self_benefit_buff_count, 3),
+                {
+                    ma.attack_percentage: 5,
+                    ma.magic_attack_percentage: 5,
+                    ma.physical_damage_reduction_percentage: 5,
+                },
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.battle_end,
+                1,
+                RS.always_true,
+                partial(Effects.take_effect_of_xunxue),
+            ),
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
+        ],
+    )
+
     # 幽铠	有益	可驱散	可扩散	可偷取	遭受攻击「对战前」夺取目标2个「有益状态」，若夺取数达上限则造成1次「固定伤害」（目标最大气血的10%）（触发后移除）。
     youkai = BuffTemp(
         "youkai",
@@ -5814,7 +5835,13 @@ class BuffTemps(Enum):
         False,
         False,
         [
-            ModifierEffect(RS.always_true, {ma.physical_damage_reduction_percentage: 10, ma.magic_damage_reduction_percentage: 10}),
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.physical_damage_reduction_percentage: 10,
+                    ma.magic_damage_reduction_percentage: 10,
+                },
+            ),
         ],
         [],
     )
@@ -5867,6 +5894,37 @@ class BuffTemps(Enum):
         [],
         [],
     )
+
+    # 盈尾	其他	不可驱散	不可扩散	不可偷取	盈盈佳人笑，百媚倾城欢（无法驱散，上限6层）。
+    yingwei = BuffTemp(
+        "yingwei",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
+        [],
+    )
+
+    # 魅惑	其他	不可驱散	不可扩散	不可偷取	受到暴击概率+30%，无法选中施加者（无法驱散）。
+    meihuo = BuffTemp(
+        "meihuo",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.suffer_critical_percentage: 30,
+                    ma.is_attack_to_caster_disable: True,
+                },
+            ),
+        ],
+        [],
+    )
+
     # 火源	其他	不可驱散	不可扩散	不可偷取	最多储存「梦种灯」最大气血的100%，行动结束时消化50%储存总量为3格内其他友方恢复气血（必定在2回合内消化储存总量）
 
     # 传送	其他	不可驱散	不可扩散	不可偷取	传送效果包含：「传送」、「扰动」、「牵引」

@@ -3,6 +3,9 @@ import enum
 
 class EventTypes(enum.Enum):
 
+    game_start = "fight_start"
+    game_end = "fight_end"
+
     move_start = "move_start"
     move = "move"
     move_end = "move_end"
@@ -96,6 +99,9 @@ class EventTypes(enum.Enum):
     partner_battle_start = "partner_battle_start"
     partner_battle_end = "partner_battle_end"
 
+    partner_skill_start = "partner_skill_start"
+    partner_skill_end = "partner_skill_end"
+
     enemy_action_start = "enemy_action_start"
     enemy_action_end = "enemy_action_end"
 
@@ -110,6 +116,7 @@ class EventTypes(enum.Enum):
     buff_end = "buff_end"
 
     hero_death = "hero_death"
+    other_hero_death = "other_hero_death"
 
     kill_enemy_start = "kill_enemy_start"
     kill_enemy_end = "kill_enemy_end"
@@ -119,3 +126,9 @@ class EventTypes(enum.Enum):
     double_attack_end = "double_attack_end"
     under_double_attack_start = "under_double_attack_start"
     under_double_attack_end = "under_double_attack_end"
+
+    # chase_attack
+    chase_attack_start = "chase_attack_start"
+    chase_attack_end = "chase_attack_end"
+    under_chase_attack_start = "under_chase_attack_start"
+    under_chase_attack_end = "under_chase_attack_end"

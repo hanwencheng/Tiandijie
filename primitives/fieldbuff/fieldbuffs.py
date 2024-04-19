@@ -8,9 +8,11 @@ from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
 
 from calculation.Effects import Effects
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
+from primitives.RequirementCheck.TalentRequirementChecks import (
+    TalentRequirementChecks as TRs,
+)
 from calculation.ModifierAttributes import ModifierAttributes as ma
-
-from typing import List, Any
+from primitives.hero.Element import Elements
 
 
 class FieldBuffsTemps(Enum):
@@ -71,7 +73,8 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
+                partial(RS.self_and_caster_is_partner_and_first_attack),
+                {ma.battle_damage_percentage: 10},
             ),
             ModifierEffect(
                 partial(RS.miepokongjian_requires_check),
@@ -95,7 +98,8 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
+                partial(RS.self_and_caster_is_partner_and_first_attack),
+                {ma.battle_damage_percentage: 10},
             )
         ],
         [],
@@ -108,7 +112,8 @@ class FieldBuffsTemps(Enum):
         2,
         [
             ModifierEffect(
-                partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 15}
+                partial(RS.self_and_caster_is_partner_and_first_attack),
+                {ma.battle_damage_percentage: 15},
             ),
             ModifierEffect(
                 partial(RS.huanyanliezhen_requires_check),
@@ -161,7 +166,8 @@ class FieldBuffsTemps(Enum):
         [
             [
                 ModifierEffect(
-                    partial(RS.self_and_caster_is_partner_and_first_attack), {ma.battle_damage_percentage: 10}
+                    partial(RS.self_and_caster_is_partner_and_first_attack),
+                    {ma.battle_damage_percentage: 10},
                 ),
                 ModifierEffect(
                     partial(RS.yanyukongjian_requires_check, 1),
@@ -205,7 +211,10 @@ class FieldBuffsTemps(Enum):
         "chunlan",
         2,
         [
-            ModifierEffect(partial(RS.self_and_caster_is_partner), {ma.fixed_damage_reduction_percentage: 10}),
+            ModifierEffect(
+                partial(RS.self_and_caster_is_partner),
+                {ma.fixed_damage_reduction_percentage: 10},
+            ),
         ],
         [],
     )
@@ -222,6 +231,82 @@ class FieldBuffsTemps(Enum):
                 1,
                 partial(RS.self_and_caster_is_partner_and_is_attacked_target),
                 partial(Effects.take_effect_of_kongxing),
+            )
+        ],
+    )
+
+    # 威慑	其他	不可驱散	不可扩散	不可偷取	自身反击射程+1，3格范围内所有敌人除气血外全属性降低10%，且具有轻功能力的角色翻越障碍能力失效
+    weishe = FieldBuffTemp(
+        "weishe",
+        "xiongbagaoqi",
+        3,
+        [
+            ModifierEffect(
+                RS.always_true,
+                {
+                    ma.attack_percentage: -10,
+                    ma.magic_attack_percentage: -10,
+                    ma.defense_percentage: -10,
+                    ma.magic_defense_percentage: -10,
+                    ma.luck_percentage: -10,
+                    ma.restrict_by_obstacles_range: 3,
+                },
+            ),
+        ],
+    )
+
+    # Talent Buffs
+
+    # 狐踪千里: 自身相邻1格内开启「引导区域」：「咒师」「羽士」「祝由」职业的友方移动力消耗-1。若3格范围内任意友方受到伤害，则自身获得「警觉」状态，持续1回合（每回合触发2次）。
+    huzongqianli = FieldBuffTemp(
+        "huzongqianli",
+        "taixuan",
+        3,
+        [partial(TRs.huzongqianli_requires_check, state=1), {ma.move_range: 1}],
+        [
+            EventListener(
+                EventTypes.under_damage_end,
+                1,
+                partial(TRs.huzongqianli_requires_check, state=2),
+                partial(Effects.take_effect_of_huzongqianli),
+            ),
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
+        ],
+    )
+
+    # 天鼓法华	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，获得「迅捷I」状态，持续1回合。
+    tiangufahua = FieldBuffTemp(
+        "tiangufahua",
+        "jilefeitian",
+        3,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_is_certain_element, Elements.THUNDER),
+                partial(Effects.add_self_buffs, buff_temp=["xunjie"], duration=1),
+            )
+        ],
+    )
+
+    # 叹妙摩耶	其他	不可驱散	不可扩散	不可偷取	3格范围内的友方行动结束时，反转1个「有害状态」。
+    miaotanmoye = FieldBuffTemp(
+        "miaotanmoye",
+        "jilefeitian",
+        3,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_is_certain_element, Elements.LIGHT),
+                partial(Effects.reverse_target_harm_buffs, 1),
             )
         ],
     )

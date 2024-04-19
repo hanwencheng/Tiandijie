@@ -19,4 +19,6 @@ class Talent:
         self.id = talent_id
         self.hero_id = hero_id
         self.modifier_effects = effects
+        self.trigger: int = 0
+        self.cooldown: int = 0
         self.event_listeners = event_listeners

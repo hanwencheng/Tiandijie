@@ -137,7 +137,7 @@ class BuffRequirementChecks:
         for buff in actor_hero.buffs:
             if buff.temp.type == BuffTypes.Harm:
                 harm_buff_count += 1
-        return 0 if harm_buff_count < count else 1
+        return 1 if harm_buff_count < count else 0
 
     @staticmethod
     def target_harm_buff_count_bigger_than(

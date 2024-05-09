@@ -94,3 +94,17 @@ class LifeRequirementChecks:
         _percentage: float, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         return 1 if actor_hero.current_life < target_hero.current_life else 0
+
+    @staticmethod
+    def self_life_is_higher_than_target_in_range(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        enemies = context.get_enemies_in_cross_range(actor_hero, 3)
+        partner = context.get_partner_in_square_range(actor_hero, 3)
+        target_list = enemies + partner
+        if not target_list:
+            return 0
+        for target in target_list:
+            if actor_hero.current_life > target.current_life:
+                return 1
+        return 0

@@ -71,6 +71,19 @@ buff_max_stack = {
     "lingxi": BuffStack(14, []),
     "hunpozhili": BuffStack(5, []),
     "yingwei": BuffStack(6, []),
+    "jianwei": BuffStack(3, []),
+    "linghui": BuffStack(14, []),
+    "juexin": BuffStack(
+        5,
+        [
+            ma.life_percentage,
+            ma.attack_percentage,
+            ma.defense_percentage,
+            ma.magic_attack_percentage,
+            ma.magic_defense_percentage,
+            ma.critical_percentage,
+        ],
+    ),
 }
 
 

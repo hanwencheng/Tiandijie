@@ -6,18 +6,19 @@ from helpers import is_magic_profession_dict
 from primitives.skill.SkillTypes import SkillTargetTypes, SkillType
 
 if TYPE_CHECKING:
-    from calculation.Range import Range
     from primitives.effects.ModifierEffect import ModifierEffect
     from primitives.effects.SkillListener import SkillListener
     from primitives.hero.Element import Elements
     from primitives.skill.Distance import (
         Distance,
         DistanceType,
-        distance_profession_dict,
     )
     from typing import List
     from primitives.hero.HeroBasics import Professions
     from primitives.effects.EventListener import EventListener
+
+from calculation.Range import Range
+from primitives.skill.Distance import distance_profession_dict
 
 
 class SkillTemp:

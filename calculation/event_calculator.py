@@ -1,6 +1,10 @@
 from typing import List, Any
+from typing import TYPE_CHECKING
+
+
 from primitives.Action import Action
-from primitives.Context import Context
+if TYPE_CHECKING:
+    from primitives.Context import Context
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from calculation.Range import calculate_if_targe_in_diamond_range
@@ -35,7 +39,7 @@ def event_listener_calculator(
     actor_instance: Hero,
     counter_instance: Hero or None,
     event_type: EventTypes,
-    context: Context,
+    context,
 ):
     if actor_instance.is_alive is False:
         return
@@ -109,3 +113,13 @@ def event_listener_calculator(
                 context,
                 event_listener_container.instance_self,
             )
+
+
+def death_event_listener(
+    actor_instance: Hero,
+    counter_instance: Hero or None,
+    event_type: EventTypes,
+    context,
+):
+    # 统计自身是否带禁止复生buff，以及target.died_once是否为False，再统计自己是否有复生modifier：int 根据modifier的值来判断复活后的血量， died_once = True
+    pass

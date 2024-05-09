@@ -1,17 +1,34 @@
 from __future__ import annotations
+
+import random
 from collections import Counter
 from typing import List, TYPE_CHECKING, Dict
+from primitives.map.BattleMap import BattleMap
 
 if TYPE_CHECKING:
     from primitives.buff.buffs import BuffTemps
     from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
     from primitives import Action
     from primitives.formation.Formation import Formation
-    from primitives.buff.BuffTemp import BuffTemp, BuffTypes
+    from primitives.buff.BuffTemp import BuffTemp
     from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
-    from primitives.hero import Hero
+from primitives.equipment.Equipments import Equipments
+from primitives.hero.Hero import Hero
+from primitives.hero.heroes import HeroeTemps
+from primitives.buff.BuffTemp import BuffTypes
+from primitives.Stone import Stones
+from primitives.skill.Skill import Skill
+from primitives.skill.skills import Skills
+from primitives.map.maps import Maps
 
-from calculation.Range import calculate_square_area, calculate_diamond_area
+from calculation.Range import (
+    calculate_square_area,
+    calculate_diamond_area,
+    calculate_cross_area,
+)
+
+from primitives.map.Terrain import Terrain
+type TerrainMap = List[List[Terrain]]
 
 
 class Context:
@@ -23,6 +40,7 @@ class Context:
         self.benefit_buffs_temps: Dict[str, BuffTemp] = {}
         self.fieldbuffs_temps: Dict[str, FieldBuffTemp] = {}
         self.all_buffs_temps: Dict[str, BuffTemp] = {}
+        self.battlemap = None
 
     def add_action(self, action):
         self.actions.append(action)
@@ -44,7 +62,7 @@ class Context:
         ]
 
     def get_all_partners(self, hero: Hero) -> List[Hero]:
-        return [hero for hero in self.heroes if hero.player_id == hero.player_id]
+        return [partner_hero for partner_hero in self.heroes if partner_hero.player_id == hero.player_id]
 
     def get_enemies_in_diamond_range(self, hero: Hero, range_value: int) -> List[Hero]:
         base_position = hero.position
@@ -59,6 +77,16 @@ class Context:
     def get_enemies_in_square_range(self, hero: Hero, range_value: int) -> List[Hero]:
         base_position = hero.position
         positions_list_in_range = calculate_square_area(base_position, range_value)
+        return [
+            hero
+            for hero in self.heroes
+            if hero.position in positions_list_in_range
+            and hero.player_id != hero.player_id
+        ]
+
+    def get_enemies_in_cross_range(self, hero: Hero, range_value: int) -> List[Hero]:
+        base_position = hero.position
+        positions_list_in_range = calculate_cross_area(base_position, range_value)
         return [
             hero
             for hero in self.heroes
@@ -85,9 +113,9 @@ class Context:
         fieldbuffs = {}
         for buff in BuffTemps:
             all_buffs[buff.value.id] = buff.value
-            if buff.value.buff_type == BuffTypes.Harm:
+            if buff.value.type == BuffTypes.Harm:
                 harm_buffs[buff.value.id] = buff.value
-            elif buff.value.buff_type == BuffTypes.Benefit:
+            elif buff.value.type == BuffTypes.Benefit:
                 benefit_buffs[buff.value.id] = buff.value
         self.all_buffs_temps = all_buffs
         self.harm_buffs_temps = harm_buffs
@@ -100,6 +128,9 @@ class Context:
 
     def init_heroes(self, heroes: List[Hero]):
         self.heroes = heroes
+        for hero in self.heroes:
+            hero.initialize_movable_range(self.battlemap, self.heroes)
+        self.refresh_heroes_attackabled()
 
     def get_current_player_id(self) -> int:
         return self.get_last_action().player_id
@@ -195,3 +226,89 @@ class Context:
         return [
             h for h in self.heroes if h.id == hero_id and h.player_id != hero.player_id
         ][0]
+
+    def init_battlemap(self, map_id: str):
+        if not map_id:
+            map_id = round(random.random()*10)
+        initial_terrain_map = getattr(Maps, map_id).value
+        self.battlemap = BattleMap(11, 11, initial_terrain_map)
+
+    def init_game_heroes(self):
+        hero_list = []
+        mohuahuangfushen = Hero(
+            0,
+            HeroeTemps.mohuahuangfushen.value,
+            (8, 8),
+            )
+        mohuahuangfushen.equipments = [Equipments.bingchanchuanzhu_chen.value, Equipments.yurenjinpei.value, Equipments.xuanqueyaodai.value, Equipments.zanghaijie.value]
+        mohuahuangfushen.enabled_passives = ["sanquehuisheng"]
+        mohuahuangfushen.enabled_skills = [Skill(0, Skills.anshayouyan.value), Skill(0, Skills.leiyinwanyu.value)]
+        mohuahuangfushen.stones = [Stones.get_stone_by_id("miwang"), Stones.get_stone_by_id("miwang"), Stones.get_stone_by_id("miwang")]
+        hero_list.append(mohuahuangfushen)
+
+        fuyayu = Hero(
+            0,
+            HeroeTemps.fuyayu.value,
+            (8, 1),
+            )
+        fuyayu.equipments = [Equipments.longguxianglian_chen.value, Equipments.pixieyupei_yan.value, Equipments.jiaorenbeige_yan.value, Equipments.youyaoxiuhuan.value]
+        fuyayu.enabled_passives = []
+        fuyayu.enabled_skills = [Skill(0, Skills.shenqiliuzhuan.value), Skill(0, Skills.zaizhouhaoling.value), Skill(0, Skills.liwankuanglan.value)]
+        fuyayu.stones = [Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui")]
+        hero_list.append(fuyayu)
+
+        huoyong = Hero(
+            0,
+            HeroeTemps.huoyong.value,
+            (8, 0),
+            )
+        huoyong.equipments = [Equipments.tianhezhusha.value, Equipments.qingshenjingyu.value, Equipments.tianjingfuhun.value, Equipments.zhongyaoyuzhuo.value]
+        huoyong.enabled_passives = []
+        huoyong.enabled_skills = [Skill(0, Skills.shenqiliuzhuan.value), Skill(0, Skills.zaizhouhaoling.value), Skill(0, Skills.liwankuanglan.value)]
+        huoyong.stones = [Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui")]
+        hero_list.append(huoyong)
+
+
+
+        mohuahuangfushen = Hero(
+            1,
+            HeroeTemps.mohuahuangfushen.value,
+            (2, 8),
+        )
+        mohuahuangfushen.equipments = [Equipments.bingchanchuanzhu_chen.value, Equipments.yurenjinpei.value, Equipments.xuanqueyaodai.value, Equipments.zanghaijie.value]
+        mohuahuangfushen.enabled_passives = ["sanquehuisheng"]
+        mohuahuangfushen.enabled_skills = [Skill(0, Skills.anshayouyan.value), Skill(0, Skills.leiyinwanyu.value)]
+        mohuahuangfushen.stones = [Stones.get_stone_by_id("miwang"), Stones.get_stone_by_id("miwang"), Stones.get_stone_by_id("miwang")]
+        hero_list.append(mohuahuangfushen)
+
+        fuyayu = Hero(
+            1,
+            HeroeTemps.fuyayu.value,
+            (2, 9),
+        )
+        fuyayu.equipments = [Equipments.longguxianglian_chen.value, Equipments.pixieyupei_yan.value, Equipments.jiaorenbeige_yan.value, Equipments.youyaoxiuhuan.value]
+        fuyayu.enabled_passives = []
+        fuyayu.enabled_skills = [Skill(0, Skills.shenqiliuzhuan.value), Skill(0, Skills.zaizhouhaoling.value), Skill(0, Skills.liwankuanglan.value)]
+        fuyayu.stones = [Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui")]
+        hero_list.append(fuyayu)
+
+        huoyong = Hero(
+            1,
+            HeroeTemps.huoyong.value,
+            (2, 10),
+        )
+        huoyong.equipments = [Equipments.tianhezhusha.value, Equipments.qingshenjingyu.value, Equipments.tianjingfuhun.value, Equipments.zhongyaoyuzhuo.value]
+        huoyong.enabled_passives = []
+
+        huoyong.enabled_skills = [Skill(0, Skills.shenqiliuzhuan.value), Skill(0, Skills.zaizhouhaoling.value), Skill(0, Skills.liwankuanglan.value)]
+        huoyong.stones = [Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui"), Stones.get_stone_by_id("minkui")]
+        hero_list.append(huoyong)
+        self.init_heroes(hero_list)
+
+    def init_heroes_position(self):
+        for hero in self.heroes:
+            self.battlemap.add_hero(hero.position)
+
+    def refresh_heroes_attackabled(self):
+        for hero in self.heroes:
+            hero.initialize_attackable_hero(self.heroes)

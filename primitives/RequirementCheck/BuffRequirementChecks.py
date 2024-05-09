@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
     from primitives.buff.Buff import Buff
-from primitives.buff.BuffTemp import BuffTypes
+    from primitives.buff.BuffTemp import BuffTypes
 
 
 class BuffRequirementChecks:
@@ -165,13 +165,24 @@ class BuffRequirementChecks:
         return 0
 
     @staticmethod
-    def self_has_certain_buff(
+    def self_has_certain_buff_in_list(
+        buff_list: [str], actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        self_buffs = [buff.temp.id for buff in actor_hero.buffs]
+        count = 0
+        for buff in buff_list:
+            if buff in self_buffs:
+                count += 1
+        return count
+
+    @staticmethod
+    def self_has_no_certain_buff(
         buff_id: str, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         for buff in actor_hero.buffs:
             if buff.temp.id == buff_id:
-                return 1
-        return 0
+                return 0
+        return 1
 
     @staticmethod
     def self_has_move_buff(

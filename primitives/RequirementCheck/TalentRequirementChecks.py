@@ -134,7 +134,30 @@ class TalentRequirementChecks:
                 return 1
         return 0
 
+    @staticmethod
+    def heyururun_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ):
+        if Rs.action_is_active_skill(actor_hero, target_hero, context) and Rs.BuffChecks.self_buff_stack_reach(
+            2, "shengming", actor_hero, target_hero, context
+        ):
+            return 1
+
+    @staticmethod
+    def youfenghuashen_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ):
+        partners = context.get_partners_in_diamond_range(actor_hero, 4)
+        element_values = {partner.temp.element for partner in partners}
+        if Elements.WATER in element_values and Elements.FIRE in element_values:
+            return 1
+        return 0
+
+
+
+
     # Talent Field buffs
+
 
     @staticmethod
     def huzongqianli_requires_check(

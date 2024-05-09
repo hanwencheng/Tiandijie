@@ -8,6 +8,7 @@ from calculation.damage_calculator import (
 from calculation.OtherlCalculation import (
     calculate_fix_heal,
 )
+from primitives.hero.Element import Elements
 from helpers import random_select
 
 if TYPE_CHECKING:
@@ -15,12 +16,44 @@ if TYPE_CHECKING:
     from primitives import Context
     from primitives.talent.Talent import Talent
     from calculation.Effects import Effects
+    from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
+    from primitives.fieldbuff.FieldBuff import FieldBuff
 
 from collections import Counter
+from primitives.RequirementCheck.BuffRequirementChecks import BuffRequirementChecks
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
+from typing import List
 
 
 # Talents
+
+
+# Field Buffs
+def _init_talent_field_buffs(
+    caster: Hero,
+    target: Hero,
+    field_buff_temp: List[FieldBuffTemp],
+    duration: int,
+    context: Context,
+):
+    new_field_buffs = [FieldBuff(b, duration, caster.id) for b in field_buff_temp]
+    for new_field_buff in new_field_buffs:
+        existing_field_buff = next(
+            (
+                field_buff
+                for field_buff in target.talents_field_buffs
+                if field_buff.temp.id == new_field_buff.temp.id
+            ),
+            None,
+        )
+        if existing_field_buff is not None:
+            if new_field_buff.level > existing_field_buff.level:
+                target.talents_field_buffs.remove(existing_field_buff)
+                target.talents_field_buffs.append(new_field_buff)
+            else:
+                existing_field_buff.duration = duration
+        else:
+            target.talents_field_buffs.append(new_field_buff)
 
 
 class TalentEffects:
@@ -57,7 +90,9 @@ class TalentEffects:
         talent: Talent,
     ):
         field_buff_temp = context.get_field_buff_by_id(field_buff_value)
-        Effects.add_self_field_buff(actor_instance, field_buff_temp, 15, context)
+        _init_talent_field_buffs(
+            actor_instance, actor_instance, field_buff_temp, 1, context
+        )
 
     @staticmethod
     def reset_random_damage_skill_cooldown(
@@ -86,14 +121,16 @@ class TalentEffects:
         context: Context,
         talent: Talent,
     ):
-        targets = context.get_enemies_in_square_range(actor_instance, 7)
-        selected_harm_buff_temps = random_select(context.harm_buffs, 1)
+        targets = context.get_enemies_in_cross_range(actor_instance, 7)
+        selected_harm_buff_temps = random_select(context.harm_buffs_temps, 1)
         additional_buff_temp = context.get_buff_by_id("youjin")
         if additional_buff_temp is not None:
             selected_harm_buff_temps.append(context.get_buff_by_id("youjin"))
         selected_heroes = random_select(targets, 2)
         for enemy_hero in selected_heroes:
-            Effects.add_buffs(selected_harm_buff_temps, 2,actor_instance, enemy_hero, context)
+            Effects.add_buffs(
+                selected_harm_buff_temps, 2, actor_instance, enemy_hero, context
+            )
 
     @staticmethod
     def take_effect_zhifatianjiang(
@@ -156,7 +193,9 @@ class TalentEffects:
                         enemy,
                         context,
                     )
-                    Effects.add_buffs(["wucuichihuan"], 2, actor_instance, enemy, context)
+                    Effects.add_buffs(
+                        ["wucuichihuan"], 2, actor_instance, enemy, context
+                    )
 
     @staticmethod
     def take_effect_of_yaocaolinghua(
@@ -190,6 +229,24 @@ class TalentEffects:
                                 skill_list.append(skill)
                         if len(skill_list) > 0:
                             random_select(skill_list, 1).cool_down -= 1
+
+    @staticmethod
+    def take_effect_of_qilinquanyu(
+        state: int,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        talent: Talent,
+    ):
+        if state == 1:
+            Effects.add_extra_skill("buqi", actor_instance, target_instance, context)
+        elif state == 2:
+            actor_position = actor_instance.position
+            Effects.clear_terrain_in_range(actor_position, True, context)
+            Effects.add_self_buffs(["chiqi"], 15, actor_instance, target_instance, context)
+        else:
+            actor_position = actor_instance.position
+            Effects.clear_terrain_in_range(actor_position, True, context)
 
     # 行动结束前，可额外使用绝学「光·自在」/「雷·自在」（间隔2回合触发，使用后将切换所有专属绝学并刷新冷却时间且保留当前气力）
     @staticmethod
@@ -315,3 +372,98 @@ class TalentEffects:
                 Effects.add_buffs(
                     ["meihuo"], 1, actor_instance, enemies[index], context
                 )
+
+    @staticmethod
+    def take_effect_of_linghaishutao(
+        actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        enemies = context.get_enemies_in_diamond_range(actor_instance, 1)
+        if not enemies:
+            return
+        for enemy in enemies:
+            Effects.add_fixed_damage_by_caster_physical_attack(
+                0.3, actor_instance, enemy, context, talent
+            )
+        Effects.add_terrain()
+
+    @staticmethod
+    def take_effect_of_huangshenxiongpo(
+        actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        enemies = context.get_enemies_in_cross_range(actor_instance, 5)
+        if not enemies:
+            return
+        elif len(enemies) > 2:
+            def compare(target):
+                return get_attack(target, actor_instance, context, False) / get_attack(
+                    target, actor_instance, context, True
+                )
+
+            enemies = sorted(enemies, key=compare, reverse=True)[:2]
+        for enemy in enemies:
+            Effects.add_buffs(["shefu"], 2, actor_instance, enemy, context)
+
+    @staticmethod
+    def take_effect_of_pohuishenfu(
+        actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        if talent.trigger > 3:
+            return
+        talent.trigger += 1
+        selected_harm_buff_temps = random_select(context.harm_buffs_temps, 1)
+        selected_harm_buff_temps.append(context.get_buff_by_id("youjin"))
+        Effects.add_buffs(
+            selected_harm_buff_temps, 2, actor_instance, target_instance, context
+        )
+
+    @staticmethod
+    def take_effect_of_tianxuanyaowei(
+        actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        Effects.remove_actor_certain_buff(
+            "tianxuan", actor_instance, target_instance, context
+        )
+        Effects.add_fixed_damage_in_range_by_caster_physical_attack(
+            0.3, 3, actor_instance, target_instance, context, talent
+        )
+        Talent.cooldown = 4
+
+    @staticmethod
+    def take_effect_of_pudujiaoyu(
+        actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        enemies = context.get_enemies_in_diamond_range(actor_instance, 3)
+        if not enemies:
+            return
+        for enemy in enemies:
+            for buff in enemy.buffs:
+                if buff.temp.type == "benefit":
+                    enemies.remove(enemy)
+        if not enemies:
+            return
+        enemy = random_select(enemies, 1)
+        Effects.add_buffs(["yunxuan"], 1, actor_instance, enemy, context)
+        talent.cooldown = 3
+
+    @staticmethod
+    def take_effect_of_anxingnixing(
+        state: int, actor_instance: Hero, target_instance: Hero, context: Context, talent: Talent
+    ):
+        if state == 1:
+            Effects.add_self_buffs(["juexin"], 15, actor_instance, actor_instance, context)
+            partners = context.get_partners_in_diamond_range(actor_instance, 2)
+            element_values = {partner.temp.element for partner in partners}
+            if Elements.DARK in element_values and Elements.THUNDER in element_values:
+                Effects.add_buffs(["juexin"], 15, actor_instance, actor_instance, context)
+
+            if BuffRequirementChecks.self_buff_stack_reach(5, "juexin", actor_instance, actor_instance, context):
+                Effects.remove_actor_certain_buff("juexin", actor_instance, actor_instance, context)
+                Effects.add_self_buffs(["juexin"], 3, actor_instance, actor_instance, context)
+        else:
+            enemies = context.get_enemies_in_diamond_range(actor_instance, 2)
+            target_enemy = enemies[0]
+            for enemy in enemies:
+                if enemy.current_life/get_max_life(enemy, actor_instance, context) < target_enemy.current_life/get_max_life(target_enemy, actor_instance, context):
+                    target_enemy = enemy
+            Effects.add_fixed_damage_by_caster_magic_attack(0.9, actor_instance, target_enemy, context, talent)
+

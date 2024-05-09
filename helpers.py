@@ -3,16 +3,12 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING, List
 
-if TYPE_CHECKING:
-    from primitives.hero.HeroBasics import Professions
+# if TYPE_CHECKING:
+from primitives.hero.HeroBasics import Professions
 
 is_magic_profession_dict = {
-    Professions.WARRIOR: True,
-    Professions.SWORDSMAN: False,
-    Professions.ARCHER: False,
-    Professions.SORCERER: True,
-    Professions.PRIEST: True,
-    Professions.GUARD: False,
+    profession: True if profession in [Professions.SORCERER, Professions.PRIEST, Professions.WARRIOR] else False
+    for profession in Professions
 }
 
 

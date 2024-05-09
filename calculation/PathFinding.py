@@ -8,28 +8,29 @@ import heapq
 from collections import deque
 from typing import List
 
-from primitives.map.Terrain import Terrain
+# from primitives.map.Terrain import Terrain
 from primitives.map.TerrainType import TerrainType
 
-type TerrainMap = List[List[Terrain]]
+# type TerrainMap = List[List[Terrain]]
 
-def is_accessible(x, y, terrain_map: TerrainMap, can_fly: bool):
+
+def is_accessible(x, y, terrain_map, can_fly: bool, hero_list):
     if can_fly:
         return terrain_map[y][x].terrain_type in [
             TerrainType.NORMAL,
             TerrainType.FLYABLE_OBSTACLE,
             TerrainType.EFFECT_SPAWN,
             TerrainType.HERO_SPAWN,
-        ]
+        ] and (x, y) not in hero_list
     else:
         return terrain_map[y][x].terrain_type in [
             TerrainType.NORMAL,
             TerrainType.EFFECT_SPAWN,
             TerrainType.HERO_SPAWN,
-        ]
+        ] and (x, y) not in hero_list
 
 
-def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly):
+def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly, enemies_list, partner_list):
     width, height = terrain_map.width, terrain_map.height
     directions = [
         (1, 0),
@@ -49,7 +50,7 @@ def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly):
         if steps >= move_limit + 1:
             continue
         # Assume is_accessible correctly checks tile accessibility, considering can_fly and terrain type
-        if is_accessible(x, y, terrain_map.map, can_fly):
+        if is_accessible(x, y, terrain_map.map, can_fly, enemies_list):
             reachable.add((x, y))
             for dx, dy in directions:
                 new_x, new_y = x + dx, y + dy
@@ -61,7 +62,7 @@ def bfs_move_range(start, move_limit, terrain_map: BattleMap, can_fly):
                     visited.add((new_x, new_y))
                     queue.append(((new_x, new_y), steps + 1))
 
-    return reachable
+    return [position for position in reachable if position not in partner_list]
 
 
 class PriorityQueue:
@@ -106,7 +107,7 @@ def a_star_search(start, goal, battle_map: BattleMap, can_fly: bool):
     return reconstruct_path(came_from, start, goal)
 
 
-def get_neighbors(position, battle_map: TerrainMap, can_fly: bool):
+def get_neighbors(position, battle_map, can_fly: bool):
     (x, y) = position
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     neighbors = []

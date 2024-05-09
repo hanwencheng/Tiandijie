@@ -7,3 +7,4 @@ class RangeType(enum.IntEnum):
     SQUARE = 2
     DIAMOND = 3
     ARCHER = 4
+    CROSS = 5

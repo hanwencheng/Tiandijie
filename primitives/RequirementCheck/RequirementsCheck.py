@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from primitives.hero.Element import Elements
     from primitives.Action import Action
 
+from primitives.skill.SkillTypes import SkillType
 from calculation.modifier_calculator import get_modifier
 from calculation.ModifierAttributes import ModifierAttributes as Ma
 
@@ -247,15 +248,6 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def skill_is_single_target_damage_and_life_is_higher_percentage(
-        actor_hero: Hero, target_hero: Hero, context: Context
-    ) -> float:
-        skill_target_type = context.get_last_action().skill.target_type
-        if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
-            return actor_hero.current_life / actor_hero.max_life
-        return 0
-
-    @staticmethod
     def skill_is_certain_element(
         element_value: Elements, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
@@ -293,6 +285,14 @@ class RequirementCheck:
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         if context.get_last_action().type == ActionTypes.SKILL_ATTACK:
+            return 1
+        return 0
+
+    @staticmethod
+    def action_is_not_active_skill(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if context.get_last_action().type != ActionTypes.SKILL_ATTACK:
             return 1
         return 0
 
@@ -383,6 +383,123 @@ class RequirementCheck:
         return 0
 
     @staticmethod
+    def action_has_no_damage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if action.total_damage == 0:
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_is_damage_type(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        skill = context.get_last_action().skill
+        if skill and (skill.temp.skill_type == SkillType.Magical or skill.temp.skill_type == SkillType.Physical):
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_has_no_damage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if action.skill and action.total_damage == 0:
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_has_damage(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        if action.skill and action.total_damage == 0:
+            return 1
+        return 0
+
+    @staticmethod
+    def target_is_enemy(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        return target_hero.player_id != actor_hero.player_id
+
+    @staticmethod
+    def target_is_partner(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        return target_hero.player_id == actor_hero.player_id
+
+    @staticmethod
+    def target_is_single(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+        action = context.get_last_action()
+        return len(action.targets) == 1
+
+    @staticmethod
+    def skill_is_single_target_damage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if action.skill.temp.target_type == SkillTargetTypes.ENEMY_SINGLE:
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_is_range_target_damage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if action.skill.temp.target_type == SkillTargetTypes.ENEMY_RANGE:
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_is_no_damage_and_target_is_partner(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if RequirementCheck.skill_has_no_damage(
+            actor_hero, target_hero, context
+        ) and RequirementCheck.target_is_partner(actor_hero, target_hero, context):
+            return 1
+        return 0
+
+    @staticmethod
+    def self_is_target_and_skill_is_range_target_damage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if RequirementCheck.is_attack_target(
+            target_hero, actor_hero, context
+        ) and RequirementCheck.skill_is_range_target_damage(
+            actor_hero, target_hero, context
+        ):
+            return 1
+        return 0
+
+    @staticmethod
+    def skill_is_single_target_damage_and_life_is_higher_percentage(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> float:
+        if RequirementCheck.skill_is_single_target_damage:
+            return actor_hero.current_life / actor_hero.max_life
+        return 0
+
+    @staticmethod
+    def all_partners_live_count(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        count = 0
+        for hero in context.get_all_partners(actor_hero):
+            if hero.is_alive:
+                count += 1
+        return min(count, 4)
+
+    @staticmethod
+    def yurenjinpei_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if _is_attacker(
+            target_hero, context
+        ) and LifeRequirementChecks.self_life_is_higher(
+            0.8, actor_hero, target_hero, context
+        ) and RequirementCheck.is_in_battle(actor_hero, target_hero, context):
+            return 1
+        return 0
+
+    @staticmethod
     def is_magic_attack(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         action = context.get_last_action()
         if action.skill.temp.is_magic():
@@ -394,6 +511,40 @@ class RequirementCheck:
         terrain_value: str, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         return 1
+
+    @staticmethod
+    def jianjue_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if (
+            action.skill
+            and len(action.skill.target_point) == 1
+            and action.total_damage > 0
+            and BuffRequirementChecks.self_buff_stack_reach(
+                3, "jianjue", actor_hero, target_hero, context
+            )
+        ):
+            return 1
+        return 0
+
+    @staticmethod
+    def menghai_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if (
+            action.skill
+            and RequirementCheck.skill_is_range_target_damage(
+                actor_hero, target_hero, context
+            )
+            and action.total_damage > 0
+            and LifeRequirementChecks.self_life_is_higher(
+                0.8, actor_hero, target_hero, context
+            )
+        ):
+            return 1
+        return 0
 
     @staticmethod
     def xingyun_requires_check(
@@ -538,6 +689,6 @@ class RequirementCheck:
             return 1
         return 0
 
-    LifeChecks: LifeRequirementChecks
-    PositionChecks: PositionRequirementChecks
-    BuffChecks: BuffRequirementChecks
+    LifeChecks = LifeRequirementChecks
+    PositionChecks = PositionRequirementChecks
+    BuffChecks = BuffRequirementChecks

@@ -1,5 +1,5 @@
 import string
-from typing import Tuple
+from typing import Tuple, Union
 
 from primitives.hero.BasicAttributes import (
     JishenProfessions,
@@ -19,7 +19,7 @@ XINGYAO_AMPLIFIERS = (4, 4, 4, 4, 4, 0)
 ATTRIBUTE_NAMES = ["life", "attack", "defense", "magic_attack", "magic_defense", "luck"]
 
 
-def get_enum_value(enum_class, identifier: string or int):
+def get_enum_value(enum_class, identifier: Union[int, str]):
     if isinstance(identifier, int):
         # Fetch by index
         return list(enum_class)[identifier].value[1:]
@@ -43,14 +43,20 @@ class ProfessionAttributes:
         self.xingpan_amp: AttributesTuple = xingpan_amp
 
 
-def get_profession_values(profession_identifier: string) -> ProfessionAttributes:
-    wunei = get_enum_value(WuneiProfessions, profession_identifier)
-    jishen = get_enum_value(JishenProfessions, profession_identifier)
-    shenbin = get_enum_value(ShenbinProfessions, profession_identifier)
-    huazhen = get_enum_value(HuazhenProfessions, profession_identifier)
-    xingpan = get_enum_value(XingpanProfessions, profession_identifier)
-    huazhen_amp = get_enum_value(HuazhenAmplifier, profession_identifier)
-    xingpan_amp = get_enum_value(XingpanAmplifier, profession_identifier)
+def get_profession_values(profession_identifier: string, temp_id: string) -> ProfessionAttributes:
+    if temp_id == "mohuahuangfushen":
+        wunei = get_enum_value(WuneiProfessions, "MOHUAHUANGFUSHEN")
+    elif temp_id == "jianxie":
+        wunei = get_enum_value(WuneiProfessions, "JIANXIE")
+    else:
+        wunei = get_enum_value(WuneiProfessions, profession_identifier.name)
+
+    jishen = get_enum_value(JishenProfessions, profession_identifier.name)
+    shenbin = get_enum_value(ShenbinProfessions, profession_identifier.name)
+    huazhen = get_enum_value(HuazhenProfessions, profession_identifier.name)
+    xingpan = get_enum_value(XingpanProfessions, profession_identifier.name)
+    huazhen_amp = get_enum_value(HuazhenAmplifier, profession_identifier.name)
+    xingpan_amp = get_enum_value(XingpanAmplifier, profession_identifier.name)
 
     # Assuming you want to return these as a single object (like a dictionary)
     return ProfessionAttributes(
@@ -122,8 +128,9 @@ def generate_max_level_attributes(
     initial_attributes: Attributes,
     growth_coefficient_tuple: AttributesTuple,
     profession_identifier: string or int,
+    temp_id: string,
 ) -> Attributes:
-    profession_values = get_profession_values(profession_identifier)
+    profession_values = get_profession_values(profession_identifier, temp_id)
     added_attributes_tuple = calculate_max_added_value(
         profession_values.wunei,
         profession_values.jishen,

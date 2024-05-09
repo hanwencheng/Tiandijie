@@ -255,6 +255,124 @@ class FieldBuffsTemps(Enum):
         ],
     )
 
+
+    # 施咒	其他	不可驱散	不可扩散	不可偷取	其他友方在自身2格范围内发起对战，且优先攻击时，则为其施加「神睿」「御魔」状态，持续1回合（每回合只能触发1次）(领域)
+    shizhou = FieldBuffTemp(
+        "shizhou",
+        "baisuzhen",
+        2,
+        [],
+        [
+            EventListener(
+                EventTypes.battle_start,
+                1,
+                partial(RS.self_and_caster_is_partner_and_first_attack),
+                partial(Effects.add_buffs, buff_temp=["shenrui", "yumo"], duration=1),
+            ),
+            EventListener(
+                EventTypes.turn_start,
+                1,
+                RS.always_true,
+                partial(Effects.refresh_buff_trigger),
+            ),
+        ],
+    )
+
+    #   地火焚狱	其他	不可驱散	不可扩散	不可偷取	若敌人行动结束时，位于施加者3格范围内，驱散2个「有益状态」，并受到1次「固定伤害」（施术者物攻的15%）
+    dihuofenyu = FieldBuffTemp(
+        "dihuofenyu",
+        "yuwentuo",
+        3,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.remove_actor_benefit_buffs, buff_count=2),
+            ),
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(
+                    Effects.receive_fixed_damage_by_caster_physical_attack,
+                    multiplier=0.15,
+                ),
+            ),
+        ],
+    )
+
+    # 炎狱	其他	不可驱散	不可扩散	不可偷取	3格范围内所有敌方主动攻击「对战前」驱散其1个「有益状态」，并施加「燃烧」状态，持续2回合。
+    yanyu = FieldBuffTemp(
+        "yanyu",
+        "xiahouyi",
+        3,
+        [],
+        [
+            EventListener(
+                EventTypes.battle_start,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.remove_actor_benefit_buffs, 1),
+            ),
+            EventListener(
+                EventTypes.enemy_battle_start,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.add_buffs, buff_temp=["ranshao"], duration=2),
+            ),
+        ],
+    )
+
+    # 浊尘	其他	不可驱散	不可扩散	不可偷取	2格内的敌人主动释放技能前，使其2个「有益状态」变为随机「有害状态」，获得或刷新「遁地」状态时该状态持续回合数刷新至2回合。
+    zhuochen = FieldBuffTemp(
+        "zhuochen",
+        "yinqianyang",
+        2,
+        [],
+        [
+            EventListener(
+                EventTypes.skill_start,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.reverse_self_benfit_buffs, 2),
+            ),
+            EventListener(
+                EventTypes.skill_start,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.add_self_buffs, buff_temp=["dundi"], duration=2),
+            ),
+        ],
+    )
+
+    # 虚梦之境	其他	不可驱散	不可扩散	不可偷取	敌方无法触发再移动和自身赋予的再行动，且使用伤害绝学后若处于范围内，获得「幻梦」状态，持续1回合。
+    xumengzhijing = FieldBuffTemp(
+        "xumengzhijing",
+        "mengzhongdeng",
+        2,
+        [
+            ModifierEffect(
+                partial(RS.self_and_caster_is_enemy),
+                {
+                    ma.is_extra_action_disabled: True,
+                    ma.is_extra_move_disabled: True,
+                },
+            ),
+        ],
+        [
+            EventListener(
+                EventTypes.skill_end,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.add_buffs, buff_temp=["xumeng"]),
+            ),
+        ],
+    )
+
+
+
     # Talent Buffs
 
     # 狐踪千里: 自身相邻1格内开启「引导区域」：「咒师」「羽士」「祝由」职业的友方移动力消耗-1。若3格范围内任意友方受到伤害，则自身获得「警觉」状态，持续1回合（每回合触发2次）。
@@ -308,6 +426,22 @@ class FieldBuffsTemps(Enum):
                 partial(RS.self_is_certain_element, Elements.LIGHT),
                 partial(Effects.reverse_target_harm_buffs, 1),
             )
+        ],
+    )
+
+    # 位于呼延朔附近1格时，则「遁地」状态提前结束。非「遁地」状态下，物攻+15%。
+    dundi = FieldBuffTemp(
+        "dundi",
+        "yinqianyang",
+        2,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(Effects.remove_target_certain_buff, "dundi"),
+            ),
         ],
     )
 

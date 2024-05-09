@@ -378,6 +378,16 @@ class PositionRequirementChecks:
                     return 1
         return 0
 
+    @staticmethod
+    def self_in_certain_terrian(
+        terrain: str, actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        position = actor_hero.position
+        battlemap = context.battlemap
+        if battlemap[position[0]][position[1]].buff.temp.id == terrain:
+            return 1
+        return 0
+
     # enemy_battle:
 
     @staticmethod

@@ -43,3 +43,5 @@ class TerrainBuffTemps(Enum):
         ],
     )
     ice = TerrainBuffTemp("ice", True, {"move_range": -1})
+    # 「剑牢」：敌人无法触发再移动和自身赋予的再行动，暴击率-20%
+    jianlao = TerrainBuffTemp("jianlao", True, {"critical_percentage_reduction": 30})

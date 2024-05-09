@@ -73,6 +73,8 @@ class EventTypes(enum.Enum):
     # all_skill
     skill_start = "skill_start"
     skill_end = "skill_end"
+    under_skill_start = "skill_start"
+    under_skill_end = "skill_end"
     # skill for self
     skill_for_self_start = "skill_for_self_start"
     skill_for_self_end = "skill_for_self_end"
@@ -117,6 +119,7 @@ class EventTypes(enum.Enum):
 
     hero_death = "hero_death"
     other_hero_death = "other_hero_death"
+    rebirth_start = "rebirth_start"
 
     kill_enemy_start = "kill_enemy_start"
     kill_enemy_end = "kill_enemy_end"

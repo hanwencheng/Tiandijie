@@ -1,6 +1,6 @@
 import inspect
 from primitives.buff.Buff import BuffTypes
-from primitives.buff import BuffTemp
+from primitives.buff.BuffTemp import BuffTemp
 from primitives.Context import Context
 
 
@@ -26,5 +26,7 @@ def setup_context() -> Context:
     game_context.init_heroes([])
 
     game_context.init_formation()
+
+    game_context.init_battlemap("jiejiehuanjing")
 
     return game_context

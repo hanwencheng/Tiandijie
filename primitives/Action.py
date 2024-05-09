@@ -48,8 +48,8 @@ class Action:
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
-        self.additional_skill: AdditionalSkill or None = None
-        self.additional_action: Action or None = None
+        self.additional_skill_list: [AdditionalSkill] or None = None
+        self.additional_action: [Action] or None = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes
@@ -78,5 +78,5 @@ class Action:
     def update_additional_move(self, additional_move: int):
         self.additional_move = additional_move
 
-    def update_additional_skill(self, additional_skill: AdditionalSkill):
-        self.additional_skill = additional_skill
+    def update_additional_skill(self, additional_skill_list: [AdditionalSkill]):
+        self.additional_skill_list = additional_skill_list

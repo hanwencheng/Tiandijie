@@ -266,9 +266,9 @@ class BuffTemps(Enum):
                 partial(Effects.remove_actor_certain_buff, "yunyin"),
             ),
             EventListener(
-                EventTypes.under_skill_range_damage_end,
+                EventTypes.under_skill_end,
                 1,
-                RS.always_true,
+                partial(RS.skill_is_range_target_damage),
                 partial(Effects.remove_actor_certain_buff, "yunyin"),
             ),
         ],
@@ -373,7 +373,7 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        3,
+        [],
         [
             EventListener(
                 EventTypes.action_end,
@@ -396,20 +396,20 @@ class BuffTemps(Enum):
         True,
         [
             ModifierEffect(
-                RS.always_true, {ma.range_skill_damage_reduction_percentage: 20}
+                partial(RS.self_is_target_and_skill_is_range_target_damage), {ma.physical_damage_reduction_percentage: 20, ma.magic_damage_reduction_percentage: 20}
             )
         ],
         [
             EventListener(
-                EventTypes.skill_range_damage_start,
+                EventTypes.under_skill_start,
                 1,
-                RS.always_true,
+                partial(RS.self_is_target_and_skill_is_range_target_damage),
                 partial(Effects.remove_self_harm_buffs, 1),
             ),
             EventListener(
-                EventTypes.under_skill_range_damage_end,
+                EventTypes.under_skill_end,
                 1,
-                RS.always_true,
+                partial(RS.skill_is_range_target_damage),
                 partial(Effects.remove_target_certain_buff, "guangkai"),
             ),
         ],
@@ -811,23 +811,7 @@ class BuffTemps(Enum):
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.enemy_action_end,
-                1,
-                partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                partial(Effects.remove_actor_benefit_buffs, buff_count=2),
-            ),
-            EventListener(
-                EventTypes.action_end,
-                1,
-                partial(RS.PositionChecks.in_range_of_enemy_caster, range_value=3),
-                partial(
-                    Effects.receive_fixed_damage_by_caster_physical_attack,
-                    multiplier=0.15,
-                ),
-            ),
-        ],
+        [],
     )
 
     # 堕罪	有害	不可驱散	不可扩散	不可偷取	无法获得「有益状态」，遭受施加者攻击时，法术免伤-10%。
@@ -862,15 +846,9 @@ class BuffTemps(Enum):
                 partial(Effects.increase_target_harm_buff_level, buff_level=1),
             ),
             EventListener(
-                EventTypes.skill_single_damage_end,
+                EventTypes.skill_end,
                 1,
-                RS.always_true,
-                partial(Effects.increase_target_harm_buff_level, buff_level=1),
-            ),
-            EventListener(
-                EventTypes.skill_range_damage_end,
-                1,
-                RS.always_true,
+                partial(RS.target_is_enemy),
                 partial(Effects.increase_target_harm_buff_level, buff_level=1),
             ),
         ],
@@ -1115,9 +1093,9 @@ class BuffTemps(Enum):
                 partial(Effects.increase_actor_certain_buff_stack, "jianjue"),
             ),
             EventListener(
-                EventTypes.skill_single_damage_end,
+                EventTypes.skill_end,
                 1,
-                partial(RS.BuffChecks.self_buff_stack_reach, 3, buff_id="jianjue"),
+                partial(RS.jianjue_requires_check),
                 partial(
                     Effects.reduce_actor_certain_buff_stack,
                     buff_id="jianjue",
@@ -1253,9 +1231,9 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.under_skill_single_damage_end,
+                EventTypes.under_skill_end,
                 1,
-                RS.always_true,
+                partial(RS.skill_is_single_target_damage),
                 partial(Effects.remove_actor_certain_buff, "qizhi"),
             )
         ],
@@ -1564,9 +1542,9 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.under_skill_range_damage_end,
+                EventTypes.under_skill_end,
                 1,
-                RS.always_true,
+                partial(RS.skill_is_range_target_damage),
                 partial(Effects.remove_actor_certain_buff, "yingdun"),
             ),
             EventListener(
@@ -2265,20 +2243,7 @@ class BuffTemps(Enum):
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.partner_battle_start,
-                1,
-                partial(RS.PositionChecks.in_range, 2),
-                partial(Effects.add_buffs, buff_temp=["shenrui", "yumo"], duration=1),
-            ),
-            EventListener(
-                EventTypes.action_end,
-                1,
-                RS.always_true,
-                partial(Effects.refresh_buff_trigger),
-            ),
-        ],
+        [],
     )
 
     # 旖梦香	其他	不可驱散	不可扩散	不可偷取	伤害提升8%，达到3层时，绝学射程+1（上限3层）
@@ -2653,15 +2618,15 @@ class BuffTemps(Enum):
         False,
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher, 80),
-                {ma.range_skill_damage_reduction_percentage: 50},
+                partial(RS.menghai_requires_check),
+                {ma.physical_damage_reduction_percentage: 50, ma.magic_damage_reduction_percentage: 50},
             ),
         ],
         [
             EventListener(
-                EventTypes.skill_range_damage_end,
+                EventTypes.under_skill_end,
                 1,
-                partial(RS.LifeChecks.self_life_is_higher, 80),
+                partial(RS.menghai_requires_check),
                 partial(Effects.remove_actor_certain_buff, "menghai"),
             ),
         ],
@@ -2915,7 +2880,14 @@ class BuffTemps(Enum):
                 {ma.move_range: 1},
             ),
         ],
-        [],
+        [
+            EventListener(
+                EventTypes.buff_start,
+                1,
+                partial(RS.BuffChecks.buff_stack_bigger_than, 2),
+                partial(Effects.add_self_buffs, ["shizhou", "shensuan"], 1),
+            )
+        ],
     )
 
     # 活血	有益	可驱散	可扩散	可偷取	物攻，物防额外+20%
@@ -2979,20 +2951,7 @@ class BuffTemps(Enum):
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.enemy_skill_start,
-                1,
-                partial(RS.PositionChecks.in_range, 2),
-                partial(Effects.reverse_target_benfit_buffs, 2),
-            ),
-            EventListener(
-                EventTypes.enemy_skill_start,
-                1,
-                RS.always_true,
-                partial(Effects.add_self_buffs, buff_temp=["dundi"], duration=2),
-            ),
-        ],
+        [],
     )
 
     # 涅槃	有益	可驱散	可偷取	可扩散	「对战前」恢复自身气血（恢复量为施术者法攻*0.5）
@@ -3014,13 +2973,16 @@ class BuffTemps(Enum):
     )
 
     # 清流	有益	可驱散	不可扩散	不可偷取	受到来自敌方的主动攻击伤害后消失，驱散1个「有害状态]，并恢复气血（恢复量为施术者法攻的0.4倍），生效后立刻为2格范围内1个气血百分比最低的其他友方驱散1个「有害状态」，并恢复气血(恢复量为施术者法攻的0.4倍)
+    # 携带「清流」状态的友方受治疗效果增加15%
     qingliu = BuffTemp(
         "qingliu",
         BuffTypes.Benefit,
         True,
         False,
         False,
-        [],
+        [
+            ModifierEffect(RS.always_true, {ma.heal_percentage: 15})
+        ],
         [
             EventListener(
                 EventTypes.under_damage_end,
@@ -3187,20 +3149,7 @@ class BuffTemps(Enum):
         False,
         False,
         [],
-        [
-            EventListener(
-                EventTypes.enemy_battle_start,
-                1,
-                partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.remove_target_benefit_buffs, 1),
-            ),
-            EventListener(
-                EventTypes.enemy_battle_start,
-                1,
-                partial(RS.PositionChecks.in_range, 3),
-                partial(Effects.add_buffs, buff_temp=["ranshao"], duration=2),
-            ),
-        ],
+        [],
     )
 
     # 炎铠	有益	可驱散	可扩散	可偷取	被攻击「对战前」自身恢复20%气血，并对目标驱散1个「有益状态」（对战后消耗）
@@ -3213,15 +3162,15 @@ class BuffTemps(Enum):
         [],
         [
             EventListener(
-                EventTypes.enemy_battle_start,
+                EventTypes.under_battle_start,
                 1,
-                partial(RS.is_attack_target),
+                RS.always_true,
                 partial(Effects.heal_self, multiplier=0.2),
             ),
             EventListener(
-                EventTypes.enemy_battle_start,
+                EventTypes.under_battle_start,
                 1,
-                partial(RS.is_attack_target),
+                RS.always_true,
                 partial(Effects.remove_target_benefit_buffs, 1),
             ),
         ],
@@ -3480,9 +3429,9 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.enemy_battle_start,
+                EventTypes.under_battle_start,
                 1,
-                partial(RS.is_attack_target),
+                partial(RS.BuffChecks.target_has_certain_buff, "zhanyin"),
                 partial(Effects.add_shield, multiplier=1),
             )
         ],
@@ -3653,9 +3602,9 @@ class BuffTemps(Enum):
         [],
         [
             EventListener(
-                EventTypes.skill_for_partner_start,
+                EventTypes.skill_start,
                 1,
-                RS.always_true,
+                partial(RS.skill_is_no_damage_and_target_is_partner),
                 partial(Effects.remove_partner_harm_buffs_in_range, 1, 2),
             ),
         ],
@@ -3942,23 +3891,8 @@ class BuffTemps(Enum):
         False,
         False,
         False,
-        [
-            ModifierEffect(
-                RS.always_true,
-                {
-                    ma.is_extra_action_disabled: True,
-                    ma.is_extra_move_disabled: True,
-                },
-            ),
-        ],
-        [
-            EventListener(
-                EventTypes.enemy_skill_end,
-                1,
-                partial(RS.PositionChecks.in_range, 2),
-                partial(Effects.add_buffs, buff_temp=["xumeng"]),
-            ),
-        ],
+        [],
+        [],
     )
 
     # 蛇毒	其他	可驱散	可扩散	可偷取	行动结束时，损失20%气血
@@ -5263,14 +5197,7 @@ class BuffTemps(Enum):
                 },
             ),
         ],
-        [
-            EventListener(
-                EventTypes.buff_start,
-                1,
-                partial(RS.BuffChecks.self_buff_stack_reach, 5, "juexin"),
-                partial(Effects.transfer_buff_to_other_buff, "juexin", "zhilu"),
-            ),
-        ],
+        [],
     )
 
     # 心念	其他	不可驱散	不可扩散	不可偷取	达到2层后消耗并获得「波旬降临」状态，处于「波旬降临」状态时无法获得（上限2层）
@@ -5326,8 +5253,9 @@ class BuffTemps(Enum):
                 RS.always_true,
                 {
                     ma.attack_percentage: 15,
-                    ma.physical_protect_range: 15,
-                    ma.magic_protect_range: 15,
+                    ma.physical_damage_reduction_percentage: 15,
+                    ma.magic_damage_reduction_percentage: 15,
+                    ma.is_immunity_fix_damage: True,
                 },
             ),
         ],
@@ -5922,6 +5850,17 @@ class BuffTemps(Enum):
                 },
             ),
         ],
+        [],
+    )
+
+    # 剑威   其他 不可驱散  不可扩散  不可偷取
+    jianwei = BuffTemp(
+        "jianwei",
+        BuffTypes.Others,
+        False,
+        False,
+        False,
+        [],
         [],
     )
 

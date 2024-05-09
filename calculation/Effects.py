@@ -16,19 +16,22 @@ from helpers import random_select
 
 if TYPE_CHECKING:
     from primitives.hero import Hero
-    from calculation.Range import Range
     from primitives import Context, Action
     from primitives.buff.Buff import Buff
     from primitives.buff import BuffTemp
     from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
     from primitives.fieldbuff.FieldBuff import FieldBuff
+    from primitives.equipment.Equipment import Equipment
 
+from primitives.map.TerrainType import TerrainType
 from typing import List
+from basics import Position
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
 from primitives.buff.BuffTemp import BuffTypes
 from calculation.BuffStack import get_buff_max_stack
 from calculation.BuffTriggerLimit import get_buff_max_trigger_limit
 from state.apply_action import is_hero_live
+from primitives.talent.Talent import Talent
 
 
 def get_current_action(context: Context) -> Action:
@@ -58,6 +61,7 @@ def _add_buffs(
                 target.buffs.remove(existing_buff)
                 target.buffs.append(new_buff)
             else:
+                _increase_actor_certain_buff_stack(new_buff.temp.id, target, 1)
                 existing_buff.duration = duration
         else:
             target.buffs.append(new_buff)
@@ -448,8 +452,8 @@ class Effects:
     ):
         if check_is_attacker(actor_instance, context):
             damage = (
-                get_attack(actor_instance, target_instance, context, is_magic)
-                + get_defense(actor_instance, target_instance, context, is_magic)
+                get_attack(actor_instance, target_instance, is_magic, context)
+                + get_defense(actor_instance, target_instance, is_magic, context)
             ) * multiplier
             calculate_fix_damage(damage, actor_instance, target_instance, context)
 
@@ -490,7 +494,7 @@ class Effects:
     ):
         enemies = context.get_enemies_in_square_range(actor_instance, range_value)
         for enemy in enemies:
-            damage = get_defense(enemy, actor_instance, context, False) * multiplier
+            damage = get_defense(enemy, actor_instance, False, context) * multiplier
             calculate_fix_damage(damage, actor_instance, enemy, context)
 
     @staticmethod
@@ -547,7 +551,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
-        buff: Buff,
+        buff: Buff or Talent,
     ):
         caster = context.get_hero_by_id(buff.caster_id)
         targets = context.get_enemies_in_square_range(caster, range_value)
@@ -561,7 +565,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
-        buff: Buff,
+        buff: Buff or Talent,
     ):
         caster = context.get_hero_by_id(buff.caster_id)
         damage = get_attack(caster, actor, context, False) * multiplier
@@ -573,7 +577,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
-        buff: Buff,
+        buff: Buff or Talent,
     ):
         caster = context.get_hero_by_id(buff.caster_id)
         damage = get_attack(caster, actor, context, True) * multiplier
@@ -666,8 +670,8 @@ class Effects:
     ):
         caster_hero = context.get_hero_by_id(buff.caster_id)
         damage = (
-            get_defense(actor_instance, target_instance, context, False)
-            + get_defense(actor_instance, target_instance, context, True)
+            get_defense(actor_instance, target_instance, False, context)
+            + get_defense(actor_instance, target_instance, True, context)
         ) * multiplier
         calculate_fix_damage(damage, caster_hero, actor_instance, context)
 
@@ -754,10 +758,15 @@ class Effects:
             ]
 
     @staticmethod
-    def clear_terrain_in_range(range_class: Range, is_attacker: bool, context: Context):
-        terrain = context.terrain
-        for i in range_class.get_area(context):
-            terrain[i] = None
+    def clear_terrain_in_range(
+        target_position: Position, is_attacker: bool, context: Context
+    ):
+        battlemap = context.battlemap
+        battlemap[target_position[0]][target_position[1]] = TerrainType.NORMAL
+
+    @staticmethod
+    def add_terrain():
+        pass
 
     @staticmethod
     def receive_fixed_magic_damage_by_caster_magic_attack(
@@ -946,6 +955,12 @@ class Effects:
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
         _reserve_buffs(actor, actor, False, buff_count, context)
+
+    @staticmethod
+    def reverse_self_benfit_buffs(
+        buff_count: int, actor: Hero, target: Hero, context: Context
+    ):
+        _reserve_buffs(actor, actor, True, buff_count, context)
 
     @staticmethod
     def add_self_random_harm_buff(
@@ -1316,10 +1331,12 @@ class Effects:
             return
         target_enemy = enemies[0]
         for enemy in enemies:
-            if get_attack(actor, enemy, context, False) / get_attack(
-                actor, enemy, context, True
-            ) > get_attack(actor, target_enemy, context, False) / get_attack(
-                actor, target_enemy, context, True
+            if max(
+                get_attack(actor, enemy, context, False),
+                get_attack(actor, enemy, context, True),
+            ) > max(
+                get_attack(actor, target_enemy, context, False),
+                get_attack(actor, target_enemy, context, True),
             ):
                 target_enemy = enemies
         target_enemies = context.get_enemies_in_diamond_range(target_enemy, 2)
@@ -1480,6 +1497,17 @@ class Effects:
         calculate_fix_damage(damage * 0.5, caster, target_instance, context)
 
     @staticmethod
+    def take_effect_of_shizhou(
+        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+    ):
+        if buff.trigger >= 1:
+            return
+        buff.trigger += 1
+        Effects.add_buffs(
+            ["shenrui", "yumo"], 1, actor_instance, target_instance, context
+        )
+
+    @staticmethod
     def transfer_certain_buff_to_random_partner(
         buff_id: str,
         range_value: int,
@@ -1518,9 +1546,9 @@ class Effects:
     ):
         partners = [
             partner
-            for partner in context.get_partner_in_square_range(actor_instance, 7)
+            for partner in context.get_enemies_in_cross_range(actor_instance, 7)
             if not partner.actionable
-        ]  # square是矩形，不是十字，需要修改
+        ]
         if not partners:
             return
         target_hero = partners[0]
@@ -1638,3 +1666,83 @@ class Effects:
             caster, caster, [context.get_field_buff_temp_by_id("jingjue")], 1, context
         )
         buff.trigger += 1
+
+    # Weapons Effects
+
+    @staticmethod
+    def take_effect_of_shenwuhanwei(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+    ):
+        partners = context.get_partners_in_diamond_range(actor_instance, 3)
+        if not partners:
+            return
+        for partner in partners:
+            if (
+                partner.current_life / get_max_life(partner, actor_instance, context)
+                > 0.8
+            ):
+                Effects.add_buffs(["shuangkai"], 15, actor_instance, partner, context)
+
+    # Equipment Effects
+
+    @staticmethod
+    def take_effect_of_xuanqueyaodai(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        equipment: Equipment,
+    ):
+        equipment.cooldown = 2
+        Effects.heal_self(0.35, actor_instance, actor_instance, context)
+        Effects.remove_actor_harm_buffs(1, actor_instance, actor_instance, context)
+
+    @staticmethod
+    def take_effect_of_jiaorenbeige(
+        state: str,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+    ):
+        partners = context.get_partners_in_diamond_range(actor_instance, 2)
+        if not partners:
+            return
+        target_partner = partners[0]
+        temp_buff = []
+        if state == "wu":
+            for partner in partners:
+                if (
+                    partner.initial_attributes.magic_defense
+                    > target_partner.initial_attributes.magic_defense
+                ):
+                    target_partner = partner
+            temp_buff = ["yumo"]
+        elif state == "yan":
+            for partner in partners:
+                if max(
+                    partner.initial_attributes.attack,
+                    partner.initial_attributes.magic_attack,
+                ) > max(
+                    target_partner.initial_attributes.attack,
+                    target_partner.initial_attributes.magic_attack,
+                ):
+                    target_partner = partner
+            temp_buff = ["shenrui"]
+        elif state == "chen":
+            for partner in partners:
+                if (
+                    partner.initial_attributes.defense
+                    > target_partner.initial_attributes.defense
+                ):
+                    target_partner = partner
+            temp_buff = ["pijia"]
+        elif state == "ying":
+            for partner in partners:
+                if (
+                    partner.initial_attributes.luck
+                    > target_partner.initial_attributes.luck
+                ):
+                    target_partner = partner
+            temp_buff = ["cigu"]
+        Effects.add_buffs(temp_buff, 1, actor_instance, target_partner, context)

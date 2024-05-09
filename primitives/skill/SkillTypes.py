@@ -14,3 +14,5 @@ class SkillType(enum.IntEnum):
     Physical = 0
     Magical = 1
     Move = 2
+    Heal = 3
+    Support = 4

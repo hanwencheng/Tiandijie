@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 from typing import Callable
 
-from calculation.event_calculator import event_listener_calculator
+from calculation.event_calculator import event_listener_calculator, death_event_listener
 from primitives.Action import ActionTypes
 
 from primitives.effects.Event import EventTypes
@@ -226,7 +226,7 @@ def attack_or_skill_events(
 
 def is_hero_live(hero_instance: Hero, counter_instance: Hero or None, context: Context):
     if hero_instance.current_life <= 0:
-        event_listener_calculator(
+        death_event_listener(
             hero_instance, counter_instance, EventTypes.hero_death, context
         )
         if hero_instance.current_life <= 0:
@@ -292,21 +292,6 @@ def apply_action(context: Context, action: Action):
 
     elif action.type == ActionTypes.PASS:
         pass
-
-    if action.additional_move > 0:
-        move_event(actor, action, context, apply_additional_move)
-
-    if action.additional_skill is not None:
-        attack_or_skill_events(
-            actor,
-            action.additional_skill.targets,
-            action,
-            context,
-            apply_additional_skill,
-        )
-
-    if action.additional_action is not None:
-        apply_action(context, action.additional_action.action)
 
     # TODO Calculate Critical Damage Events
     event_listener_calculator(actor, None, EventTypes.action_end, context)

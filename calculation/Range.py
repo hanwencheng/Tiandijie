@@ -105,6 +105,19 @@ def calculate_square_area(action_point: Position, range_value: int):
     return area_map
 
 
+def calculate_cross_area(action_point, range_value: int):
+    area_map = []
+    for i in range(range_value + 1):
+        if i == 0:
+            area_map.append((action_point[0] + i, action_point[1]))
+        else:
+            area_map.append((action_point[0] + i, action_point[1]))
+            area_map.append((action_point[0] - i, action_point[1]))
+            area_map.append((action_point[0], action_point[1] + i))
+            area_map.append((action_point[0], action_point[1] - i))
+    return area_map
+
+
 class Range:
     def __init__(
         self, range_type: RangeType, range_value: int = 0, length=None, width=None
@@ -127,6 +140,8 @@ class Range:
             return calculate_diamond_area(base_position, self.range)
         elif self.range_type == RangeType.ARCHER:
             return calculate_archer_area(base_position, self.range)
+        elif self.range_type == RangeType.CROSS:
+            return calculate_cross_area(base_position, self.range)
         else:
             return calculate_square_area(base_position, self.range)
 

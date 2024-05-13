@@ -4,6 +4,7 @@ from functools import partial
 
 from calculation.ModifierAttributes import ModifierAttributes as Ma
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as Rs
+from primitives.RequirementCheck.TalentRequirementChecks import TalentRequirementChecks as TRs
 from primitives.effects.Event import EventTypes
 from calculation.Effects import Effects
 from primitives.effects.ModifierEffect import ModifierEffect
@@ -203,4 +204,34 @@ class Weapons(Enum):
         ],
     )
 
+    # 自身周围3格范围内存在非「铁卫」、「祝由」职业的敌方时，法攻提高10%。处于「金乌旗」机关2格范围的敌人主动攻击前驱散其1个「有益状态」。
+    qixiangdimi = Weapon(
+        "qixiangdimi",
+        "旗向敌靡",
+        [
+            ModifierEffect(
+                partial(TRs.linqiqiongyu_requires_check),
+                {
+                    Ma.magic_attack_percentage: 10,
+                },
+            ),],
+        [],
+        [
+            WeaponFeatures.heli.value,
+            WeaponFeatures.lingya.value,
+            WeaponFeatures.suoxin.value,
+        ],
+    )
 
+    # 「回灵界」范围内的友方物理免伤增加10%，「眩灭界」范围内的敌方受治疗效果降低30%。友方触发阵式时，反转真胤2个「有害状态」。
+    budaoshensen = Weapon(
+        "budaoshensen",
+        "不倒神僧",
+        [],
+        [],
+        [
+            WeaponFeatures.danyang.value,
+            WeaponFeatures.zhenchuan.value,
+            WeaponFeatures.guanqing.value,
+        ],
+    )

@@ -40,7 +40,7 @@ class RequirementCheck:
         skill = action.skill
         for hero in context.heroes:
             if hero.player_id != actor_hero.player_id:
-                if skill.temp.range.check_if_target_in_range(
+                if skill.temp.range_value.check_if_target_in_range(
                     actor_hero.position, skill.target_point, hero.position
                 ):
                     counted_enemies += 1
@@ -160,7 +160,7 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def always_true() -> int:
+    def always_true(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
         return 1
 
     @staticmethod
@@ -686,6 +686,19 @@ class RequirementCheck:
             _is_attacker(target_hero, context)
             and caster.player_id == actor_hero.player_id
         ):
+            return 1
+        return 0
+
+
+    # Stone Check
+
+
+    @staticmethod
+    def self_is_batter_attacker_and_luck_is_higher(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(actor_hero, context) and action.is_in_battle and actor_hero.initial_attributes.luck > target_hero.initial_attributes.luck:
             return 1
         return 0
 

@@ -11,6 +11,7 @@ class Stone:
         self.effect = effect  # [天, 地, 荒]
         self.value = value  # [带两个, 带三个]
         self.percentage = []
+        self.stack = 1
 
 
 class Stones(Enum):
@@ -29,35 +30,74 @@ class Stones(Enum):
     wumian = Stone(
         id="wumian",
         effect=[
-            [747, 403, 0, 0, 0],
-            [0, 0, 282, 0, 242],
-            [868, 363, 0, 0, 0],
+            {
+                "life": 747,
+                "attack": 403,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
+            {
+                "life": 0,
+                "attack": 0,
+                "defense": 282,
+                "magic_attack": 0,
+                "magic_defense": 242,
+            },
+            {
+                "life": 868,
+                "attack": 363,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
         ],
         value=[
             [
                 ModifierEffect(Rs.always_true, {Ma.luck_percentage: 25}),
+            ],
+            [
                 ModifierEffect(
-                    # partial(Rs.self_is_battler_attacker_and_luck_is_higher),
-                    Rs.always_true,
+                    partial(Rs.self_is_batter_attacker_and_luck_is_higher),
                     {Ma.battle_damage_percentage: 10, Ma.critical_percentage: 10},
                 ),
-            ]
+            ],
         ],
         percentage=[0, 0, 0, 0, 0],
     )
 
-    miwang = Stone(
-        id="miwang",
+    wanghuan = Stone(
+        id="wanghuan",
         effect=[
-            [747, 403, 0, 0, 0],
-            [0, 0, 242, 0, 282],
-            [868, 363, 0, 0, 0],
+            {
+                "life": 747,
+                "attack": 403,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
+            {
+                "life": 0,
+                "attack": 0,
+                "defense": 242,
+                "magic_attack": 0,
+                "magic_defense": 282,
+            },
+            {
+                "life": 868,
+                "attack": 363,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
         ],
         value=[
             [
                 ModifierEffect(Rs.always_true, {Ma.luck_percentage: 10}),
+            ],
+            [
                 ModifierEffect(
-                    # partial(Rs.miwang_requires_check),
+                    # partial(Rs.wanghuan_requires_check),
                     Rs.always_true,
                     {
                         Ma.attack_percentage: 3,
@@ -67,7 +107,7 @@ class Stones(Enum):
                         Ma.luck_percentage: 3,
                     },
                 ),
-            ]
+            ],
         ],
         percentage=[0, 0, 0, 0, 0],
     )
@@ -76,19 +116,39 @@ class Stones(Enum):
     minkui = Stone(
         id="minkui",
         effect=[
-            [706, 0, 0, 363, 0],
-            [0, 0, 262, 0, 343],
-            [807, 0, 0, 323, 0],
+            {
+                "life": 706,
+                "attack": 0,
+                "defense": 0,
+                "magic_attack": 363,
+                "magic_defense": 0,
+            },
+            {
+                "life": 0,
+                "attack": 0,
+                "defense": 262,
+                "magic_attack": 0,
+                "magic_defense": 343,
+            },
+            {
+                "life": 807,
+                "attack": 0,
+                "defense": 0,
+                "magic_attack": 343,
+                "magic_defense": 0,
+            },
         ],
         value=[
             [
                 ModifierEffect(Rs.always_true, {Ma.life_percentage: 10}),
+            ],
+            [
                 ModifierEffect(
                     # partial(Rs.self_is_battler_attacker_and_luck_is_higher),
                     Rs.always_true,
                     {Ma.battle_damage_percentage: 10, Ma.critical_percentage: 10},
                 ),
-            ]
+            ],
         ],
         percentage=[0, 0, 0, 0, 0],
     )

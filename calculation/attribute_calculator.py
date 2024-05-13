@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from primitives.hero.Element import (
-        get_elemental_relationship,
-        get_elemental_multiplier,
-    )
     from primitives import Context
     from primitives.hero import Hero
     from primitives.skill.Skill import Skill
     from primitives.Action import Action
+from primitives.hero.Element import (
+    get_elemental_relationship,
+    get_elemental_multiplier,
+)
 
 from helpers import is_normal_attack_magic
 
@@ -22,6 +22,8 @@ from calculation.modifier_calculator import (
     get_level1_modified_result,
     get_level2_modifier,
     get_skill_modifier,
+    accumulate_stone_attribute,
+    accumulate_suit_stone_attribute
 )
 from primitives.skill.SkillTemp import SkillTargetTypes
 
@@ -48,17 +50,20 @@ def get_element_attacker_multiplier(
 ) -> float:
     skill = action.skill
     attr_name = ma.element_attacker_multiplier
-    is_ignore_element = get_skill_modifier(
-        "ignore_element_advantage", attacker_instance, target_instance, skill, context
-    )
-    if is_ignore_element:
-        return 1
+    if skill is not None:
+        is_ignore_element = get_skill_modifier(
+            "ignore_element_advantage", attacker_instance, target_instance, skill, context
+        )
+        if is_ignore_element:
+            return 1
     basic_elemental_multiplier = get_elemental_multiplier(
-        get_elemental_relationship(skill.temp.element, target_instance.temp.element)
+        get_elemental_relationship(skill.temp.element if skill else attacker_instance.temp.element, target_instance.temp.element)
     )
-    accumulated_skill_damage_modifier = get_skill_modifier(
-        attr_name, attacker_instance, target_instance, skill, context
-    )
+    accumulated_skill_damage_modifier = 0
+    if skill is not None:
+        accumulated_skill_damage_modifier = get_skill_modifier(
+            attr_name, attacker_instance, target_instance, skill, context
+        )
     return normalize_value(
         basic_elemental_multiplier
         + accumulated_skill_damage_modifier
@@ -109,10 +114,10 @@ def get_penetration_multiplier(
 def get_defense_with_penetration(
     attacker_instance: Hero,
     defender_instance: Hero,
-    skill: Skill or None,
     context: Context,
     is_basic: bool = False,
 ) -> float:
+    skill = context.get_last_action().skill
     penetration = get_penetration_multiplier(
         attacker_instance, True, skill, context, is_basic
     )
@@ -166,17 +171,14 @@ def get_defense(
     defense_attribute = (
         hero_instance.initial_attributes.defense
         if is_magic
-        else hero_instance.initial_attribute.magic_defense
+        else hero_instance.initial_attributes.magic_defense
     )
 
     basic_defense = get_level1_modified_result(
         hero_instance, attr_name, defense_attribute
     )
-    return basic_defense * (
-        1
-        + get_level2_modifier(
-            hero_instance, counter_instance, attr_name, context, is_basic
-        )
+    return basic_defense + get_level2_modifier(
+        hero_instance, counter_instance, attr_name, context, is_basic
     )
 
 
@@ -191,33 +193,30 @@ def get_attack(
     if is_magic_input is not None:
         is_magic = is_magic_input
     else:
-        is_magic = action.skill.temp.is_magic()
+        is_magic = action.is_magic
     # calculate buffs
     attr_name = "magic_attack" if is_magic else "attack"
     attack_attribute = (
-        actor_instance.initial_attribute.attack
-        if is_magic
-        else actor_instance.initial_attribute.magic_attack
+        actor_instance.initial_attributes.attack
+        if not is_magic
+        else actor_instance.initial_attributes.magic_attack
     )
     basic_attack = get_level1_modified_result(
         actor_instance, attr_name, attack_attribute
     )
-    return basic_attack * (
-        1
-        + get_level2_modifier(
-            actor_instance, target_instance, attr_name, context, is_basic
+    return basic_attack + get_level2_modifier(
+        actor_instance, target_instance, attr_name, context, is_basic
         )
-    )
 
 
 def get_damage_modifier(
     attacker_instance: Hero,
     counter_instance: Hero,
     skill: Skill or None,
+    is_magic: bool,
     context: Context,
     is_basic: bool = False,
 ) -> float:
-    is_magic = check_is_magic_action(skill, attacker_instance)
     attr_name = (
         ma.magic_damage_percentage if is_magic else ma.physical_damage_percentage
     )
@@ -231,8 +230,8 @@ def get_damage_modifier(
     accumulated_passive_damage_modifier = accumulate_attribute(
         attacker_instance.temp.passives, attr_name
     )
-    accumulated_stones_percentage_damage_modifier = accumulate_attribute(
-        attacker_instance.stones.percentage, attr_name
+    accumulated_stones_percentage_damage_modifier = accumulate_stone_attribute(
+        attacker_instance.stones, attr_name
     )
 
     level2_damage_modifier = 1 + (
@@ -248,6 +247,7 @@ def get_damage_modifier(
     level1_damage_modifier = (
         1
         + (LIEXING_DAMAGE_INCREASE + accumulated_stones_percentage_damage_modifier)
+        + (LIEXING_DAMAGE_INCREASE)
         / 100
     )
     return level1_damage_modifier * level2_damage_modifier
@@ -332,14 +332,18 @@ def get_damage_reduction_modifier(
     accumulated_passives_damage_reduction_modifier = accumulate_attribute(
         defense_instance.temp.passives, attr_name
     )
-    accumulated_stones_damage_reduction_percentage_modifier = accumulate_attribute(
-        defense_instance.stones.percentage, attr_name
+    accumulated_stones_damage_reduction_percentage_modifier = accumulate_stone_attribute(
+        defense_instance.stones, attr_name
     )
-    formation_damage_reduction_modifier = (
-        context.formation.magic_damage_reduction_percentage
-        if is_magic
-        else context.formation.physical_damage_reduction_percentage
-    )
+    # TODO
+    #  add stones suit effect
+    formation_damage_reduction_modifier = 0
+    if context.formation:
+        formation_damage_reduction_modifier = (
+            context.formation.magic_damage_reduction_percentage
+            if is_magic
+            else context.formation.physical_damage_reduction_percentage
+        )
 
     # A-type damage increase (Additive)
     a_type_damage_reduction = (
@@ -372,11 +376,13 @@ def get_damage_reduction_modifier(
 def get_critical_hit_probability(
     actor_hero: Hero, counter_instance: Hero, context: Context, is_basic: bool = False
 ) -> float:
-    critical_stones_percentage_modifier = accumulate_attribute(
-        actor_hero.stones.percentage, ma.critical_percentage
+    critical_stones_percentage_modifier = accumulate_stone_attribute(
+        actor_hero.stones, ma.critical_percentage
     )
+    # TODO
+    #  add stones suit effect
 
-    luck_attribute = actor_hero.initial_attribute.luck
+    luck_attribute = actor_hero.initial_attributes.luck
     total_luck = luck_attribute * (
         1
         + get_level2_modifier(actor_hero, counter_instance, ma.luck, context, is_basic)
@@ -401,9 +407,11 @@ def get_critical_hit_resistance(
         context,
         is_basic,
     )
-    critical_stones_percentage_modifier = accumulate_attribute(
-        actor_hero.stones.percentage, ma.critical_percentage_reduction
+    critical_stones_percentage_modifier = accumulate_stone_attribute(
+        actor_hero.stones, ma.critical_percentage_reduction
     )
+    # TODO
+    #  add stones suit effect
 
     return 1 - (level_2_hit_resistance + critical_stones_percentage_modifier) / 100
 
@@ -419,9 +427,11 @@ def get_critical_hit_suffer(
         context,
         is_basic,
     )
-    suffer_critical_stones_percentage_modifier = accumulate_attribute(
-        actor_hero.stones.percentage, ma.suffer_critical_percentage
+    suffer_critical_stones_percentage_modifier = accumulate_stone_attribute(
+        actor_hero.stones, ma.suffer_critical_percentage
     )
+    # TODO
+    #  add stones suit effect
 
     return (level_2_hit_suffer + suffer_critical_stones_percentage_modifier) / 100
 

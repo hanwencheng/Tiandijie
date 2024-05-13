@@ -57,3 +57,8 @@ immune_physical_magic_reduction_list: List[str] = ["pigong"]
 immune_physical_defense_reduction_list: List[str] = ["pifang"]
 # 免疫法防降低
 immune_magic_defense_reduction_list: List[str] = ["pifang"]
+
+immune_dict_from_equipment = {
+    # 免疫「移动力降低」
+    "huanniaojie": ["jinliao"],
+}

@@ -28,5 +28,5 @@ class HideProfessions(enum.Enum):
     PRIEST = (4, 2, 3)  # 祝由
     ARCHER = (5, 2, 3)  # 羽士
     RIDER_HIGH_DAMAGE = (6, 1, 5)  # 暴击御风
-    RIDER_BALANCE = (6, 1, 7)  # 均衡御风
+    RIDER_BALANCE = (6, 1, 5)  # 均衡御风
     WARRIOR = (7, 1, 4)  # 斗将

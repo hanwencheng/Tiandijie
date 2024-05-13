@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import traceback
 from typing import TYPE_CHECKING
 
 from primitives.skill.Skill import Skill
@@ -9,11 +11,16 @@ if TYPE_CHECKING:
     from primitives.effects.ModifierEffect import ModifierEffect
     from primitives.formation.Formation import Formation
     from primitives.hero.Hero import Hero
+    from primitives.Stone import Stone
 from calculation.Range import calculate_if_targe_in_diamond_range
 
 from functools import reduce
 from typing import List
-from calculation.BuffStack import calculate_buff_with_max_stack
+from calculation.BuffStack import (
+    calculate_buff_with_max_stack,
+    calculate_stone_with_max_stack,
+)
+from collections import Counter
 
 
 def get_modifier_attribute_value(
@@ -52,12 +59,12 @@ def accumulate_talents_modifier(
     counter_heroes = context.get_heroes_by_counter_player_id(player_id)
 
     partner_talents = reduce(
-        lambda total, hero: total + getattr(hero.talents, attr_name),
+        lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
         partner_heroes,
         float(0),
     )
     counter_talents = reduce(
-        lambda total, hero: total + getattr(total, hero.talents, attr_name),
+        lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
         counter_heroes,
         float(0),
     )
@@ -70,7 +77,7 @@ def get_formation_modifier(
     player_id = actor_instance.player_id
     current_formation: Formation = context.get_formation_by_player_id(player_id)
     basic_modifier_value = 0
-    if current_formation.is_active:
+    if current_formation and current_formation.is_active:
         basic_modifier_value = getattr(current_formation.temp.basic_modifier, attr_name)
         formation_modifier_effects: List[ModifierEffect] = (
             current_formation.temp.modifier_effects
@@ -158,11 +165,11 @@ def get_passives_modifier(passives: List[Skill], attr_name: str) -> float:
 def get_level1_modified_result(
     hero_instance: Hero, value_attr_name: str, basic: float
 ) -> float:
-    accumulated_stones_value_modifier = accumulate_attribute(
-        hero_instance.stones.value, value_attr_name
+    accumulated_stones_value_modifier = accumulate_stone_attribute(
+        hero_instance.stones, value_attr_name
     )
-    accumulated_stones_percentage_modifier = accumulate_attribute(
-        hero_instance.stones.percentage, value_attr_name + "_percentage"
+    accumulated_stones_percentage_modifier = accumulate_stone_attribute(
+        hero_instance.stones, value_attr_name + "_percentage"
     )
     return (
         basic * (1 + accumulated_stones_percentage_modifier)
@@ -182,8 +189,8 @@ def get_level2_modifier(
         if not is_basic
         else 0
     )
-    accumulated_stones_effect_modifier = accumulate_attribute(
-        actor_instance.stones.effect, attr_name
+    accumulated_stones_effect_modifier = accumulate_stone_attribute(
+        actor_instance.stones, attr_name
     )
     accumulated_talents_modifier = accumulate_talents_modifier(
         attr_name, actor_instance, counter_instance, context
@@ -251,3 +258,40 @@ def get_skill_modifier(
                     * multiplier
                 )
     return basic_modifier_value
+
+
+def accumulate_stone_attribute(stones: List[Stone], attr_name: str) -> float:
+    return reduce(
+        lambda total, indexed_stone: total
+        + indexed_stone[1].effect[indexed_stone[0]].get(attr_name, 0),
+        enumerate(stones),
+        float(0),
+    )
+
+
+def accumulate_suit_stone_attribute(
+    actor_instance, target_instance, attr_name: str, context
+) -> float:
+    suit_stone_modifier_effects_list = []
+    stone_suit = None
+    counter = Counter(actor_instance.stones)
+    for stone, count in counter.items():
+        if count >= 2:
+            suit_stone_modifier_effects_list.append(stone.value[count - 2])
+            stone_suit = stone
+            if count > 2:
+                suit_stone_modifier_effects_list.append(stone.value[count - 3])
+    if stone_suit is not None:
+        for modifier_effects_list in suit_stone_modifier_effects_list:
+            for modifier_effects in modifier_effects_list:
+                if attr_name in modifier_effects.modifier:
+                    is_requirement_meet = modifier_effects.requirement(
+                        actor_instance, target_instance, context
+                    )
+                    if is_requirement_meet > 0:
+                        modifier_value = get_modifier_attribute_value(
+                            actor_instance, modifier_effects.modifier, attr_name
+                        )
+                        return is_requirement_meet * calculate_stone_with_max_stack(
+                            stone_suit, modifier_value, attr_name
+                        )

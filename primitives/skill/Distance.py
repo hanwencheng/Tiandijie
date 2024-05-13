@@ -16,6 +16,6 @@ class Distance:
 
 
 distance_profession_dict = {
-    profession: Distance(DistanceType.NORMAL, 1) if profession in [Professions.WARRIOR, Professions.SWORDSMAN, Professions.GUARD] else Distance(DistanceType.ARCHER, 2)
+    profession: Distance(DistanceType.NORMAL, 1) if profession in [Professions.WARRIOR, Professions.SWORDSMAN, Professions.GUARD, Professions.RIDER] else Distance(DistanceType.ARCHER, 2)
     for profession in Professions
 }

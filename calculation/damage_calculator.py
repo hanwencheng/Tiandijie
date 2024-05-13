@@ -34,7 +34,7 @@ def calculate_skill_damage(
     hero_id = attacker_instance.id
     is_attacker = action.is_attacker(hero_id)
     skill = action.skill
-    is_magic = skill.temp.is_magic()
+    is_magic = action.is_magic
 
     attacker_elemental_multiplier = get_element_attacker_multiplier(
         attacker_instance, target_instance, action, context
@@ -45,23 +45,28 @@ def calculate_skill_damage(
 
     # Calculating attack-defense difference
     attack_defense_difference = (
-        get_attack(attacker_instance, target_instance, is_magic, context)
+        get_attack(attacker_instance, target_instance, context, is_magic)
         * attacker_elemental_multiplier
         - get_defense_with_penetration(
-            attacker_instance, target_instance, is_magic, context
+            attacker_instance, target_instance, context, is_magic
         )
         * defender_elemental_multiplier
     )
 
     # Calculating base damage
-    actual_damage = (
-        attack_defense_difference
-        * skill.temp.multiplier
-        * get_damage_modifier(attacker_instance, target_instance, skill, context)
-        * get_damage_reduction_modifier(
-            target_instance, attacker_instance, is_magic, context
+
+    if skill:
+        damage_multiplier = skill.temp.multiplier
+        actual_damage = (
+            attack_defense_difference
+            * damage_multiplier
+            * get_damage_modifier(attacker_instance, target_instance, skill, is_magic, context)
+            * get_damage_reduction_modifier(
+                target_instance, attacker_instance, is_magic, context
+            )
         )
-    )
+    else:
+        actual_damage = attack_defense_difference
 
     critical_probability = (
         get_critical_hit_probability(attacker_instance, target_instance, context)

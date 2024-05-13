@@ -98,3 +98,23 @@ def calculate_buff_with_max_stack(buff: Buff, modifier_value: float, attr_name: 
 
 def get_buff_max_stack(buff_id: str):
     return buff_max_stack[buff_id][0] if buff_id in buff_max_stack else 1
+
+
+stone_max_stack = {
+    "wanghuan": BuffStack(5, [
+        ma.attack_percentage,
+        ma.magic_attack_percentage,
+        ma.defense_percentage,
+        ma.magic_defense_percentage,
+        ma.luck_percentage,]),
+}
+
+
+def calculate_stone_with_max_stack(stone, modifier_value: float, attr_name: str):
+    if stone.id in stone_max_stack:
+        target_buff_stack = stone_max_stack[stone.id]
+        max_stack = target_buff_stack.max_stack
+        if attr_name in target_buff_stack.affected_attributes:
+            return modifier_value * min(stone.stack, max_stack)
+    return modifier_value
+

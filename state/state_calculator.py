@@ -4,9 +4,14 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
-    from primitives.Action import Action
+    from primitives.Action import Action, ActionTypes
+from primitives.Action import ActionTypes
 
-from calculation.modifier_calculator import get_modifier, get_skill_modifier
+from calculation.modifier_calculator import (
+    get_modifier,
+    get_skill_modifier,
+    calculate_if_targe_in_diamond_range,
+)
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from primitives.skill.SkillTemp import SkillTargetTypes
 
@@ -34,11 +39,20 @@ def check_if_counterattack_first(action: Action, context: Context):
 
 
 def check_if_in_battle(action: Action, context: Context):
-    if action.skill.type == SkillTargetTypes.ENEMY_SINGLE:
+    if action.type == ActionTypes.NORMAL_ATTACK or (
+        action.type == ActionTypes.SKILL_ATTACK
+        and action.skill.type == SkillTargetTypes.ENEMY_SINGLE
+    ):
         defender = action.get_defender_hero_in_battle()
         if check_if_counterattack(action.actor, defender, context):
-            if action.skill.range.check_if_target_in_normal_attack_range(
-                defender, action.actor, context
+            if (
+                action.type == ActionTypes.NORMAL_ATTACK
+                and calculate_if_targe_in_diamond_range(
+                    action.action_point, defender.position, action.actor.temp.hide_professions.value[1]
+                )
+                or (action.skill and action.skill.range.check_if_target_in_skill_attack_range(
+                    defender, action.actor, action.skill
+                ))
             ):
                 action.update_is_in_battle(True)
                 return True
@@ -48,15 +62,19 @@ def check_if_in_battle(action: Action, context: Context):
 
 def check_protector(context: Context):
     action = context.get_last_action()
-    if action.skill.type == SkillTargetTypes.ENEMY_SINGLE:
-        is_magic = action.skill.temp.is_magic()
+    if action.type == ActionTypes.NORMAL_ATTACK or (
+        action.type == ActionTypes.SKILL_ATTACK
+        and action.skill.type == SkillTargetTypes.ENEMY_SINGLE
+    ):
+        is_magic = action.is_magic
         target = action.targets[0]
         attr_name = ma.is_ignore_protector
 
         is_ignore_protector = get_modifier(attr_name, action.actor, target, context)
-        is_ignore_protector += get_skill_modifier(
-            attr_name, action.actor, target, action.skill, context
-        )
+        if action.skill is not None:
+            is_ignore_protector += get_skill_modifier(
+                attr_name, action.actor, target, action.skill, context
+            )
         if is_ignore_protector:
             return
 

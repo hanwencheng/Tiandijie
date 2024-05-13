@@ -1746,3 +1746,23 @@ class Effects:
                     target_partner = partner
             temp_buff = ["cigu"]
         Effects.add_buffs(temp_buff, 1, actor_instance, target_partner, context)
+
+    @staticmethod
+    def take_effect_of_lingyuepeihuan(
+        state: str,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        equipment: Equipment,
+    ):
+        enemies = context.get_enemies_in_cross_range(actor_instance, 7)
+        if not enemies:
+            return
+        target_enemy = random_select(enemies, 1)
+        if state == "yan":
+            buff_name = "piruo"
+        elif state == "chen":
+            buff_name = "shiyu"
+        else:
+            buff_name = "shimo"
+        Effects.add_buffs([buff_name], 1, actor_instance, target_enemy, context)

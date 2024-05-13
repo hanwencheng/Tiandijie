@@ -5,6 +5,8 @@ from primitives.hero.Attributes import generate_max_level_attributes
 from typing import TYPE_CHECKING
 from calculation.PathFinding import bfs_move_range
 from calculation.Range import calculate_if_targe_in_diamond_range
+from primitives.skill.SkillTypes import SkillTargetTypes
+from primitives.Action import Action, ActionTypes
 
 if TYPE_CHECKING:
     from primitives.hero.HeroTemp import HeroTemp
@@ -36,7 +38,7 @@ class Hero:
         self.initialize_attributes()
         self.actionable = True
         self.movable_range: [Position] = []
-        self.attackable_hero: [Hero] = []
+        self.actionable_list: [Hero] = []
 
     def initialize_attributes(self):
         initial_attributes = generate_max_level_attributes(
@@ -74,14 +76,77 @@ class Hero:
 
     def initialize_movable_range(self, battlemap, hero_list):
         other_hero_list = [hero for hero in hero_list if hero.id != self.id]
-        enemies_list = [hero.position for hero in hero_list if hero.player_id != self.player_id]
-        partner_list = [hero.position for hero in other_hero_list if hero.player_id == self.player_id]
-        self.movable_range = bfs_move_range(self.position, self.temp.hide_professions.value[2], battlemap, self.temp.flyable, enemies_list, partner_list)
+        enemies_list = [
+            hero.position for hero in hero_list if hero.player_id != self.player_id
+        ]
+        partner_list = [
+            hero.position
+            for hero in other_hero_list
+            if hero.player_id == self.player_id
+        ]
+        self.movable_range = bfs_move_range(
+            self.position,
+            self.temp.hide_professions.value[2],
+            battlemap,
+            self.temp.flyable,
+            enemies_list,
+            partner_list,
+        )
 
-    def initialize_attackable_hero(self, hero_list):
+    def initialize_actionable_hero(self, hero_list):
+        for position in self.movable_range:     # 可移动的Action
+            new_action = Action(self, [], None, position)
+            new_action.update_action_type(ActionTypes.PASS)
+            self.actionable_list.append(new_action)
+
         for hero in hero_list:
             if hero.player_id != self.player_id:
                 for position in self.movable_range:
-                    if calculate_if_targe_in_diamond_range(position, hero.position, self.temp.hide_professions.value[1]) and hero not in self.attackable_hero:
-                        self.attackable_hero.append(hero)
+                    if (
+                        calculate_if_targe_in_diamond_range(
+                            position, hero.position, self.temp.hide_professions.value[1]
+                        )
+                    ):
+                        new_action = Action(self, [hero], None, position)
+                        new_action.update_action_type(ActionTypes.NORMAL_ATTACK)
+
+                        self.actionable_list.append(new_action)
+
+        for skill in self.enabled_skills:
+            if skill.cool_down == 0:
+                target_hero_list = []
+                if (
+                        skill.temp.target_type == SkillTargetTypes.ENEMY_SINGLE
+                        or skill.temp.target_type == SkillTargetTypes.ENEMY_RANGE
+                ):
+                    target_hero_list = [hero for hero in hero_list if hero.player_id != self.player_id]
+                elif (
+                        skill.temp.target_type == SkillTargetTypes.PARTNER_SINGLE
+                        or skill.temp.target_type == SkillTargetTypes.PARTNER_RANGE
+                ):
+                    target_hero_list = [hero for hero in hero_list if hero.player_id == self.player_id]
+
+                if target_hero_list is not None:
+                    for hero in target_hero_list:
+                        for moveable_position in self.movable_range:
+                            if skill.temp.range_value.check_if_target_in_range(
+                                moveable_position, hero.position, hero.position
+                            ):
+                                if skill.temp.target_type == SkillTargetTypes.ENEMY_RANGE or skill.temp.target_type == SkillTargetTypes.PARTNER_RANGE:
+                                    hero_in_skill = []
+                                    for effect_hero in target_hero_list:
+                                        if skill.temp.range_value.check_if_target_in_range(moveable_position, hero.position, effect_hero.position):
+                                            hero_in_skill.append(effect_hero)
+
+                                    new_action = Action(self, hero_in_skill, skill, moveable_position)      # 有目标有伤害技能
+                                    new_action.update_action_type(ActionTypes.SKILL_ATTACK)
+                                    self.actionable_list.append(new_action)
+                                else:
+                                    new_action = Action(self, [hero], skill, moveable_position)     # 有目标无伤害技能
+                                    self.actionable_list.append(new_action)
+                else:
+                    for moveable_position in self.movable_range:    # 无目标技能：律的传送等
+                        new_action = Action(self, [], skill, moveable_position)
+                        new_action.update_action_type(ActionTypes.SELF)
+                        self.actionable_list.append(new_action)
 

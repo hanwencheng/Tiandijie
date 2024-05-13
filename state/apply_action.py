@@ -231,6 +231,8 @@ def is_hero_live(hero_instance: Hero, counter_instance: Hero or None, context: C
         )
         if hero_instance.current_life <= 0:
             context.set_hero_died(hero_instance)
+        return False
+    return True
 
 
 def move_event(
@@ -250,8 +252,10 @@ def apply_action(context: Context, action: Action):
 
     if not action.actionable:
         return
+    if action.has_additional_action:
+        action.has_additional_action = False
 
-    actor = context.get_last_action().actor
+    actor = action.actor
     context.add_action(action)
 
     move_event(actor, action, context, apply_move)
@@ -296,14 +300,16 @@ def apply_action(context: Context, action: Action):
     # TODO Calculate Critical Damage Events
     event_listener_calculator(actor, None, EventTypes.action_end, context)
 
-    # trigger partners event listener
-    for hero in context.heroes:
-        if hero.player_id == context.get_heroes_by_player_id(actor.player_id):
-            event_listener_calculator(
-                hero, actor, EventTypes.partner_action_end, context
-            )
-        else:
-            event_listener_calculator(hero, actor, EventTypes.enemy_action_end, context)
+    # 将此类event改写成fieldbuff光环效果
+    # for hero in context.heroes:
+    #     if hero.player_id == context.get_heroes_by_player_id(actor.player_id):
+    #         event_listener_calculator(
+    #             hero, actor, EventTypes.partner_action_end, context
+    #         )
+    #     else:
+    #         event_listener_calculator(hero, actor, EventTypes.enemy_action_end, context)
+    if not action.has_additional_action:
+        action.actor.actionable = False
 
 
 def generate_legal_actions():

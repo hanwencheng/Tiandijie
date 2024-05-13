@@ -110,7 +110,6 @@ def calculate_max_added_value(
     huazhen_profession: AttributesTuple,
     xingpan_profession: AttributesTuple,
 ) -> AttributesTuple:
-    # print('profession is', [jishen_profession, shenbin_profession, huazhen_profession, wunei_profession])
 
     calculated_values = tuple(
         jishen_profession[i]

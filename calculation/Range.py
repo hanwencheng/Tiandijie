@@ -178,9 +178,9 @@ def calculate_if_targe_in_diamond_range(
     )
 
 
-def check_if_target_in_normal_attack_range(actor: Hero, target: Hero) -> bool:
+def check_if_target_in_skill_attack_range(actor: Hero, target: Hero, skill) -> bool:
     return calculate_if_targe_in_diamond_range(
-        actor.position, target.position, actor.temp.range.range
+        actor.position, target.position, skill.temp.range.range
     )
 
 

@@ -76,11 +76,12 @@ def event_listener_calculator(
     # Calculated Skills
     if event_type in skill_related_events:
         skill = current_action.skill
-        for event_listener in skill.temp.event_listeners:
-            if event_listener.event_type == event_type:
-                event_listener_containers.append(
-                    EventListenerContainer(event_listener, skill)
-                )
+        if skill:
+            for event_listener in skill.temp.event_listeners:
+                if event_listener.event_type == event_type:
+                    event_listener_containers.append(
+                        EventListenerContainer(event_listener, skill)
+                    )
 
     # Calculate Talents
 

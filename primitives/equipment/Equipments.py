@@ -296,3 +296,116 @@ class Equipments(Enum):
         ],
         [],
     )
+
+    # 物攻+5%，气血+5%，遭受攻击「对战后」，对目标造成一次「固定伤害」（已损失生命的30%）
+    feiquanmingyu = Equipment(
+        "feiquanmingyu",
+        [
+            ModifierEffect(
+                Rs.always_true, {Ma.attack_percentage: 5, Ma.life_percentage: 5}
+            )
+        ],
+        [
+            EventListener(
+                EventTypes.battle_end,
+                1,
+                partial(Rs.is_attack_target),
+                partial(Effects.add_fixed_damage_by_target_lose_life, 0.3),
+            )
+        ],
+    )
+
+    # 气血+5%，行动结束时，对自己直线7格内的一个敌人施加「疲弱」状态，持续1回合。
+    lingyuepeihuan_yan = Equipment(
+        "lingyuepeihuan_yan",
+        [ModifierEffect(Rs.always_true, {Ma.life_percentage: 5})],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                Rs.always_true,
+                partial(Effects.take_effect_of_lingyuepeihuan, "yan"),
+            )
+        ],
+    )
+
+    # 气血+5%，行动结束时，对自己直线7格内的一个敌人施加「蚀御」状态，持续1回合。
+    lingyuepeihuan_chen = Equipment(
+        "lingyuepeihuan_chen",
+        [ModifierEffect(Rs.always_true, {Ma.life_percentage: 5})],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                Rs.always_true,
+                partial(Effects.take_effect_of_lingyuepeihuan, "chen"),
+            )
+        ],
+    )
+
+    # 气血+5%，行动结束时，对自己直线7格内的一个敌人施加「蚀魔」状态，持续1回合。
+    lingyuepeihuan_wu = Equipment(
+        "lingyuepeihuan_wu",
+        [ModifierEffect(Rs.always_true, {Ma.life_percentage: 5})],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                Rs.always_true,
+                partial(Effects.take_effect_of_lingyuepeihuan, "wu"),
+            )
+        ],
+    )
+
+    # 气血+10%，免疫「禁疗」「固定伤害」
+    huanniaojie = Equipment(
+        "huanniaojie",
+        [
+            ModifierEffect(
+                Rs.always_true, {Ma.life_percentage: 10, Ma.is_immunity_fix_damage: True}
+            )
+        ],
+        [],
+    )
+
+    # 气血+5%，自身1格范围内存在其他友方时，法术免伤+10%，遭受暴击率降低10%
+    yanshanpei = Equipment(
+        "yanshanpei",
+        [
+            ModifierEffect(
+                Rs.always_true, {Ma.life_percentage: 5}
+            ),
+            ModifierEffect(
+                partial(Rs.PositionChecks.partner_in_range_count_bigger_than, 1, 1),
+                {Ma.magic_damage_reduction_percentage: 10, Ma.suffer_critical_percentage: -10},
+            ),
+        ],
+        [],
+    )
+
+    # 全属性+5%，使用单体绝学时，伤害提高12%，使用群体绝学时，暴击率提高12%
+    shuangzhijie = Equipment(
+        "shuangzhijie",
+        [
+            ModifierEffect(
+                Rs.always_true,
+                {
+                    Ma.life_percentage: 5,
+                    Ma.attack_percentage: 5,
+                    Ma.magic_attack_percentage: 5,
+                    Ma.defense_percentage: 5,
+                    Ma.magic_defense_percentage: 5,
+                    Ma.luck_percentage: 5,
+                },
+            ),
+            ModifierEffect(
+                partial(Rs.skill_is_single_target_damage),
+                {Ma.battle_damage_percentage: 12},
+            ),
+            ModifierEffect(
+                partial(Rs.skill_is_range_target_damage),
+                {Ma.critical_percentage: 12},
+            ),
+        ],
+        [],
+    )

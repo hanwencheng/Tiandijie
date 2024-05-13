@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import enum
 from typing import List
 from basics import Position
+from calculation.PathFinding import a_star_search
 
 if TYPE_CHECKING:
     from primitives.hero.Hero import Hero
@@ -21,30 +22,29 @@ class ActionTypes(enum.Enum):
 
 
 class AdditionalSkill:
-    def __init__(self, skill: Skill, targets: List[Hero]):
+    def __init__(self, skill: Skill, targets: List[Hero], additional_move: int = 0):
         self.skill: Skill = skill
         self.targets: List[Hero] = targets
 
 
 class Action:
     def __init__(
-        self, cast_hero: Hero, affected_heroes, skill: Skill, movable, actionable
+        self, cast_hero: Hero, affected_heroes, skill: Skill or None, action_point
     ):
+        self.actor = cast_hero
         self.targets: List[Hero] = affected_heroes
         self.total_damage: float = 0
-        self.is_magic: bool = skill.temp.is_magic()
+        self.is_magic: bool = skill.temp.is_magic() if skill is not None else False
         self.is_in_battle: bool = False
         self.is_with_protector: bool = False
         self.protector: Hero or None = None
-        self.skill: Skill or None = None
+        self.skill: Skill or None = skill
         self.type: ActionTypes = ActionTypes.PASS
         self.move_range: int = 0
-        self.moves: List[Position] = []
-        self.move_point: Position = (0, 0)
-        self.action_point: Position = (0, 0)
-        self.movable: bool = movable
-        self.actionable: bool = actionable
-        self.actor = cast_hero
+        self.move_point: Position = cast_hero.position
+        self.action_point: Position = action_point
+        self.movable: bool = True
+        self.actionable: bool = True
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
@@ -59,6 +59,9 @@ class Action:
 
     def update_is_in_battle(self, is_in_battle: bool):
         self.is_in_battle = is_in_battle
+
+    def update_action_type(self, action_type: ActionTypes):
+        self.type: ActionTypes = action_type
 
     def is_attacker(self, hero_id: str) -> bool:
         return self.actor.id == hero_id
@@ -76,7 +79,16 @@ class Action:
             return self.targets[0]
 
     def update_additional_move(self, additional_move: int):
+        self.has_additional_action = True
         self.additional_move = additional_move
 
     def update_additional_skill(self, additional_skill_list: [AdditionalSkill]):
+        self.has_additional_action = True
         self.additional_skill_list = additional_skill_list
+
+    def update_additional_action(self, additional_action_list: [Action]):
+        self.has_additional_action = True
+        self.additional_skill_list = additional_action_list
+
+    def update_moves(self, battle_map, enemies_list) -> List[Position]:
+        return a_star_search(self.move_point, self.action_point, battle_map, self.actor.temp.flyable, enemies_list)

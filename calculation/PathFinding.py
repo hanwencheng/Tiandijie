@@ -84,7 +84,7 @@ def heuristic(a, b):
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def a_star_search(start, goal, battle_map: BattleMap, can_fly: bool):
+def a_star_search(start, goal, battle_map: BattleMap, can_fly: bool, hero_list):
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {start: None}
@@ -96,7 +96,7 @@ def a_star_search(start, goal, battle_map: BattleMap, can_fly: bool):
         if current == goal:
             break
 
-        for next in get_neighbors(current, battle_map.map, can_fly):
+        for next in get_neighbors(current, battle_map.map, can_fly, hero_list):
             new_cost = cost_so_far[current] + 1  # Assumes equal cost for each step
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
@@ -107,14 +107,14 @@ def a_star_search(start, goal, battle_map: BattleMap, can_fly: bool):
     return reconstruct_path(came_from, start, goal)
 
 
-def get_neighbors(position, battle_map, can_fly: bool):
+def get_neighbors(position, battle_map, can_fly: bool, hero_list):
     (x, y) = position
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     neighbors = []
     for dx, dy in directions:
         new_x, new_y = x + dx, y + dy
         if 0 <= new_x < len(battle_map[0]) and 0 <= new_y < len(battle_map):
-            if is_accessible(new_x, new_y, battle_map, can_fly):
+            if is_accessible(new_x, new_y, battle_map, can_fly, hero_list):
                 neighbors.append((new_x, new_y))
     return neighbors
 

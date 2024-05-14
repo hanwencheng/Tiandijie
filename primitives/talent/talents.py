@@ -70,12 +70,6 @@ class Talents(Enum):
                 partial(TRs.huangyuanlangshen_requires_check),
                 partial(Effects.add_self_buffs, "xunxue", 1),
             ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                RS.always_true,
-                partial(TalentEffects.refresh_Talent_trigger),
-            ),
         ],
     )
 
@@ -174,12 +168,6 @@ class Talents(Enum):
                 1,
                 partial(RS.PositionChecks.enemy_attack_in_caster_range, 3),
                 partial(TalentEffects.take_effect_zhifatianjiang),
-            ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                partial(RS.always_true),
-                partial(TalentEffects.refresh_Talent_trigger),
             ),
             EventListener(
                 EventTypes.battle_start,
@@ -520,27 +508,27 @@ class Talents(Enum):
     )
 
     # 安逸: 炼火灼剑: 伤害提高15%，使用伤害绝学前获得「注能」状态，持续2回合。使用绝学后，在自身2格范围内制造「真炎」地形，持续2回合。
-    # liuhuozhuojian = Talent(
-    #     "liuhuozhuojian",
-    #     "anyi",
-    #     [
-    #         ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 15, ma.magic_damage_percentage: 15}),
-    #     ],
-    #     [
-    #         EventListener(
-    #             EventTypes.skill_start,
-    #             1,
-    #             RS.always_true,
-    #             partial(Effects.add_self_buffs, "zhuneng", 2),
-    #         ),
-    #         EventListener(
-    #             EventTypes.skill_end,
-    #             1,
-    #             RS.always_true,
-    #             partial(Effects.add_terrain, "zhenyan", 2),
-    #         ),
-    #     ],
-    # )
+    liuhuozhuojian = Talent(
+        "liuhuozhuojian",
+        "anyi",
+        [
+            ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 15, ma.magic_damage_percentage: 15}),
+        ],
+        [
+            EventListener(
+                EventTypes.skill_start,
+                1,
+                RS.always_true,
+                partial(Effects.add_self_buffs, "zhuneng", 2),
+            ),
+            EventListener(
+                EventTypes.skill_end,
+                1,
+                RS.always_true,
+                partial(Effects.add_terrain_by_self_position, "zhenyan", 2, 2),
+            ),
+        ],
+    )
 
     # 御卿: 幽明慈心: 3格内存在未结束行动的其他友方角色时，治疗效果提高20%。使用绝学后使气血全满的友方目标「有益状态」等级提升1级。3格内友方「对战后」若气血小于等于50%，恢复该角色气血（恢复量为施术者法攻的0.5倍）（每回合发动2次）。
     youmingcixin = Talent(
@@ -558,12 +546,6 @@ class Talents(Enum):
                 1,
                 RS.always_true,
                 partial(TalentEffects.take_effect_of_youmingcixin),
-            ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                RS.always_true,
-                partial(TalentEffects.refresh_Talent_trigger),
             ),
         ],
     )
@@ -769,12 +751,6 @@ class Talents(Enum):
                 1,
                 RS.always_true,
                 partial(TalentEffects.take_effect_of_pohuishenfu),
-            ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                RS.always_true,
-                partial(TalentEffects.refresh_Talent_trigger),
             ),
         ],
     )

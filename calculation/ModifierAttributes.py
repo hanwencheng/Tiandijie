@@ -86,7 +86,7 @@ class ModifierAttributes:
     is_dodge_disabled = "dodge_disabled"  # 禁用闪避
     is_action_disabled = "action_disabled"  # 无法行动
     is_extra_move_disabled = "extra_move_disabled"  # 禁用额外移动
-    is_extra_action_disabled = "extra_action_disabled"  # 禁用额外行动
+    is_extra_action_disabled = "is_extra_action_disabled"  # 禁用额外行动
     is_extra_move_range_disable = "is_extra_move_range_disable"  # 禁止在移动
     is_certain_skill_disabled = "certain_skill_disabled"  # 禁用特定技能
     is_heal_disabled = "is_heal_disabled"  # 禁用治疗

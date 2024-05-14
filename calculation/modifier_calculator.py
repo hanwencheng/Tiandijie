@@ -98,7 +98,7 @@ def get_formation_modifier(
 
 
 def get_buff_modifier(
-    attr_name: str, actor_instance: Hero, target_instance: Hero, context: Context
+    attr_name: str, actor_instance: Hero, target_instance: Hero or None, context: Context
 ) -> float:
     basic_modifier_value = 0
     for buff in actor_instance.buffs:
@@ -107,7 +107,7 @@ def get_buff_modifier(
             buff.level - 1
         ]
         for modifier_effects in buff_modifier_effects:
-            if hasattr(modifier_effects.modifier, attr_name):
+            if attr_name in modifier_effects.modifier:
                 is_requirement_meet = modifier_effects.requirement(
                     actor_instance, target_instance, context, buff
                 )
@@ -179,7 +179,7 @@ def get_level1_modified_result(
 
 def get_level2_modifier(
     actor_instance: Hero,
-    counter_instance: Hero,
+    counter_instance: Hero or None,
     attr_name: str,
     context: Context,
     is_basic: bool = False,

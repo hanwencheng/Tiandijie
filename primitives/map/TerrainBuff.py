@@ -29,6 +29,13 @@ class TerrainBuff:
 
 
 class TerrainBuffTemps(Enum):
+    @classmethod
+    def get_buff_temp_by_id(cls, buff_id):
+        for buff_temp in cls:
+            if buff_temp.value.id == buff_id:
+                return buff_temp.value
+        return None
+
     fire = TerrainBuffTemp(
         "fire",
         True,

@@ -510,7 +510,11 @@ class RequirementCheck:
     def is_in_terrain(
         terrain_value: str, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
-        return 1
+        positon = actor_hero.position
+        terrain_buff = context.battlemap.get_terrain(positon).buff
+        if terrain_value == terrain_buff.temp.id:
+            return 1
+        return 0
 
     @staticmethod
     def jianjue_requires_check(

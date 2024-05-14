@@ -10,7 +10,6 @@ from calculation.attribute_calculator import *
 from primitives.hero import Hero
 
 
-
 def calculate_fix_heal(
     heal, actor_instance: Hero, target_instance: Hero, context: Context
 ):
@@ -23,4 +22,4 @@ def calculate_fix_heal(
 def calculate_reset_hero_actionable(
     actor_instance: Hero, target_instance: Hero, context: Context
 ):
-    target_instance.reset_actionable()
+    target_instance.reset_actionable(context=context)

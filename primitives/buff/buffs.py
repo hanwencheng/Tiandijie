@@ -2133,12 +2133,6 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 partial(Effects.take_effect_of_tandi),
             ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                RS.always_true,
-                partial(Effects.refresh_buff_trigger),
-            ),
         ],
     )
 
@@ -5648,12 +5642,6 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(Effects.take_effect_of_xunxue),
-            ),
-            EventListener(
-                EventTypes.turn_start,
-                1,
-                RS.always_true,
-                partial(Effects.refresh_buff_trigger),
             ),
         ],
     )

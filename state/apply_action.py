@@ -257,9 +257,9 @@ def apply_action(context: Context, action: Action):
 
     actor = action.actor
     context.add_action(action)
-
+    event_listener_calculator(actor, None, EventTypes.action_start, context)
     move_event(actor, action, context, apply_move)
-
+    action.refresh_move_point(context.battlemap)
     # events_check_order: battle events -> damage skill events -> damage events
     if (
         action.type == ActionTypes.NORMAL_ATTACK
@@ -308,8 +308,6 @@ def apply_action(context: Context, action: Action):
     #         )
     #     else:
     #         event_listener_calculator(hero, actor, EventTypes.enemy_action_end, context)
-    if not action.has_additional_action:
-        action.actor.actionable = False
 
 
 def generate_legal_actions():

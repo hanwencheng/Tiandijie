@@ -17,11 +17,11 @@ from helpers import random_select
 if TYPE_CHECKING:
     from primitives.hero import Hero
     from primitives import Context, Action
-    from primitives.buff.Buff import Buff
     from primitives.buff import BuffTemp
     from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
     from primitives.fieldbuff.FieldBuff import FieldBuff
     from primitives.equipment.Equipment import Equipment
+from primitives.buff.Buff import Buff
 
 from primitives.map.TerrainType import TerrainType
 from typing import List
@@ -276,7 +276,7 @@ class Effects:
     def take_effect_of_xiayi(
         actor_instance: Hero, target_instance: Hero, context: Context
     ):
-        context.get_last_action().update_additional_move(4)
+        context.get_last_action().update_additional_move(actor_instance, 4, context)
         _reduce_actor_certain_buff_stack("xiayi", actor_instance, 2)
 
     @staticmethod
@@ -765,8 +765,28 @@ class Effects:
         battlemap[target_position[0]][target_position[1]] = TerrainType.NORMAL
 
     @staticmethod
-    def add_terrain():
-        pass
+    def add_terrain_by_self_position(
+        terrain_buff: str, duration: int, range_value: int, actor_instance: Hero, tager_position: Position, context: Context
+    ):
+        from calculation.Range import Range, RangeType
+        from primitives.map.TerrainBuff import TerrainBuffTemps
+
+        buff_range = Range(RangeType.DIAMOND, range_value)
+        for position in buff_range.get_area(actor_instance.position, actor_instance.position):
+            context.battlemap.add_terrain_buff(position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration)
+
+
+    @staticmethod
+    def add_terrain_by_target_position(
+        terrain_buff: str, duration: int, range_value: int, actor_instance: Hero, target_instance: Hero, context: Context
+    ):
+        from calculation.Range import Range, RangeType
+        from primitives.map.TerrainBuff import TerrainBuffTemps
+
+        buff_range = Range(RangeType.DIAMOND, range_value)
+        for position in buff_range.get_area(target_instance.position, target_instance.position):
+            context.battlemap.add_terrain_buff(position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration)
+
 
     @staticmethod
     def receive_fixed_magic_damage_by_caster_magic_attack(
@@ -1237,10 +1257,6 @@ class Effects:
     ):
         damage = get_current_action(context).total_damage
         calculate_fix_heal(damage * multiplier, actor, actor, context)
-
-    @staticmethod
-    def refresh_buff_trigger(actor: Hero, target: Hero, context: Context, buff: Buff):
-        Buff.trigger = 0
 
     # energy
     @staticmethod

@@ -2,6 +2,7 @@ from typing import List
 
 from primitives.map.Terrain import Terrain
 from primitives.map.TerrainType import TerrainType
+from primitives.map.TerrainBuff import TerrainBuff, TerrainBuffTemps
 
 type TerrainMap = List[List[Terrain]]
 
@@ -21,7 +22,7 @@ class BattleMap:
                 init_terrain_type = terrain_type
         return Terrain(init_terrain_type)
 
-    def display_map(self, context):
+    def display_map(self):
         for row in self.map:
             print(' '.join(str(cell.terrain_type.value[0]) for cell in row))
 
@@ -29,7 +30,7 @@ class BattleMap:
         if len(terrain_map) == self.height and len(terrain_map[0]) == self.width:
             self.map = [[self._init_terrain_by_type_id(terrain_map[j][i]) for i in range(len(terrain_map[0]))] for j in range(len(terrain_map))]
 
-    def get_terrain(self, x, y):
+    def get_terrain(self, x, y) -> Terrain:
         return self.map[y][x]
 
     def set_terrain(self, x, y, terrain: Terrain):
@@ -39,3 +40,9 @@ class BattleMap:
         terrain_type = TerrainType.HERO_SPAWN
         self.map[position[1]][position[0]] = Terrain(terrain_type)
 
+    def hero_move(self, start, end):
+        self.map[end[1]][end[0]] = self.map[start[1]][start[0]]
+        self.map[start[1]][start[0]] = Terrain(TerrainType.NORMAL)
+
+    def add_terrain_buff(self, position, buff, duration):
+        self.map[position[1]][position[0]].buff = TerrainBuff(buff, duration, 1)

@@ -7,6 +7,7 @@ from calculation.PathFinding import bfs_move_range
 from calculation.Range import calculate_if_targe_in_diamond_range
 from primitives.skill.SkillTypes import SkillTargetTypes
 from primitives.Action import Action, ActionTypes
+from calculation.modifier_calculator import get_level2_modifier
 
 if TYPE_CHECKING:
     from primitives.hero.HeroTemp import HeroTemp
@@ -71,10 +72,15 @@ class Hero:
     def get_field_buff_by_id(self, field_name: str) -> FieldBuff:
         return [buff for buff in self.field_buffs if buff.temp.id == field_name][0]
 
-    def reset_actionable(self):
+    def reset_actionable(self, move_range=None, context=None):
         self.actionable = True
+        if move_range is None:
+            move_range = self.temp.hide_professions.value[2] + get_level2_modifier(
+                self, None, "move_range", context
+            )
+        self.initialize_actionable_hero(context.heroes, move_range, context)
 
-    def initialize_movable_range(self, battlemap, hero_list):
+    def initialize_movable_range(self, battlemap, hero_list, move_range):
         other_hero_list = [hero for hero in hero_list if hero.id != self.id]
         enemies_list = [
             hero.position for hero in hero_list if hero.player_id != self.player_id
@@ -86,14 +92,15 @@ class Hero:
         ]
         self.movable_range = bfs_move_range(
             self.position,
-            self.temp.hide_professions.value[2],
+            move_range,
             battlemap,
             self.temp.flyable,
             enemies_list,
             partner_list,
         )
 
-    def initialize_actionable_hero(self, hero_list):
+    def initialize_actionable_hero(self, hero_list, move_range, context):
+        self.initialize_movable_range(context.battlemap, hero_list, move_range)
         for position in self.movable_range:     # 可移动的Action
             new_action = Action(self, [], None, position)
             new_action.update_action_type(ActionTypes.PASS)

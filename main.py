@@ -3,6 +3,8 @@ from state.setup import setup_context
 from state.apply_action import apply_action
 from primitives.Action import Action, ActionTypes
 from calculation.PathFinding import bfs_move_range
+from primitives.effects.Event import EventTypes
+from calculation.event_calculator import event_listener_calculator
 
 
 class State(pyspiel.State):
@@ -31,6 +33,7 @@ class State(pyspiel.State):
         hero_list = self.context.heroes
         if action.has_additional_action:
             actor = action.actor
+            self.actionable = True
             if action.additional_action is not None:
                 legal_actions.append(action.additional_action)
 
@@ -53,6 +56,12 @@ class State(pyspiel.State):
             selectable_heroes = [hero for hero in hero_list if hero.player_id == player and hero.actionable]
             for hero in selectable_heroes:
                 legal_actions.append(hero.actionable_list)
+
+        if not legal_actions:
+            for hero in hero_list:
+                event_listener_calculator(actor_instance = hero, counter_instance=None, event_type=EventTypes.turn_end, context=self.context)
+                event_listener_calculator(actor_instance = hero, counter_instance=None, event_type=EventTypes.turn_start, context=self.context)
+            return self._legal_actions(1 - player)
         return legal_actions
 
     def is_terminal(self):

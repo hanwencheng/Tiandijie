@@ -9,6 +9,7 @@ from calculation.PathFinding import a_star_search
 if TYPE_CHECKING:
     from primitives.hero.Hero import Hero
     from primitives.skill.Skill import Skill
+from calculation.modifier_calculator import get_buff_modifier
 
 
 class ActionTypes(enum.Enum):
@@ -78,17 +79,24 @@ class Action:
         else:
             return self.targets[0]
 
-    def update_additional_move(self, additional_move: int):
-        self.has_additional_action = True
-        self.additional_move = additional_move
+    def update_additional_move(self, actor, additional_move: int, context):
+        move_disabled = get_buff_modifier("is_extra_move_range_disable", actor, None, context)
+        if not move_disabled:
+            self.has_additional_action = True
+            self.additional_move = additional_move
 
     def update_additional_skill(self, additional_skill_list: [AdditionalSkill]):
         self.has_additional_action = True
         self.additional_skill_list = additional_skill_list
 
-    def update_additional_action(self, additional_action_list: [Action]):
-        self.has_additional_action = True
-        self.additional_skill_list = additional_action_list
+    def update_additional_action(self, actor, additional_action_list: [Action], context):
+        action_disabled = get_buff_modifier("is_extra_action_disabled", actor, None, context)
+        if not action_disabled:
+            self.has_additional_action = True
+            self.additional_skill_list = additional_action_list
 
     def update_moves(self, battle_map, enemies_list) -> List[Position]:
         return a_star_search(self.move_point, self.action_point, battle_map, self.actor.temp.flyable, enemies_list)
+
+    def refresh_move_point(self, battle_map):
+        battle_map.hero_move(self.move_point, self.action_point)

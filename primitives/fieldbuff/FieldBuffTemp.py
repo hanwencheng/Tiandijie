@@ -11,7 +11,7 @@ class FieldBuffTemp:
     def __init__(
         self,
         buff_id: str,
-        buff_hero: str,
+            caster_id: str,
         buff_range: int,
         modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = None,
         on_event: List[EventListener] = None,
@@ -27,7 +27,7 @@ class FieldBuffTemp:
         if on_event is None:
             on_event = []
         self.id = buff_id
-        self.caster_id = buff_hero
+        self.caster_id = caster_id
         self.buff_range = buff_range
         self.modifier_effects: List[ModifierEffect] = modifier_effects
         self.event_listeners: List[EventListener] = on_event

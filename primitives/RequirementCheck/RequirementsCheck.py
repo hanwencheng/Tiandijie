@@ -12,11 +12,13 @@ if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
     from primitives.buff.Buff import Buff
+    from primitives.skill.skills import Skill
+    from primitives.formation.Formation import Formation
     from primitives.fieldbuff.FieldBuff import FieldBuff
     from primitives.skill.SkillTypes import SkillTargetTypes
-    from primitives.hero.Element import Elements
     from primitives.Action import Action
 
+from primitives.hero.Element import Elements
 from primitives.skill.SkillTypes import SkillType
 from calculation.modifier_calculator import get_modifier
 from calculation.ModifierAttributes import ModifierAttributes as Ma
@@ -160,7 +162,7 @@ class RequirementCheck:
         return 0
 
     @staticmethod
-    def always_true(actor_hero: Hero, target_hero: Hero, context: Context) -> int:
+    def always_true(actor_hero: Hero, target_hero: Hero, context: Context, primitives: Buff or Skill or Formation or FieldBuff) -> int:
         return 1
 
     @staticmethod
@@ -249,11 +251,11 @@ class RequirementCheck:
 
     @staticmethod
     def skill_is_certain_element(
-        element_value: Elements, actor_hero: Hero, target_hero: Hero, context: Context
+        element_value: Elements, actor_hero: Hero, target_hero: Hero, context: Context, primitives: Buff or Skill or Formation or FieldBuff
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context):
-            if action.skill.temp.skill_element == element_value:
+            if action.skill.temp.element == element_value:
                 return 1
         return 0
 
@@ -273,10 +275,11 @@ class RequirementCheck:
         actor_hero: Hero,
         target_hero: Hero,
         context: Context,
+        primitives
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context):
-            if action.skill.temp.skill_element in element_list:
+            if action.skill.temp.element in element_list:
                 return 1
         return 0
 
@@ -302,7 +305,7 @@ class RequirementCheck:
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(target_hero, context):
-            if action.skill.temp.skill_element == Elements.FIRE:
+            if action.skill.temp.element == Elements.FIRE:
                 return 1
         return 0
 
@@ -360,7 +363,7 @@ class RequirementCheck:
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(target_hero, context):
-            if action.skill.temp.skill_element == Elements.FIRE:
+            if action.skill.temp.element == Elements.FIRE:
                 return 1
         return 0
 
@@ -434,7 +437,7 @@ class RequirementCheck:
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         action = context.get_last_action()
-        if action.skill.temp.target_type == SkillTargetTypes.ENEMY_SINGLE:
+        if action.skill.temp.range_instance.range_value == 0:
             return 1
         return 0
 
@@ -443,7 +446,7 @@ class RequirementCheck:
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         action = context.get_last_action()
-        if action.skill.temp.target_type == SkillTargetTypes.ENEMY_RANGE:
+        if action.skill.temp.range_instance.range_value > 0:
             return 1
         return 0
 
@@ -496,6 +499,18 @@ class RequirementCheck:
         ) and LifeRequirementChecks.self_life_is_higher(
             0.8, actor_hero, target_hero, context
         ) and RequirementCheck.is_in_battle(actor_hero, target_hero, context):
+            return 1
+        return 0
+
+    @staticmethod
+    def wangzhezitai_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context
+    ) -> int:
+        if _is_attacker(
+            target_hero, context
+        ) and BuffRequirementChecks.target_has_certain_buff(
+            "zhanyin", actor_hero, target_hero, context
+        ):
             return 1
         return 0
 
@@ -555,10 +570,7 @@ class RequirementCheck:
         actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         action = context.get_last_action()
-        if (
-            RequirementCheck.is_battle_attack_target(actor_hero, target_hero, context)
-            and action.is_in_battle()
-        ):
+        if actor_hero in action.targets:
             return min(action.moves, 3)
         return 0
 
@@ -704,6 +716,43 @@ class RequirementCheck:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context) and action.is_in_battle and actor_hero.initial_attributes.luck > target_hero.initial_attributes.luck:
             return 1
+        return 0
+
+
+    # Passive
+
+
+    @staticmethod
+    def sanquehuisheng_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context, passive
+    ) -> int:
+        if PositionRequirementChecks.battle_member_in_range(2, actor_hero, target_hero, context, passive) and(
+            passive in actor_hero.enabled_passives or passive in target_hero.enabled_passives
+        ):
+            return 1
+        return 0
+
+    @staticmethod
+    def bianmou_requires_check(
+        actor_hero: Hero, target_hero: Hero, context: Context, passive
+    ) -> int:
+        skill = context.get_last_action().skill
+        if skill and skill.temp.element in [Elements.FIRE.value, Elements.WATER.value]:
+            return 1
+        return 0
+
+
+    # Stone Check
+
+
+    @staticmethod
+    def skill_is_used_by_certain_hero(
+        hero_temp_id: str, actor_hero: Hero, target_hero: Hero, context: Context, skill
+    ) -> int:
+        action = context.get_last_action()
+        if _is_attacker(actor_hero, context):
+            if action.skill.temp.id == hero_temp_id:
+                return 1
         return 0
 
     LifeChecks = LifeRequirementChecks

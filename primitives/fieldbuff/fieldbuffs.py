@@ -7,6 +7,7 @@ from primitives.effects.ModifierEffect import ModifierEffect
 from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
 
 from calculation.Effects import Effects
+from calculation.TalentEffect import TalentEffects as TEffects
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
 from primitives.RequirementCheck.TalentRequirementChecks import (
     TalentRequirementChecks as TRs,
@@ -398,6 +399,31 @@ class FieldBuffsTemps(Enum):
                 partial(Effects.remove_target_certain_buff, "dundi"),
             ),
         ],
+    )
+
+    zhifatianjiang = FieldBuffTemp(
+        "zhifatianjiang",
+        "lijing",
+        3,
+        [],
+        [
+            EventListener(
+                EventTypes.battle_end,
+                1,
+                partial(RS.self_and_caster_is_enemy),
+                partial(TEffects.take_effect_zhifatianjiang),
+            )
+        ],
+    )
+
+    sanquehuisheng = FieldBuffTemp(
+        "sanquehuisheng",
+        "mohuahuangfushen",
+        2,
+        [
+            ModifierEffect(partial(RS.sanquehuisheng_requires_check), {ma.magic_attack_percentage: -20, ma.attack_percentage: -20}),
+        ],
+        [],
     )
 
     @classmethod

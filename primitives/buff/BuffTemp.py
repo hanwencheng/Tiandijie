@@ -41,7 +41,7 @@ class BuffTemp:
         self.dispellable: bool = dispellable
         self.stealable: bool = stealable
         self.expandable: bool = expandable
-        self.modifier_effects: List[ModifierEffect] = modifier_effects
+        self.modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = modifier_effects
         self.event_listeners: List[EventListener] = on_event
         # self.field_buff: FieldBuffTemp = FieldBuffsTemps.get_buff_temp_by_id(buff_id)
 

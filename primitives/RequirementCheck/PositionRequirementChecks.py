@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from primitives.hero.Hero import Hero
     from primitives.hero.Element import Elements
     from primitives.buff.Buff import Buff
+    from primitives.Passive import Passive
 from typing import List
 from calculation.Range import calculate_if_targe_in_diamond_range
 from primitives.hero.HeroBasics import Gender
@@ -379,30 +380,26 @@ class PositionRequirementChecks:
         return 0
 
     @staticmethod
-    def self_in_certain_terrian(
-        terrain: str, actor_hero: Hero, target_hero: Hero, context: Context
+    def self_in_certain_terrianbuff(
+        terrain_buff: str, actor_hero: Hero, target_hero: Hero, context: Context
     ) -> int:
         position = actor_hero.position
         battlemap = context.battlemap
-        if battlemap[position[0]][position[1]].buff.temp.id == terrain:
+        if battlemap[position[0]][position[1]].buff.temp.id == terrain_buff:
             return 1
         return 0
 
-    # enemy_battle:
-
     @staticmethod
-    def enemy_attack_in_caster_range(
+    def battle_member_in_range(
         range_value: int,
         actor_hero: Hero,
         target_hero: Hero,
-        partner: Hero,
         context: Context,
-        buff: Buff,
+        passive: Passive,
     ) -> int:
-        target_position = target_hero.position
-        actor_position = actor_hero.position
-        if calculate_if_targe_in_diamond_range(
-            actor_position, target_position, range_value
-        ):
+        action = context.get_last_action()
+        actor_position = action.move_point
+        target_position = action.targets[0].position
+        if calculate_if_targe_in_diamond_range(actor_position, target_position, range_value):
             return 1
         return 0

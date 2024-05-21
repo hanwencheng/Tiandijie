@@ -25,8 +25,6 @@ class EventTypes(enum.Enum):
     # battle
     battle_start = "battle_start"
     battle_end = "battle_end"
-    under_battle_start = "under_battle_start"
-    under_battle_end = "under_battle_end"
     # normal_attack
     normal_attack_start = "normal_attack_start"
     normal_attack_end = "normal_attack_end"

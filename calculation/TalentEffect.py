@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
     from primitives.fieldbuff.FieldBuff import FieldBuff
 from calculation.Effects import Effects
+from primitives.skill.skills import Skills
+from primitives.skill.Skill import Skill
+from primitives.map.TerrainType import TerrainType
 
 from collections import Counter
 from primitives.RequirementCheck.BuffRequirementChecks import BuffRequirementChecks
@@ -132,15 +135,15 @@ class TalentEffects:
         target_instance: Hero,
         partner: Hero,
         context: Context,
-        talent: Talent,
+        talent: Talent or FieldBuff,
     ):
         if talent.trigger > 2:
             return
         talent.trigger += 1
         TalentEffects.add_fixed_damage_by_talent_owner_magic_attack(
-            0.3, actor_instance, target_instance, context, talent
+            0.3, talent.caster, actor_instance, context, talent
         )
-        Effects.add_buffs(["zhanyin"], 1, actor_instance, target_instance, context)
+        Effects.add_self_buffs(["zhanyin"], 1, actor_instance, target_instance, context)
 
     @staticmethod
     def take_effect_of_wenchangxingyun(
@@ -235,14 +238,13 @@ class TalentEffects:
         if state == 1:
             Effects.add_extra_skill("buqi", actor_instance, target_instance, context)
         elif state == 2:
-            actor_position = actor_instance.position
-            Effects.clear_terrain_in_range(actor_position, True, context)
+            Effects.clear_terrain_by_buff_name("chiwuqi", context)
             Effects.add_self_buffs(
-                ["chiqi"], 15, actor_instance, target_instance, context
+                ["chiqi"], 15, actor_instance, target_instance, context, talent
             )
         else:
-            actor_position = actor_instance.position
-            Effects.clear_terrain_in_range(actor_position, True, context)
+            Effects.clear_terrain_by_buff_name("chiwuqi", context)
+            context.battlemap.remove_terrain_by_name(TerrainType.CHIWUQI)
 
     # 行动结束前，可额外使用绝学「光·自在」/「雷·自在」（间隔2回合触发，使用后将切换所有专属绝学并刷新冷却时间且保留当前气力）
     @staticmethod
@@ -265,12 +267,12 @@ class TalentEffects:
                     actor_instance.enabled_skills[i].temp.skill_temp_id
                     in ruhaishuangsheng_skill_dic
                 ):
-                    new_skill = context.get_skill_by_id(
+                    new_skill = Skills.get_skill_by_id(
                         ruhaishuangsheng_skill_dic[
                             actor_instance.enabled_skills[i].temp.skill_temp_id
                         ]
                     )
-                    actor_instance.enabled_skills[i] = new_skill
+                    actor_instance.enabled_skills[i] = Skill(0, new_skill)
         elif state == 2:
             for i in range(len(actor_instance.enabled_skills)):
                 for (
@@ -281,8 +283,8 @@ class TalentEffects:
                         actor_instance.enabled_skills[i].temp.skill_temp_id
                         == light_skill_name
                     ):
-                        new_skill = context.get_skill_by_id(thunder_skill_name)
-                        actor_instance.enabled_skills[i] = new_skill
+                        new_skill = Skills.get_skill_by_id(thunder_skill_name)
+                        actor_instance.enabled_skills[i] = Skill(0, new_skill)
 
     # 使用绝学后使气血全满的友方目标「有益状态」等级提升1级。3格内友方「对战后」若气血小于等于50%，恢复该角色气血（恢复量为施术者法攻的0.5倍）（每回合发动2次）。
     @staticmethod
@@ -380,7 +382,7 @@ class TalentEffects:
                     0.3, actor_instance, enemy, context, talent
                 )
         Effects.add_terrain_by_target_position(
-            "ice", 2, 1, actor_instance, target_instance, context
+            "ice", 2, 1, target_instance.position, context
         )
 
     @staticmethod

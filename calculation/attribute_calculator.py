@@ -263,12 +263,12 @@ def get_action_type_damage_modifier(
         action_type_modifier += get_level2_modifier(
             actor, target, ma.skill_damage_percentage, context
         )
-        skill_target_type = context.get_last_action().skill.target_type
-        if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
+        skill_target_type = context.get_last_action().skill.temp.range_instance.range_value
+        if skill_target_type == 0:
             action_type_modifier += get_level2_modifier(
                 actor, target, ma.single_target_skill_damage_percentage, context
             )
-        elif skill_target_type == SkillTargetTypes.ENEMY_RANGE:
+        elif skill_target_type > 0:
             action_type_modifier += get_level2_modifier(
                 actor, target, ma.range_skill_damage_percentage, context
             )
@@ -292,15 +292,15 @@ def get_action_type_damage_reduction_modifier(
     action_type = current_action.type
     action_type_modifier = 0
     if action_type == ActionTypes.SKILL_ATTACK:
-        skill_target_type = context.get_last_action().skill.target_type
-        if skill_target_type == SkillTargetTypes.ENEMY_SINGLE:
+        skill_target_type = context.get_last_action().skill.temp.range_instance.range_value
+        if skill_target_type == 0:
             action_type_modifier += get_level2_modifier(
                 defender,
                 attacker,
                 ma.single_target_skill_damage_reduction_percentage,
                 context,
             )
-        elif skill_target_type == SkillTargetTypes.ENEMY_RANGE:
+        elif skill_target_type > 0:
             action_type_modifier += get_level2_modifier(
                 defender, attacker, ma.range_skill_damage_reduction_percentage, context
             )
@@ -412,8 +412,7 @@ def get_critical_hit_resistance(
     )
     # TODO
     #  add stones suit effect
-
-    return 1 - (level_2_hit_resistance + critical_stones_percentage_modifier) / 100
+    return (level_2_hit_resistance + critical_stones_percentage_modifier) / 100
 
 
 def get_critical_hit_suffer(

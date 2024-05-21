@@ -6,11 +6,12 @@ from primitives.Action import Action
 
 if TYPE_CHECKING:
     from primitives.Context import Context
+    from primitives.hero.Hero import Hero
 from primitives.effects.Event import EventTypes
 from primitives.effects.EventListener import EventListener
 from calculation.Range import calculate_if_targe_in_diamond_range
-from primitives.hero.Hero import Hero
 from random import random
+from primitives.map.TerrainType import TerrainType
 
 skill_related_events = [
     EventTypes.skill_start,
@@ -37,8 +38,8 @@ class EventListenerContainer:
 
 
 def event_listener_calculator(
-    actor_instance: Hero,
-    counter_instance: Hero or None,
+    actor_instance: 'Hero',
+    counter_instance: 'Hero' or None,
     event_type: EventTypes,
     context,
 ):
@@ -57,6 +58,14 @@ def event_listener_calculator(
                     EventListenerContainer(event_listener, buff)
                 )
 
+    if event_type == EventTypes.battle_start or event_type == EventTypes.battle_end:
+        for buff in counter_instance.buffs:
+            buff_event_listeners: List[EventListener] = buff.temp.event_listeners
+            for event_listener in buff_event_listeners:
+                if event_listener.event_type == event_type:
+                    event_listener_containers.append(
+                        EventListenerContainer(event_listener, buff)
+                    )
     # Calculated FieldBuffs
     for field_buff in context.fieldbuffs_temps.values():
         target_instance = context.get_hero_by_id(field_buff.caster_id)
@@ -97,9 +106,26 @@ def event_listener_calculator(
                 )
 
     # Calculate Passives
+    passives = actor_instance.enabled_passives
+    for passive in passives:
+        passive_event_listeners: List[EventListener] = passive.on_event
+        for event_listener in passive_event_listeners:
+            if event_listener.event_type == event_type:
+                event_listener_containers.append(
+                    EventListenerContainer(event_listener, passive)
+                )
+    if event_type == EventTypes.battle_start or event_type == EventTypes.battle_end:
+        passives = counter_instance.enabled_passives
+        for passive in passives:
+            passive_event_listeners: List[EventListener] = passive.on_event
+            for event_listener in passive_event_listeners:
+                if event_listener.event_type == event_type:
+                    event_listener_containers.append(
+                        EventListenerContainer(event_listener, passive)
+                    )
 
     # re-order the event listeners by priority in accumulated_event_listeners
-    event_listener_containers.sort(key=lambda x: x.listener.priority)
+    event_listener_containers.sort(key=lambda x: x.event_listener.priority)
 
     for event_listener_container in event_listener_containers:
         multiplier = event_listener_container.event_listener.requirement(
@@ -115,7 +141,7 @@ def event_listener_calculator(
                 context,
                 event_listener_container.instance_self,
             )
-    if event_type == EventTypes.skill_end:
+    if event_type == EventTypes.skill_start:
         skill = current_action.skill
         skill.cool_down = skill.temp.max_cool_down
     if event_type == EventTypes.action_end:
@@ -125,15 +151,18 @@ def event_listener_calculator(
 
 
 def death_event_listener(
-    actor_instance: Hero,
-    counter_instance: Hero or None,
+    actor_instance: 'Hero',
+    counter_instance: 'Hero' or None,
     event_type: EventTypes,
     context,
 ):
-    # 统计自身是否带禁止复生buff，以及target.died_once是否为False，再统计自己是否有复生modifier：int 根据modifier的值来判断复活后的血量， died_once = True
+    # TODO 统计自身是否带禁止复生buff，以及target.died_once是否为False，再统计自己是否有复生modifier：int 根据modifier的值来判断复活后的血量， died_once = True
     pass
 
-def action_end_event(actor_instance: Hero, context):
+
+def action_end_event(actor_instance: 'Hero', context):
+    if context.battlemap.get_terrain(actor_instance.position).terrain_type == TerrainType.ZHUOWU:
+        context.set_hero_died(actor_instance)
     # 所有的buff的duration-1, 技能, 天赋cd-1
     for buff in actor_instance.buffs:
         buff.duration -= 1
@@ -155,7 +184,8 @@ def action_end_event(actor_instance: Hero, context):
 
     actor_instance.actionable = False
 
-def new_turn_event(actor_instance: Hero, context):
+
+def new_turn_event(actor_instance: 'Hero', context):
     actor_instance.reset_actionable(context=context)
     actor_instance.temp.talent.trigger = 0
     for buff in actor_instance.buffs:

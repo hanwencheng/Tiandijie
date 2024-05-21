@@ -1,8 +1,6 @@
 from functools import partial
 
-from primitives import Context
 from primitives.effects.Event import EventTypes
-from primitives.hero.Hero import Hero
 
 
 class EventListener:
@@ -10,8 +8,8 @@ class EventListener:
         self,
         event_type: EventTypes,
         priority: int,
-        requirement: partial[[Hero, Hero, Context], int] or None,
-        listener_effects: partial[[Hero, Hero, Context], None],
+        requirement: partial or None,
+        listener_effects: partial,
     ):
         if requirement is None:
             self.requirement = lambda x, y, z: 1

@@ -6,11 +6,10 @@ from functools import partial
 
 
 class Stone:
-    def __init__(self, id, effect, value, percentage):
+    def __init__(self, id, effect, value):
         self.id = id
         self.effect = effect  # [天, 地, 荒]
         self.value = value  # [带两个, 带三个]
-        self.percentage = []
         self.stack = 1
 
 
@@ -63,7 +62,6 @@ class Stones(Enum):
                 ),
             ],
         ],
-        percentage=[0, 0, 0, 0, 0],
     )
 
     wanghuan = Stone(
@@ -109,7 +107,6 @@ class Stones(Enum):
                 ),
             ],
         ],
-        percentage=[0, 0, 0, 0, 0],
     )
 
     # 三枚	对友方使用绝学后，40%概率使目标获得1个随机「有益状态」。
@@ -150,5 +147,93 @@ class Stones(Enum):
                 ),
             ],
         ],
-        percentage=[0, 0, 0, 0, 0],
+    )
+
+    # 两枚	法攻+5%
+    # 三枚	使用绝学时伤害提升10%，使用范围绝学时伤害额外提高5%
+    zhuyanmohuo = Stone(
+        "zhuyanmohuo",
+        [
+            {
+                "life": 666,
+                "attack": 0,
+                "defense": 0,
+                "magic_attack": 403,
+                "magic_defense": 0,
+            },
+            {
+                "life": 0,
+                "attack": 0,
+                "defense": 242,
+                "magic_attack": 323,
+                "magic_defense": 0,
+            },
+            {
+                "life": 767,
+                "attack": 0,
+                "defense": 0,
+                "magic_attack": 363,
+                "magic_defense": 0,
+            },
+        ],
+        [
+            [
+                ModifierEffect(Rs.always_true, {Ma.magic_attack_percentage: 5}),
+            ],
+            [
+                ModifierEffect(
+                    Rs.always_true,
+                    {
+                        Ma.skill_damage_percentage: 10,
+                        Ma.range_skill_damage_percentage: 5,
+                    },
+                ),
+            ],
+        ],
+    )
+
+    # 两枚	物防、法防+5%
+    # 三枚	免伤提升10%
+    zhoushibing = Stone(
+        "zhoushibing",
+        [
+            {
+                "life": 908,
+                "attack": 363,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
+            {
+                "life": 0,
+                "attack": 0,
+                "defense": 363,
+                "magic_attack": 0,
+                "magic_defense": 201,
+            },
+            {
+                "life": 1070,
+                "attack": 323,
+                "defense": 0,
+                "magic_attack": 0,
+                "magic_defense": 0,
+            },
+        ],
+        [
+            [
+                ModifierEffect(
+                    Rs.always_true,
+                    {Ma.defense_percentage: 5, Ma.magic_defense_percentage: 5},
+                ),
+            ],
+            [
+                ModifierEffect(
+                    Rs.always_true,
+                    {
+                        Ma.physical_damage_reduction_percentage: 10,
+                        Ma.magic_damage_reduction_percentage: 10,
+                    },
+                ),
+            ],
+        ],
     )

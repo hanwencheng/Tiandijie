@@ -2,12 +2,10 @@ import enum
 
 
 class SkillTargetTypes(enum.Enum):
-    ENEMY_SINGLE = 0
-    ENEMY_RANGE = 1
-    PARTNER_SINGLE = 2
-    PARTNER_RANGE = 3
+    ENEMY = 0
+    PARTNER = 1
+    TERRAIN = 3
     SELF = 4
-    TERRAIN = 5
 
 
 class SkillType(enum.IntEnum):
@@ -16,3 +14,4 @@ class SkillType(enum.IntEnum):
     Move = 2
     Heal = 3
     Support = 4
+    EFFECT_ENEMY = 5

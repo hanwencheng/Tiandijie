@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from primitives.Action import Action
     from primitives import Context
     from primitives.hero.Hero import Hero
+from calculation.event_calculator import event_listener_calculator
+from primitives.effects.Event import EventTypes
 
 
 def apply_move(actor: Hero, action: Action, context: Context):
@@ -38,4 +40,8 @@ def apply_teleport(actor: Hero, target: Hero or None, action: Action, context: C
 
 
 def apply_self(actor: Hero, target: Hero or None, action: Action, context: Context):
+    pass
+
+
+def apply_support(actor_instance: Hero, counter_instances: Hero or None, action: Action, context: Context):
     pass

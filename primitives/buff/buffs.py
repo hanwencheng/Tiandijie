@@ -8,6 +8,7 @@ from primitives.effects.EventListener import EventListener
 from calculation.ModifierAttributes import ModifierAttributes as ma
 from primitives.effects.ModifierEffect import ModifierEffect
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
+from primitives.hero.Element import Elements
 
 
 class BuffTemps(Enum):
@@ -336,13 +337,13 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.battle_end,
                 3,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(Effects.remove_actor_certain_buff, "xianqu"),
             ),
             EventListener(
                 EventTypes.battle_end,
                 3,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(Effects.heal_self, multiplier=0.5),
             ),
         ],
@@ -1185,9 +1186,9 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.damage_end,
+                EventTypes.battle_end,
                 1,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(Effects.remove_actor_certain_buff, "yazhi"),
             )
         ],
@@ -3156,15 +3157,15 @@ class BuffTemps(Enum):
         [],
         [
             EventListener(
-                EventTypes.under_battle_start,
+                EventTypes.battle_start,
                 1,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(Effects.heal_self, multiplier=0.2),
             ),
             EventListener(
-                EventTypes.under_battle_start,
+                EventTypes.battle_start,
                 1,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(Effects.remove_target_benefit_buffs, 1),
             ),
         ],
@@ -3199,8 +3200,8 @@ class BuffTemps(Enum):
     )
 
     # 焚狱	其他	不可驱散	不可扩散	不可偷取	使用炎属相绝学攻击后驱散目标1个「有益状态」（使用炎属相绝学后移除）。
-    funyu = BuffTemp(
-        "funyu",
+    fanyu = BuffTemp(
+        "fanyu",
         BuffTypes.Others,
         False,
         False,
@@ -3423,9 +3424,9 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.under_battle_start,
+                EventTypes.battle_start,
                 1,
-                partial(RS.BuffChecks.target_has_certain_buff, "zhanyin"),
+                partial(RS.wangzhezitai_requires_check),
                 partial(Effects.add_shield, multiplier=1),
             )
         ],
@@ -4361,7 +4362,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.battle_end,
                 1,
-                RS.always_true,
+                partial(RS.is_battle_attack_target),
                 partial(
                     Effects.receive_fixed_damage_by_caster_magic_attack,
                     multiplier=0.3,
@@ -4733,7 +4734,7 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.under_battle_end,
+                EventTypes.battle_end,
                 1,
                 RS.always_true,
                 partial(Effects.remove_actor_certain_buff, "fangwei"),
@@ -5344,9 +5345,9 @@ class BuffTemps(Enum):
             [],
             [
                 EventListener(
-                    EventTypes.under_battle_end,
+                    EventTypes.battle_end,
                     1,
-                    RS.always_true,
+                    partial(RS.is_battle_attack_target),
                     partial(Effects.add_buffs, buff_temp=["chihuan"], duration=1),
                 ),
             ],
@@ -5417,8 +5418,20 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.skill_end,
                 1,
-                partial(RS.skill_is_in_element_list, ["Dark", "Fire", "Water"]),
-                partial(Effects.remove_actor_certain_buff, "huntian"),
+                partial(RS.skill_is_in_element_list, [Elements.DARK.value, Elements.FIRE.value, Elements.WATER.value]),
+                partial(Effects.remove_actor_certain_buff, "hanlan"),
+            ),
+            EventListener(
+                EventTypes.skill_end,
+                1,
+                partial(RS.skill_is_in_element_list, [Elements.DARK.value, Elements.FIRE.value, Elements.WATER.value]),
+                partial(Effects.remove_actor_certain_buff, "fanyu"),
+            ),
+            EventListener(
+                EventTypes.skill_end,
+                1,
+                partial(RS.skill_is_in_element_list, [Elements.DARK.value, Elements.FIRE.value, Elements.WATER.value]),
+                partial(Effects.remove_actor_certain_buff, "xuanyou"),
             ),
         ],
     )
@@ -5462,13 +5475,13 @@ class BuffTemps(Enum):
         ],
         [
             EventListener(
-                EventTypes.under_battle_start,
+                EventTypes.damage_start,
                 1,
                 partial(RS.xingyun_requires_check),
                 partial(Effects.remove_actor_certain_buff, "xingyun"),
             ),
             EventListener(
-                EventTypes.under_battle_start,
+                EventTypes.damage_start,
                 1,
                 partial(RS.xingyun_requires_check),
                 partial(Effects.increase_actor_certain_buff_stack, "xingxue", 2),

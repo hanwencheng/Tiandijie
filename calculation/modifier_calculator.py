@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from primitives.formation.Formation import Formation
     from primitives.hero.Hero import Hero
     from primitives.Stone import Stone
+    from primitives.Passive import Passive
 from calculation.Range import calculate_if_targe_in_diamond_range
 
 from functools import reduce
@@ -54,21 +55,32 @@ def merge_modifier(total: Modifier, hero: Hero, attr_name: str) -> Modifier:
 def accumulate_talents_modifier(
     attr_name: str, actor_instance: Hero, target_instance: Hero, context: Context
 ) -> float:
-    player_id = actor_instance.player_id
-    partner_heroes = context.get_heroes_by_player_id(player_id)
-    counter_heroes = context.get_heroes_by_counter_player_id(player_id)
-
-    partner_talents = reduce(
-        lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
-        partner_heroes,
-        float(0),
-    )
-    counter_talents = reduce(
-        lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
-        counter_heroes,
-        float(0),
-    )
-    return partner_talents + counter_talents
+    # player_id = actor_instance.player_id
+    # partner_heroes = context.get_heroes_by_player_id(player_id)
+    # counter_heroes = context.get_heroes_by_counter_player_id(player_id)
+    modifier_value = 0
+    for modifier_effect in actor_instance.temp.talent.modifier_effects:
+        if attr_name in modifier_effect.modifier:
+            is_requirement_meet = modifier_effect.requirement(
+                actor_instance, target_instance, context, actor_instance.temp.talent
+            )
+            if is_requirement_meet > 0:
+                bascic_modifier_value = get_modifier_attribute_value(
+                    actor_instance, modifier_effect.modifier, attr_name
+                )
+                modifier_value += is_requirement_meet * bascic_modifier_value
+    return modifier_value
+    # partner_talents = reduce(
+    #     lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
+    #     partner_heroes,
+    #     float(0),
+    # )
+    # counter_talents = reduce(
+    #     lambda total, hero: total + getattr(hero.temp.talent, attr_name, 0),
+    #     counter_heroes,
+    #     float(0),
+    # )
+    # return partner_talents + counter_talents
 
 
 def get_formation_modifier(
@@ -103,6 +115,8 @@ def get_buff_modifier(
     basic_modifier_value = 0
     for buff in actor_instance.buffs:
         buff_modifier_levels_effects = buff.temp.modifier_effects
+        if len(buff_modifier_levels_effects) == 0:
+            continue
         buff_modifier_effects: List[ModifierEffect] = buff_modifier_levels_effects[
             buff.level - 1
         ]
@@ -119,7 +133,6 @@ def get_buff_modifier(
                         is_requirement_meet
                         * calculate_buff_with_max_stack(buff, modifier_value, attr_name)
                     )
-
     for field_buff in context.fieldbuffs_temps.values():
         field_target_instances = context.get_hero_list_by_id(field_buff.caster_id)
         for (
@@ -138,11 +151,13 @@ def get_buff_modifier(
                 field_buff_modifier_levels_effects = (
                     field_buff_instance.temp.modifier_effects
                 )
+                if len(field_buff_modifier_levels_effects) == 0:
+                    continue
                 field_buff_modifier_effects: List[ModifierEffect] = (
                     field_buff_modifier_levels_effects[field_buff_instance.level - 1]
                 )
                 for modifier_effects in field_buff_modifier_effects:
-                    if hasattr(modifier_effects.modifier, attr_name):
+                    if attr_name in modifier_effects.modifier:
                         is_requirement_meet = modifier_effects.requirement(
                             actor_instance,
                             target_instance,
@@ -158,7 +173,7 @@ def get_buff_modifier(
     return basic_modifier_value
 
 
-def get_passives_modifier(passives: List[Skill], attr_name: str) -> float:
+def get_passives_modifier(passives: List[Passive], attr_name: str) -> float:
     return 0
 
 
@@ -216,7 +231,7 @@ def get_level2_modifier(
 
 
 def get_modifier(
-    attr_name: str, actor_instance: Hero, counter_instance: Hero, context: Context
+    attr_name: str, actor_instance: Hero, counter_instance: Hero or None, context: Context
 ) -> float:
     accumulated_buffs_modifier = get_buff_modifier(
         attr_name, actor_instance, counter_instance, context

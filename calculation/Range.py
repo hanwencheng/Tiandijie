@@ -92,17 +92,11 @@ def calculate_archer_area(action_point: Position, range_value: int):
 
 
 def calculate_square_area(action_point: Position, range_value: int):
-    area_map = []
-    for i in range(range_value + 1):
-        for j in range(range_value + 1):
-            if i == j == 0:
-                area_map.append((action_point[0], action_point[1]))
-            else:
-                area_map.append((action_point[0] + i, action_point[1] + j))
-                area_map.append((action_point[0] + i, action_point[1] - j))
-                area_map.append((action_point[0] - i, action_point[1] + j))
-                area_map.append((action_point[0] - i, action_point[1] - j))
-    return area_map
+    area_map = set()
+    for i in range(-range_value, range_value + 1):
+        for j in range(-range_value, range_value + 1):
+            area_map.add((action_point[0] + i, action_point[1] + j))
+    return list(area_map)
 
 
 def calculate_cross_area(action_point, range_value: int):
@@ -123,7 +117,7 @@ class Range:
         self, range_type: RangeType, range_value: int = 0, length=None, width=None
     ):
         self.range_type = range_type
-        self.range = range_value
+        self.range_value = range_value
         self.length = length
         self.width = width
 
@@ -137,13 +131,13 @@ class Range:
         elif self.range_type == RangeType.POINT:
             return [action_point]
         elif self.range_type == RangeType.DIAMOND:
-            return calculate_diamond_area(base_position, self.range)
+            return calculate_diamond_area(base_position, self.range_value)
         elif self.range_type == RangeType.ARCHER:
-            return calculate_archer_area(base_position, self.range)
+            return calculate_archer_area(base_position, self.range_value)
         elif self.range_type == RangeType.CROSS:
-            return calculate_cross_area(base_position, self.range)
+            return calculate_cross_area(base_position, self.range_value)
         else:
-            return calculate_square_area(base_position, self.range)
+            return calculate_square_area(base_position, self.range_value)
 
     def check_if_target_in_range(
         self, base_position: Position, action_point: Position, target_position: Position
@@ -180,7 +174,7 @@ def calculate_if_targe_in_diamond_range(
 
 def check_if_target_in_skill_attack_range(actor: Hero, target: Hero, skill) -> bool:
     return calculate_if_targe_in_diamond_range(
-        actor.position, target.position, skill.temp.range.range
+        actor.position, target.position, skill.temp.range_instance.range_value
     )
 
 

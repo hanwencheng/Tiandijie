@@ -1,9 +1,9 @@
 from functools import partial
 from enum import Enum
 
-from calculation.ModifierAttributes import ModifierAttributes as ma
+from calculation.ModifierAttributes import ModifierAttributes as Ma
 from primitives.effects.ModifierEffect import ModifierEffect
-from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as RS
+from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as Rs
 from primitives.RequirementCheck.TalentRequirementChecks import (
     TalentRequirementChecks as TRs,
 )
@@ -19,12 +19,12 @@ class Talents(Enum):
     mianshenglibai = Talent(
         "mianshenglibai",
         "lv",
-        [ModifierEffect(RS.always_true, {ma.battle_damage_percentage: 15})],
+        [ModifierEffect(Rs.always_true, {Ma.battle_damage_percentage: 15})],
         [
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_lv),
             )
         ],
@@ -36,26 +36,26 @@ class Talents(Enum):
         "canglang",
         [
             ModifierEffect(
-                RS.always_true,
+                Rs.always_true,
                 {
-                    ma.physical_protect_range: 1,
-                    ma.magic_protect_range: 1,
+                    Ma.physical_protect_range: 1,
+                    Ma.magic_protect_range: 1,
                 },
             ),
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_partner_count_with_limit, 3, 2),
-                {ma.physical_protect_range: 1, ma.magic_protect_range: 1},
+                partial(Rs.PositionChecks.in_range_partner_count_with_limit, 3, 2),
+                {Ma.physical_protect_range: 1, Ma.magic_protect_range: 1},
             ),
             ModifierEffect(
-                partial(RS.PositionChecks.partner_in_range_count_bigger_than, 3, 2),
-                {ma.defense_percentage: 20, ma.magic_defense_percentage: 20},
+                partial(Rs.PositionChecks.partner_in_range_count_bigger_than, 3, 2),
+                {Ma.defense_percentage: 20, Ma.magic_defense_percentage: 20},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_buffs, ["lieshang"], 2),
             ),
             EventListener(
@@ -79,15 +79,15 @@ class Talents(Enum):
     #     "bingchanyujian",
     #     [
     #         ModifierEffect(
-    #             partial(RS.is_in_battle),
-    #             {ma.defense_percentage: 20, ma.magic_defense_percentage: 20},
+    #             partial(Rs.is_in_battle),
+    #             {Ma.defense_percentage: 20, Ma.magic_defense_percentage: 20},
     #         ),
     #     ],
     #     [
     #         EventListener(
     #             EventTypes.under_damage_end,
     #             1,
-    #             RS.always_true,
+    #             Rs.always_true,
     #             partial(Effects.add_self_buffs, "niqiao", 2),  # 做减伤操作
     #         ),
     #     ],
@@ -99,10 +99,10 @@ class Talents(Enum):
         "saite",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
                 {
-                    ma.battle_damage_percentage: 25,
-                    ma.fire_damage_reduction_percentage: 25,
+                    Ma.battle_damage_percentage: 25,
+                    Ma.fire_damage_reduction_percentage: 25,
                 },
             ),
         ],
@@ -110,13 +110,13 @@ class Talents(Enum):
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_buffs, ["ranshao"], 2),
             ),
             EventListener(
                 EventTypes.battle_start,
                 1,
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
                 partial(Effects.add_self_buffs, "zhongjibengshan", 1),
             ),
         ],
@@ -131,19 +131,19 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "wangong", 1),
             ),
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.PositionChecks.in_range_partner_count_with_limit, 1, 1),
+                partial(Rs.PositionChecks.in_range_partner_count_with_limit, 1, 1),
                 partial(Effects.add_self_buffs, "miedao", 1),
             ),
             EventListener(
                 EventTypes.battle_start,
                 1,
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
                 partial(Effects.add_self_buffs, "zhongjibengshan", 1),
             ),
         ],
@@ -155,24 +155,18 @@ class Talents(Enum):
         "lijing",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_enemy_count_with_limit, 3, 3),
+                partial(Rs.PositionChecks.in_range_enemy_count_with_limit, 3, 3),
                 {
-                    ma.magic_attack_percentage: 6,
-                    ma.magic_damage_reduction_percentage: 6,
+                    Ma.magic_attack_percentage: 6,
+                    Ma.magic_damage_reduction_percentage: 6,
                 },
             ),
         ],
         [
             EventListener(
-                EventTypes.enemy_battle_end,
-                1,
-                partial(RS.PositionChecks.enemy_attack_in_caster_range, 3),
-                partial(TalentEffects.take_effect_zhifatianjiang),
-            ),
-            EventListener(
                 EventTypes.battle_start,
                 1,
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
                 partial(Effects.add_self_buffs, "zhongjibengshan", 1),
             ),
         ],
@@ -185,38 +179,38 @@ class Talents(Enum):
         [
             ModifierEffect(
                 partial(TRs.yaochixianshou_requires_check),
-                {ma.attack_percentage: 20, ma.magic_defense_percentage: 20},
+                {Ma.attack_percentage: 20, Ma.magic_defense_percentage: 20},
             ),
         ],
         [
             EventListener(
                 EventTypes.turn_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "xianling", 1),
             ),
             EventListener(
                 EventTypes.normal_attack_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_buffs, ["xianzui"], 3),
             ),
             EventListener(
                 EventTypes.skill_attack_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_buffs, ["xianzui"], 3),
             ),
             EventListener(
                 EventTypes.normal_attack_start,
                 2,
-                partial(RS.BuffChecks.target_buff_stack_reach, "xianzui", 3),
+                partial(Rs.BuffChecks.target_buff_stack_reach, "xianzui", 3),
                 partial(Effects.add_fixed_damage_by_target_lose_life, 0.3),
             ),
             EventListener(
                 EventTypes.skill_attack_start,
                 2,
-                partial(RS.BuffChecks.target_buff_stack_reach, "xianzui", 3),
+                partial(Rs.BuffChecks.target_buff_stack_reach, "xianzui", 3),
                 partial(Effects.add_fixed_damage_by_target_lose_life, 0.3),
             ),
         ],
@@ -247,14 +241,14 @@ class Talents(Enum):
         "youhuangminhua",
         "shuangyao",
         [
-            ModifierEffect(RS.always_true, {ma.move_range: 2}),
+            ModifierEffect(Rs.always_true, {Ma.move_range: 2}),
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
-                {ma.defense_percentage: 30},
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
+                {Ma.defense_percentage: 30},
             ),
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_lower_percentage, 0),
-                {ma.attack_percentage: 30},
+                partial(Rs.LifeChecks.self_life_is_lower_percentage, 0),
+                {Ma.attack_percentage: 30},
             ),
         ],
         [
@@ -267,7 +261,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.hero_death,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_youhuangminhua, stage=2),
             ),
         ],
@@ -279,7 +273,7 @@ class Talents(Enum):
     #     [
     #         ModifierEffect(
     #             partial(TRs.take_effect_of_yaocaolinghua),
-    #             {ma.heal_percentage: 20, ma.physical_damage_reduction_percentage: 20},
+    #             {Ma.heal_percentage: 20, Ma.physical_damage_reduction_percentage: 20},
     #         ),
     #     ],
     #     [
@@ -292,7 +286,7 @@ class Talents(Enum):
     #         EventListener(
     #             EventTypes.skill_end,
     #             1,
-    #             RS.always_true,
+    #             Rs.always_true,
     #             partial(TalentEffects.take_effect_of_yaocaolinghua, state=2),
     #         ),
     #     ],
@@ -304,15 +298,15 @@ class Talents(Enum):
     #     "jianhun",
     #     [
     #         ModifierEffect(
-    #             partial(RS.BuffChecks.self_harm_buff_count_smaller_than, "youhai", 3),
-    #             {ma.attack_percentage: 20, ma.critical_percentage: 20},
+    #             partial(Rs.BuffChecks.self_harm_buff_count_smaller_than, "youhai", 3),
+    #             {Ma.attack_percentage: 20, Ma.critical_percentage: 20},
     #         ),
     #     ],
     #     [
     #         EventListener(
     #             EventTypes.battle_end,
     #             1,
-    #             RS.always_true,
+    #             Rs.always_true,
     #             partial(
     #                 TalentEffects.add_fixed_damage_by_talent_owner_physical_and_magic_attack,
     #                 0.5,
@@ -321,7 +315,7 @@ class Talents(Enum):
     #         EventListener(
     #             EventTypes.hero_death,
     #             1,
-    #             RS.always_true,
+    #             Rs.always_true,
     #             partial(TalentEffects.take_effect_of_qianrenhengtie),
     #         ),
     #     ],
@@ -333,11 +327,11 @@ class Talents(Enum):
         "yuebei",
         [
             ModifierEffect(
-                partial(RS.is_attacker),
+                partial(Rs.is_attacker),
                 {
-                    ma.physical_damage_percentage: 15,
-                    ma.magic_damage_percentage: 15,
-                    ma.physical_penetration_percentage: 15,
+                    Ma.physical_damage_percentage: 15,
+                    Ma.magic_damage_percentage: 15,
+                    Ma.physical_penetration_percentage: 15,
                 },
             ),
         ],
@@ -345,7 +339,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.other_hero_death,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "chuxing", 2),
             ),
             # EventListener(
@@ -364,9 +358,9 @@ class Talents(Enum):
             ModifierEffect(
                 partial(TRs.linqiqiongyu_requires_check),
                 {
-                    ma.physical_damage_percentage: 18,
-                    ma.magic_damage_percentage: 18,
-                    ma.physical_damage_reduction_percentage: 18,
+                    Ma.physical_damage_percentage: 18,
+                    Ma.magic_damage_percentage: 18,
+                    Ma.physical_damage_reduction_percentage: 18,
                 },
             ),
         ],
@@ -374,19 +368,19 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 2,
-                partial(RS.BuffChecks.self_has_certain_buff_in_list, ["chiqi"]),
+                partial(Rs.BuffChecks.self_has_certain_buff_in_list, ["chiqi"]),
                 partial(TalentEffects.take_effect_of_qilinquanyu, 1),
             ),
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.PositionChecks.self_in_certain_terrian, "jinwuqi"),
+                partial(Rs.PositionChecks.self_in_certain_terrianbuff, "jinwuqi"),
                 partial(TalentEffects.take_effect_of_qilinquanyu, 2),
             ),
             EventListener(
                 EventTypes.hero_death,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_qilinquanyu, 3),
             ),
         ],
@@ -398,33 +392,33 @@ class Talents(Enum):
         "xiaohe",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_enemy_count_with_limit, 3, 1),
-                {ma.physical_damage_reduction_percentage: 25},
+                partial(Rs.PositionChecks.in_range_enemy_count_with_limit, 3, 1),
+                {Ma.physical_damage_reduction_percentage: 25},
             ),
         ],
         [
             EventListener(
                 EventTypes.under_skill_attack_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "yudi", 1),
             ),
             EventListener(
                 EventTypes.under_normal_attack_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "yudi", 1),
             ),
             EventListener(
                 EventTypes.under_double_attack_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "yudi", 1),
             ),
             EventListener(
                 EventTypes.under_chase_attack_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "yudi", 1),
             ),
         ],
@@ -436,15 +430,15 @@ class Talents(Enum):
         "taixuan",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.target_life_is_below, 90),
-                {ma.battle_damage_percentage: 30},
+                partial(Rs.LifeChecks.target_life_is_below, 90),
+                {Ma.battle_damage_percentage: 30},
             ),
         ],
         [
             EventListener(
                 EventTypes.game_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.init_talent_field_buff, "huzongqianli"),
             ),
         ],
@@ -456,8 +450,8 @@ class Talents(Enum):
         "jiuselu",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
-                {ma.battle_damage_percentage: 20, ma.critical_percentage: 20},
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
+                {Ma.battle_damage_percentage: 20, Ma.critical_percentage: 20},
             ),
         ],
         [],
@@ -469,15 +463,15 @@ class Talents(Enum):
         "jilefeitian",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_partner_count_with_limit, 3, 1),
-                {ma.magic_attack_percentage: 15, ma.critical_percentage: 15},
+                partial(Rs.PositionChecks.in_range_partner_count_with_limit, 3, 1),
+                {Ma.magic_attack_percentage: 15, Ma.critical_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.game_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.init_talent_field_buff, "ruhaishuangsheng"),
             ),
             EventListener(
@@ -495,13 +489,13 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.self_use_certain_skill, "guangzizai"),
+                partial(Rs.self_use_certain_skill, "guangzizai"),
                 partial(TalentEffects.take_effect_of_ruhaishuangsheng, 1),
             ),
             EventListener(
                 EventTypes.skill_end,
                 1,
-                partial(RS.self_use_certain_skill, "leizizai"),
+                partial(Rs.self_use_certain_skill, "leizizai"),
                 partial(TalentEffects.take_effect_of_ruhaishuangsheng, 2),
             ),
         ],
@@ -512,19 +506,19 @@ class Talents(Enum):
         "liuhuozhuojian",
         "anyi",
         [
-            ModifierEffect(RS.always_true, {ma.physical_damage_percentage: 15, ma.magic_damage_percentage: 15}),
+            ModifierEffect(Rs.always_true, {Ma.physical_damage_percentage: 15, Ma.magic_damage_percentage: 15}),
         ],
         [
             EventListener(
                 EventTypes.skill_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "zhuneng", 2),
             ),
             EventListener(
                 EventTypes.skill_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_terrain_by_self_position, "zhenyan", 2, 2),
             ),
         ],
@@ -537,14 +531,14 @@ class Talents(Enum):
         [
             ModifierEffect(
                 partial(TRs.youmingcixin_requires_check),
-                {ma.heal_percentage: 20},
+                {Ma.heal_percentage: 20},
             ),
         ],
         [
             EventListener(
                 EventTypes.skill_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_youmingcixin),
             ),
         ],
@@ -556,10 +550,10 @@ class Talents(Enum):
         "shuangshuang",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.self_benefit_buff_count, 4),
+                partial(Rs.BuffChecks.self_benefit_buff_count, 4),
                 {
-                    ma.battle_damage_percentage: 5,
-                    ma.magic_damage_reduction_percentage: 5,
+                    Ma.battle_damage_percentage: 5,
+                    Ma.magic_damage_reduction_percentage: 5,
                 },
             ),
         ],
@@ -567,7 +561,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.PositionChecks.has_partner_in_range, 2),
+                partial(Rs.PositionChecks.has_partner_in_range, 2),
                 partial(TalentEffects.take_effect_of_shangshandaoxin),
             ),
         ],
@@ -579,13 +573,13 @@ class Talents(Enum):
         "baxionggaoqi",
         [
             ModifierEffect(
-                RS.always_true,
+                Rs.always_true,
                 {
-                    ma.attack_percentage: 15,
-                    ma.defense_percentage: 15,
-                    ma.magic_attack_percentage: 15,
-                    ma.magic_defense_percentage: 15,
-                    ma.luck_percentage: 15,
+                    Ma.attack_percentage: 15,
+                    Ma.defense_percentage: 15,
+                    Ma.magic_attack_percentage: 15,
+                    Ma.magic_defense_percentage: 15,
+                    Ma.luck_percentage: 15,
                 },
             ),
         ],
@@ -593,7 +587,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.skill_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_nuxiongzhiwei),
             ),
         ],
@@ -605,15 +599,15 @@ class Talents(Enum):
         "guizhao",
         [
             ModifierEffect(
-                partial(RS.get_moves_before_battle, 5),
-                {ma.battle_damage_percentage: 6},
+                partial(Rs.get_moves_before_battle, 5),
+                {Ma.battle_damage_percentage: 6},
             )
         ],
         [
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_zhanfengwangxiang),
             ),
         ],
@@ -625,10 +619,10 @@ class Talents(Enum):
         "luoyuannvhuang",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.self_benefit_buff_count, 3),
+                partial(Rs.BuffChecks.self_benefit_buff_count, 3),
                 {
-                    ma.battle_damage_percentage: 15,
-                    ma.suffer_critical_damage_percentage: 15,
+                    Ma.battle_damage_percentage: 15,
+                    Ma.suffer_critical_damage_percentage: 15,
                 },
             ),
         ],
@@ -644,13 +638,13 @@ class Talents(Enum):
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.self_is_used_active_skill,
+                Rs.self_is_used_active_skill,
                 partial(Effects.add_self_buffs, "hunpozhili", 15),
             ),
             EventListener(
                 EventTypes.action_start,
                 1,
-                partial(RS.BuffChecks.self_benefit_buff_count, 3),
+                partial(Rs.BuffChecks.self_benefit_buff_count, 3),
                 partial(Effects.add_self_buffs, "chaozai", 3),
             ),
         ],
@@ -664,21 +658,21 @@ class Talents(Enum):
         "chaoge",
         [
             ModifierEffect(
-                partial(RS.in_battle_with_non_female),
-                {ma.battle_damage_percentage: 25},
+                partial(Rs.in_battle_with_non_female),
+                {Ma.battle_damage_percentage: 25},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effects_of_hongyanmeigu, 1),
             ),
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effects_of_hongyanmeigu, 2),
             ),
         ],
@@ -690,15 +684,15 @@ class Talents(Enum):
         "lukui",
         [
             ModifierEffect(
-                RS.always_true,
-                {ma.physical_damage_percentage: 15, ma.magic_damage_percentage: 15},
+                Rs.always_true,
+                {Ma.physical_damage_percentage: 15, Ma.magic_damage_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_linghaishutao),
             ),
         ],
@@ -710,19 +704,19 @@ class Talents(Enum):
         "yinqianyang",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher, 50),
-                {ma.attack_percentage: 15, ma.critical_percentage: 15},
+                partial(Rs.LifeChecks.self_life_is_higher, 50),
+                {Ma.attack_percentage: 15, Ma.critical_percentage: 15},
             ),
             ModifierEffect(
-                partial(RS.BuffChecks.target_has_certain_buff, "shefu"),
-                {ma.is_dodge_attack: True},
+                partial(Rs.BuffChecks.target_has_certain_buff, "shefu"),
+                {Ma.is_dodge_attack: True},
             ),
         ],
         [
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.self_is_used_active_skill),
+                partial(Rs.self_is_used_active_skill),
                 partial(TalentEffects.take_effect_of_huangshenxiongpo),
             ),
         ],
@@ -734,22 +728,22 @@ class Talents(Enum):
         "longye",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher_percentage, 0),
+                partial(Rs.LifeChecks.self_life_is_higher_percentage, 0),
                 {
-                    ma.battle_damage_percentage: 25,
-                    ma.physical_damage_reduction_percentage: 25,
+                    Ma.battle_damage_percentage: 25,
+                    Ma.physical_damage_reduction_percentage: 25,
                 },
             ),
             ModifierEffect(
-                RS.always_true,
-                {ma.ignore_element_advantage: True},
+                Rs.always_true,
+                {Ma.ignore_element_advantage: True},
             ),
         ],
         [
             EventListener(
                 EventTypes.under_damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_pohuishenfu),
             ),
         ],
@@ -761,21 +755,21 @@ class Talents(Enum):
         "shaoxia",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher_than_target_in_range),
-                {ma.physical_damage_percentage: 20, ma.magic_damage_percentage: 20},
+                partial(Rs.LifeChecks.self_life_is_higher_than_target_in_range),
+                {Ma.physical_damage_percentage: 20, Ma.magic_damage_percentage: 20},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "jianwei"),
             ),
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.BuffChecks.self_buff_stack_reach, 3, "jianwei"),
+                partial(Rs.BuffChecks.self_buff_stack_reach, 3, "jianwei"),
                 partial(TalentEffects.take_effect_of_tianxuanyaowei),
             ),
         ],
@@ -787,15 +781,15 @@ class Talents(Enum):
         "fuyayu",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.self_harm_buff_count_smaller_than, 1),
-                {ma.heal_percentage: 20},
+                partial(Rs.BuffChecks.self_harm_buff_count_smaller_than, 1),
+                {Ma.heal_percentage: 20},
             ),
         ],
         [
             EventListener(
                 EventTypes.skill_end,
                 1,
-                partial(RS.skill_is_no_damage_and_target_is_partner),
+                partial(Rs.skill_is_no_damage_and_target_is_partner),
                 partial(Effects.add_buffs, ["qingliu"], 15),
             ),
         ],
@@ -806,13 +800,13 @@ class Talents(Enum):
     #     "renxiaoguidai",
     #     "gongsunqiye",
     #     [
-    #         ModifierEffect(RS.always_true, {ma.attack_percentage: 15}),
+    #         ModifierEffect(Rs.always_true, {Ma.attack_percentage: 15}),
     #     ],
     #     [
     #         EventListener(
     #             EventTypes.action_end,
     #             1,
-    #             partial(RS.PositionChecks.enemy_in_range_count_bigger_than, 3, 0),
+    #             partial(Rs.PositionChecks.enemy_in_range_count_bigger_than, 3, 0),
     #             partial(TalentEffects.take_effect_of_renxiaoguidai),
     #         ),
     #     ],
@@ -824,39 +818,39 @@ class Talents(Enum):
     #     "xingzhanxianzhe",
     #     [
     #         ModifierEffect(
-    #             partial(RS.BuffChecks.self_benefit_buff_count, 3),
-    #             {ma.magic_attack_percentage: 6},
+    #             partial(Rs.BuffChecks.self_benefit_buff_count, 3),
+    #             {Ma.magic_attack_percentage: 6},
     #         ),
     #     ],
     #     [
     #         EventListener(
     #             EventTypes.partner_damage_skill_end,
     #             1,
-    #             RS.always_true,
+    #             Rs.always_true,
     #             partial(Effects.add_self_buffs, "xingxie", 1),
     #         ),
     #         EventListener(
     #             EventTypes.action_end,
     #             1,
-    #             partial(RS.BuffChecks.self_benefit_buff_count, 10),
+    #             partial(Rs.BuffChecks.self_benefit_buff_count, 10),
     #             partial(Effects.add_extra_skill, "tianquan"),
     #         ),
     #         EventListener(
     #             EventTypes.action_end,
     #             1,
-    #             partial(RS.BuffChecks.self_benefit_buff_count, 10),
+    #             partial(Rs.BuffChecks.self_benefit_buff_count, 10),
     #             partial(Effects.add_extra_skill, "tianshu"),
     #         ),
     #         EventListener(
     #             EventTypes.action_end,
     #             1,
-    #             partial(RS.self_use_certain_skill, "tianquan"),
+    #             partial(Rs.self_use_certain_skill, "tianquan"),
     #             partial(TalentEffects.take_effect_of_jingweixingqiong),
     #         ),
     #         EventListener(
     #             EventTypes.action_end,
     #             1,
-    #             partial(RS.self_use_certain_skill, "tianshu"),
+    #             partial(Rs.self_use_certain_skill, "tianshu"),
     #             partial(TalentEffects.take_effect_of_jingweixingqiong),
     #         ),
     #     ],
@@ -868,10 +862,10 @@ class Talents(Enum):
         "xiliya",
         [
             ModifierEffect(
-                partial(RS.all_partners_live_count, 4),
+                partial(Rs.all_partners_live_count, 4),
                 {
-                    ma.physical_damage_reduction_percentage: 20,
-                    ma.magic_damage_reduction_percentage: 20,
+                    Ma.physical_damage_reduction_percentage: 20,
+                    Ma.magic_damage_reduction_percentage: 20,
                 },
             ),
         ],
@@ -879,7 +873,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.game_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.init_talent_field_buff, "mingyunyizhi"),
             ),
         ],
@@ -891,20 +885,14 @@ class Talents(Enum):
         "baisuzhen",
         [
             ModifierEffect(
-                partial(TRs.heyururun_requires_check), {ma.critical_percentage: 15}
+                partial(TRs.heyururun_requires_check), {Ma.critical_percentage: 15}
             ),
         ],
         [
             EventListener(
                 EventTypes.battle_start,
                 1,
-                RS.always_true,
-                partial(Effects.add_self_buffs, "fali", 3),
-            ),
-            EventListener(
-                EventTypes.under_battle_start,
-                1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "fali", 3),
             ),
             EventListener(
@@ -916,7 +904,7 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.action_is_not_active_skill),
+                partial(Rs.action_is_not_active_skill),
                 partial(Effects.reduce_actor_certain_buff_stack, "fali", 2),
             ),
         ],
@@ -928,15 +916,15 @@ class Talents(Enum):
         "qing",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.target_harm_buff_count),
-                {ma.attack_percentage: 5, ma.battle_damage_percentage: 5},
+                partial(Rs.BuffChecks.target_harm_buff_count),
+                {Ma.attack_percentage: 5, Ma.battle_damage_percentage: 5},
             ),
         ],
         [
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.self_is_used_active_skill),
+                partial(Rs.self_is_used_active_skill),
                 partial(Effects.add_extra_skill, "fuchu"),
             ),
         ],
@@ -948,31 +936,31 @@ class Talents(Enum):
         "fahai",
         [
             ModifierEffect(
-                RS.always_true,
-                {ma.battle_damage_percentage: 20},
+                Rs.always_true,
+                {Ma.battle_damage_percentage: 20},
             ),
             ModifierEffect(
-                partial(RS.BuffChecks.target_benefit_buff_count),
-                {ma.battle_damage_percentage: 3},
+                partial(Rs.BuffChecks.target_benefit_buff_count),
+                {Ma.battle_damage_percentage: 3},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_start,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.remove_target_benefit_buffs, 1),
             ),
             EventListener(
                 EventTypes.damage_start,
                 2,
-                partial(RS.target_is_single),
+                partial(Rs.target_is_single),
                 partial(Effects.remove_target_benefit_buffs, 2),
             ),
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_pudujiaoyu),
             ),
         ],
@@ -984,15 +972,15 @@ class Talents(Enum):
         "aqiu",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_the_same_line),
-                {ma.battle_damage_percentage: 15, ma.critical_percentage: 15},
+                partial(Rs.PositionChecks.in_the_same_line),
+                {Ma.battle_damage_percentage: 15, Ma.critical_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.critical_damage_end,
                 1,
-                partial(RS.self_is_used_active_skill),
+                partial(Rs.self_is_used_active_skill),
                 partial(Effects.add_buffs, ["dianliu"], 2),
             ),
         ],
@@ -1004,15 +992,15 @@ class Talents(Enum):
         "huyanshuo",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.self_has_no_certain_buff, "dundi"),
-                {ma.attack_percentage: 15},
+                partial(Rs.BuffChecks.self_has_no_certain_buff, "dundi"),
+                {Ma.attack_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.kill_enemy_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "dundi", 2),
             ),
         ],
@@ -1024,21 +1012,21 @@ class Talents(Enum):
         "baaini",
         [
             ModifierEffect(
-                partial(RS.is_attacker),
-                {ma.attack_percentage: 15},
+                partial(Rs.is_attacker),
+                {Ma.attack_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.damage_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, "linghui"),
             ),
             EventListener(
                 EventTypes.kill_enemy_end,
                 2,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.increase_actor_certain_buff_stack, "linghui"),
             ),
         ],
@@ -1050,15 +1038,15 @@ class Talents(Enum):
         "zhuoer",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_partner_count_with_limit, 4, 1),
-                {ma.battle_damage_percentage: 20, ma.critical_percentage: 20},
+                partial(Rs.PositionChecks.in_range_partner_count_with_limit, 4, 1),
+                {Ma.battle_damage_percentage: 20, Ma.critical_percentage: 20},
             ),
         ],
         [
             # EventListener(
             #     EventTypes.action_end,
             #     1,
-            #     partial(RS.PositionChecks.has_partner_and_enemy_in_range, 4, 1),
+            #     partial(Rs.PositionChecks.has_partner_and_enemy_in_range, 4, 1),
             #     partial(TalentEffects.take_effect_of_guiyiquanmou),
             # ),
         ],
@@ -1070,21 +1058,21 @@ class Talents(Enum):
         "shenqueqingyi",
         [
             ModifierEffect(
-                RS.always_true,
-                {ma.attack_percentage: 15},
+                Rs.always_true,
+                {Ma.attack_percentage: 15},
             ),
         ],
         [
             EventListener(
                 EventTypes.skill_end,
                 1,
-                partial(RS.self_is_used_active_skill),
+                partial(Rs.self_is_used_active_skill),
                 partial(Effects.add_buffs, ["wanlv"], 2),
             ),
             # EventListener(
             #     EventTypes.action_end,
             #     2,
-            #     RS.always_true,
+            #     Rs.always_true,
             #     partial(TalentEffects.take_effect_of_shenqueqingyi),
             # ),
         ],
@@ -1097,34 +1085,34 @@ class Talents(Enum):
         "zhenyin",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.in_range_partner_count_with_limit, 2, 1),
+                partial(Rs.PositionChecks.in_range_partner_count_with_limit, 2, 1),
                 {
-                    ma.physical_damage_reduction_percentage: 15,
-                    ma.magic_damage_reduction_percentage: 15,
+                    Ma.physical_damage_reduction_percentage: 15,
+                    Ma.magic_damage_reduction_percentage: 15,
                 },
             ),
             ModifierEffect(
-                RS.always_true,
-                {ma.physical_protect_range: 1, ma.magic_protect_range: 1},
+                Rs.always_true,
+                {Ma.physical_protect_range: 1, Ma.magic_protect_range: 1},
             ),
         ],
         [
             EventListener(
                 EventTypes.skill_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, ["huwei"], 2),
             ),
             EventListener(
                 EventTypes.skill_end,
                 2,
-                partial(RS.skill_has_no_damage),
+                partial(Rs.skill_has_no_damage),
                 partial(Effects.add_self_field_buff, "huilingjie", 1),
             ),
             EventListener(
                 EventTypes.skill_end,
                 2,
-                partial(RS.skill_has_damage),
+                partial(Rs.skill_has_damage),
                 partial(Effects.add_self_field_buff, "xuanmiejie", 1),
             ),
         ],
@@ -1136,11 +1124,11 @@ class Talents(Enum):
         "mohuahuangfushen",
         [
             ModifierEffect(
-                partial(RS.LifeChecks.self_life_is_higher, 70),
+                partial(Rs.LifeChecks.self_life_is_higher, 70),
                 {
-                    ma.battle_damage_percentage: 20,
-                    ma.physical_damage_reduction_percentage: 20,
-                    ma.magic_damage_reduction_percentage: 20,
+                    Ma.battle_damage_percentage: 20,
+                    Ma.physical_damage_reduction_percentage: 20,
+                    Ma.magic_damage_reduction_percentage: 20,
                 },
             ),
         ],
@@ -1148,13 +1136,13 @@ class Talents(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_anxingnixing, 1),
             ),
             EventListener(
                 EventTypes.hero_death,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(TalentEffects.take_effect_of_anxingnixing, 2),
             ),
         ],
@@ -1166,19 +1154,19 @@ class Talents(Enum):
         "yunjia",
         [
             ModifierEffect(
-                partial(RS.get_moves_before_battle, 3),
-                {ma.battle_damage_reduction_percentage: 4},
+                partial(Rs.get_moves_before_battle, 3),
+                {Ma.battle_damage_reduction_percentage: 4},
             ),
             ModifierEffect(
-                RS.always_true,
-                {ma.battle_damage_percentage: 25},
+                Rs.always_true,
+                {Ma.battle_damage_percentage: 25},
             ),
         ],
         [
             EventListener(
                 EventTypes.skill_end,
                 1,
-                RS.always_true,
+                Rs.always_true,
                 partial(Effects.add_self_buffs, ["zhuaneshengtian"], 2),
             ),
         ],
@@ -1190,13 +1178,13 @@ class Talents(Enum):
         "zhanzhao",
         [
             ModifierEffect(
-                partial(RS.PositionChecks.life_not_full_in_range, 3),
+                partial(Rs.PositionChecks.life_not_full_in_range, 3),
                 {
-                    ma.attack_percentage: 15,
-                    ma.defense_percentage: 15,
-                    ma.magic_attack_percentage: 15,
-                    ma.magic_defense_percentage: 15,
-                    ma.luck_percentage: 15,
+                    Ma.attack_percentage: 15,
+                    Ma.defense_percentage: 15,
+                    Ma.magic_attack_percentage: 15,
+                    Ma.magic_defense_percentage: 15,
+                    Ma.luck_percentage: 15,
                 },
             ),
         ],
@@ -1209,8 +1197,8 @@ class Talents(Enum):
         "huoyong",
         [
             ModifierEffect(
-                partial(RS.BuffChecks.self_has_certain_buff_in_list, ["hanlan", "fenyu", "xuanyou"]),
-                {ma.magic_attack_percentage: 6, ma.magic_defense_percentage: 6},
+                partial(Rs.BuffChecks.self_has_certain_buff_in_list, ["hanlan", "fenyu", "xuanyou"]),
+                {Ma.magic_attack_percentage: 6, Ma.magic_defense_percentage: 6},
             ),
         ],
         [

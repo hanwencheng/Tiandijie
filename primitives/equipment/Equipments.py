@@ -5,12 +5,21 @@ from typing import TYPE_CHECKING
 #
 # if TYPE_CHECKING:
 from calculation.Effects import Effects
-from primitives.equipment.Equipment import Equipment
+# from primitives.equipment.Equipment import Equipment
 from primitives.effects.EventListener import EventListener
 from primitives.effects.Event import EventTypes
 from primitives.effects.ModifierEffect import ModifierEffect
 from primitives.RequirementCheck.RequirementsCheck import RequirementCheck as Rs
 from calculation.ModifierAttributes import ModifierAttributes as Ma
+
+
+class Equipment:
+    def __init__(self, equipment_id, modifier_effects, on_event):
+        self.equipment_id = equipment_id
+        self.modifier_effects = modifier_effects
+        self.on_event = on_event
+        self.cool_down = 0
+
 
 
 class Equipments(Enum):

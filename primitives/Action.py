@@ -17,9 +17,11 @@ class ActionTypes(enum.Enum):
     SKILL_ATTACK = 1
     SUMMON = 2
     SELF = 3
-    PASS = 4
+    MOVE = 4
     NORMAL_ATTACK = 5
     TELEPORT = 6
+    SUPPORT = 7
+    PASS = 4
 
 
 class AdditionalSkill:
@@ -30,7 +32,7 @@ class AdditionalSkill:
 
 class Action:
     def __init__(
-        self, cast_hero: Hero, affected_heroes, skill: Skill or None, action_point
+        self, cast_hero: Hero, affected_heroes, skill: Skill or None, move_point, action_point
     ):
         self.actor = cast_hero
         self.targets: List[Hero] = affected_heroes
@@ -42,15 +44,16 @@ class Action:
         self.skill: Skill or None = skill
         self.type: ActionTypes = ActionTypes.PASS
         self.move_range: int = 0
-        self.move_point: Position = cast_hero.position
-        self.action_point: Position = action_point
+        self.move_point: Position = move_point  # 最终移动的位置
+        self.initial_position: Position = cast_hero.position
+        self.action_point: Position = action_point  # 最终指定的位置：技能的目标位置
         self.movable: bool = True
         self.actionable: bool = True
         self.player_id = cast_hero.player_id
         self.has_additional_action: bool = False
         self.additional_move: int = 0
         self.additional_skill_list: [AdditionalSkill] or None = None
-        self.additional_action: [Action] or None = None
+        self.additional_action = None
 
     def update_affected_heroes(self, affected_heroes: List[Hero]):
         self.targets = affected_heroes
@@ -89,14 +92,15 @@ class Action:
         self.has_additional_action = True
         self.additional_skill_list = additional_skill_list
 
-    def update_additional_action(self, actor, additional_action_list: [Action], context):
+    def update_additional_action(self, additional_move: int, context):
+        actor = self.actor
         action_disabled = get_buff_modifier("is_extra_action_disabled", actor, None, context)
         if not action_disabled:
             self.has_additional_action = True
-            self.additional_skill_list = additional_action_list
+            self.additional_action = additional_move
 
     def update_moves(self, battle_map, enemies_list) -> List[Position]:
-        return a_star_search(self.move_point, self.action_point, battle_map, self.actor.temp.flyable, enemies_list)
+        return a_star_search(self.initial_position, self.move_point, battle_map, self.actor.temp.flyable, enemies_list)
 
     def refresh_move_point(self, battle_map):
-        battle_map.hero_move(self.move_point, self.action_point)
+        battle_map.hero_move(self.initial_position, self.move_point)

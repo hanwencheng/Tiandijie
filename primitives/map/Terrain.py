@@ -1,5 +1,8 @@
-from primitives.map.TerrainBuff import TerrainBuff
-from primitives.map.TerrainType import TerrainType
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from primitives.map.TerrainBuff import TerrainBuff
+    from primitives.map.TerrainType import TerrainType
 
 
 class Collectable:
@@ -7,7 +10,7 @@ class Collectable:
 
 
 class Terrain:
-    def __init__(self, terrain_type: TerrainType):
+    def __init__(self, terrain_type: 'TerrainType'):
         self.terrain_type = terrain_type
-        self.buff: TerrainBuff or None = None
-        self.collectable: Collectable or None = None
+        self.buff: 'TerrainBuff' or None = None
+        self.collectable: 'Collectable' or None = None

@@ -3,14 +3,11 @@ from __future__ import annotations
 from random import random
 from typing import TYPE_CHECKING
 
-from calculation.damage_calculator import (
-    calculate_fix_damage,
-    calculate_magic_damage,
-    calculate_physical_damage,
-)
+
 from calculation.OtherlCalculation import (
     calculate_fix_heal,
     calculate_reset_hero_actionable,
+    calculate_fix_shield,
 )
 from helpers import random_select
 
@@ -20,10 +17,18 @@ if TYPE_CHECKING:
     from primitives.buff import BuffTemp
     from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
     from primitives.fieldbuff.FieldBuff import FieldBuff
-    from primitives.equipment.Equipment import Equipment
+    from primitives.equipment.Equipments import Equipment
+    from primitives.skill.Skill import Skill
+    from primitives.formation.Formation import Formation
+    from calculation.damage_calculator import (
+        calculate_fix_damage,
+        calculate_magic_damage,
+        calculate_physical_damage,
+    )
 from primitives.buff.Buff import Buff
 
 from primitives.map.TerrainType import TerrainType
+from primitives.hero.Element import Elements
 from typing import List
 from basics import Position
 from calculation.attribute_calculator import get_defense, get_attack, get_max_life
@@ -227,13 +232,14 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
+        primitive
     ):
-        skill_id = context.get_last_action().skill.id
+        skill_id = context.get_last_action().skill.temp.id
         for skills in actor_instance.enabled_skills:
-            if skills.id == skill_id:
-                skills.cooldown -= cooldown_reduction
-                if skills.cooldown < 0:
-                    skills.cooldown = 0
+            if skills.temp.id == skill_id:
+                skills.cool_down -= cooldown_reduction
+                if skills.cool_down < 0:
+                    skills.cool_down = 0
 
     @staticmethod
     def replace_buff(
@@ -271,6 +277,17 @@ class Effects:
             duration,
             context,
         )
+
+    @staticmethod
+    def update_self_additional_action(
+        additional_move: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        buff: Buff or Talent,
+    ):
+        action = context.get_last_action()
+        action.update_additional_action(additional_move, context)
 
     @staticmethod
     def take_effect_of_xiayi(
@@ -397,6 +414,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
+        primary: Buff or Skill or Formation,
     ):
         _add_buffs(
             actor,
@@ -758,35 +776,51 @@ class Effects:
             ]
 
     @staticmethod
-    def clear_terrain_in_range(
-        target_position: Position, is_attacker: bool, context: Context
-    ):
+    def clear_terrain_in_range(target_position: Position, context: Context):
         battlemap = context.battlemap
-        battlemap[target_position[0]][target_position[1]] = TerrainType.NORMAL
+        battlemap[target_position[1]][target_position[0]] = TerrainType.NORMAL
+
+    @staticmethod
+    def clear_terrain_by_buff_name(buff_id: str, context: Context):
+        battlemap = context.battlemap
+        battlemap.remove_terrain_buff_by_name(buff_id)
 
     @staticmethod
     def add_terrain_by_self_position(
-        terrain_buff: str, duration: int, range_value: int, actor_instance: Hero, tager_position: Position, context: Context
+        terrain_buff: str,
+        duration: int,
+        range_value: int,
+        actor_instance: Hero,
+        tager_position: Position,
+        context: Context,
     ):
         from calculation.Range import Range, RangeType
         from primitives.map.TerrainBuff import TerrainBuffTemps
 
         buff_range = Range(RangeType.DIAMOND, range_value)
-        for position in buff_range.get_area(actor_instance.position, actor_instance.position):
-            context.battlemap.add_terrain_buff(position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration)
-
+        for position in buff_range.get_area(
+            actor_instance.position, actor_instance.position
+        ):
+            context.battlemap.add_terrain_buff(
+                position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration
+            )
 
     @staticmethod
     def add_terrain_by_target_position(
-        terrain_buff: str, duration: int, range_value: int, actor_instance: Hero, target_instance: Hero, context: Context
+        terrain_buff: str,
+        duration: int,
+        range_value: int,
+        target_position: Position,
+        context: Context,
     ):
         from calculation.Range import Range, RangeType
         from primitives.map.TerrainBuff import TerrainBuffTemps
 
         buff_range = Range(RangeType.DIAMOND, range_value)
-        for position in buff_range.get_area(target_instance.position, target_instance.position):
-            context.battlemap.add_terrain_buff(position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration)
-
+        for position in buff_range.get_area(target_position, target_position):
+            context.battlemap.add_terrain_buff(
+                position, TerrainBuffTemps.get_buff_temp_by_id(terrain_buff), duration
+            )
 
     @staticmethod
     def receive_fixed_magic_damage_by_caster_magic_attack(
@@ -842,7 +876,7 @@ class Effects:
 
     @staticmethod
     def remove_actor_certain_buff(
-        buff_temp_id: str, actor: Hero, target: Hero, context: Context
+        buff_temp_id: str, actor: Hero, target: Hero, context: Context, primitive
     ):
         _remove_actor_certain_buff(buff_temp_id, actor)
 
@@ -1002,7 +1036,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
-        buff: Buff,
+        buff: Buff or Skill
     ):
         harm_buffs = random_select(context.harm_buffs, buff_count)
         _add_buffs(actor, target, harm_buffs, 2, context)
@@ -1553,7 +1587,13 @@ class Effects:
     ) -> int:
         skill = context.get_skill_by_id(skill_value)
         action = context.get_last_action()
-        action.update_additional_skill(Action.AdditionalSkill(skill, actor_hero))
+        targets = []
+        positions = skill.temp.range_value.get_area(action.move_point, action.actor)
+        for enemy in context.get_enemy_list_by_id(actor_hero.player_id):
+            if enemy.position in positions:
+                targets.append(enemy)
+        # 这里就直接计算出targets
+        action.update_additional_skill(Action.AdditionalSkill(skill, targets))
         return 1
 
     @staticmethod
@@ -1585,7 +1625,11 @@ class Effects:
 
     @staticmethod
     def add_self_field_buff(
-        buff_list: List[str], actor: Hero, duration: int, context: Context
+        buff_list: List[str],
+        actor: Hero,
+        duration: int,
+        context: Context,
+        field_buff: FieldBuff,
     ):
         _add_field_buffs(
             actor,
@@ -1782,3 +1826,195 @@ class Effects:
         else:
             buff_name = "shimo"
         Effects.add_buffs([buff_name], 1, actor_instance, target_enemy, context)
+
+    # skill effects
+
+    @staticmethod
+    def add_shield_by_self_max_life(
+        multiplier: float,
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        actor_max_life = get_max_life(actor_instance, target_instance, context)
+        shield_value = actor_max_life * multiplier
+        calculate_fix_shield(shield_value, actor_instance, actor_instance, context)
+
+    @staticmethod
+    def take_effect_of_leiyinwanyu(actor_instance: Hero, target_instance: Hero, context: Context, skill: Skill):
+        actor_instance.transfor_enable_skill("leiyinwanyu", "tianshanluanhun")
+        action = context.get_last_action()
+        enemies = context.get_enemies_in_square_range(actor_instance, action.action_point, 2)
+        partner_positions = set(context.get_all_partners_position(actor_instance))
+
+        map_rule = [
+            [5, 10, 15, 20, 25],
+            [4, 9, 14, 19, 24],
+            [3, 8, "*", 18, 23],
+            [2, 7, 12, 17, 22],
+            [13, 6, 11, 16, 21],
+        ]
+
+        def get_priority(enemy):
+            dx = enemy.position[0] - action.action_point[0] + 2
+            dy = enemy.position[1] - action.action_point[1] + 2
+            return map_rule[dy][dx]
+
+        sorted_enemies = sorted(enemies, key=get_priority)
+
+        teleport_rules = [
+            (0, 1), (-1, 0), (1, 0), (0, -1),
+            (-1, 1), (1, 1), (-1, -1), (1, -1),
+            (0, 2), (-2, 0), (2, 0), (0, -2),
+            (-1, 2), (1, 2), (-2, 1), (2, 1),
+            (-2, -1), (2, -1), (-1, -2), (1, -2)
+        ]
+
+        used_positions = set()
+
+        def is_valid_position(new_position):
+            if new_position in used_positions:
+                return False
+            terrain = context.battlemap.get_terrain(new_position)
+            if not terrain:
+                return False
+            if new_position in partner_positions:
+                return False
+            if terrain.terrain_type in {TerrainType.IMPASSABLE_OBSTACLE, TerrainType.ZHUOWU}:
+                return False
+            if not enemy.temp.flyable and terrain.terrain_type == TerrainType.FLYABLE_OBSTACLE:
+                return False
+            return True
+
+        for enemy in sorted_enemies:
+            for dx, dy in teleport_rules:
+                new_position = (actor_instance.position[0] + dx, actor_instance.position[1] + dy)
+                if is_valid_position(new_position):
+                    context.teleport_hero(enemy, new_position)
+                    used_positions.add(new_position)
+                    break  # Exit inner loop once a valid position is found
+
+        now_enemies = context.get_enemies_in_square_range(actor_instance, action.action_point, 2)
+        if len(now_enemies) >= 3:
+            action.update_additional_action(0, context)
+
+    @staticmethod
+    def take_effect_of_tianshanluanhun(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        actor_instance.transfor_enable_skill("tianshanluanhun", "leiyinwanyu", 3)
+
+    @staticmethod
+    def take_effect_of_anshayouyan(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        pass
+
+    @staticmethod
+    def take_effect_of_juezhanwushuang(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        actor_instance.transfor_enable_skill("juezhanwushuang", "yanjinliexiong", 0)
+
+    @staticmethod
+    def take_effect_of_yanjinliexiong(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        actor_instance.transfor_enable_skill("yanjinliexiong", "juezhanwushuang", 2)
+
+    @staticmethod
+    def take_effect_of_chiqilingyao(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        action = context.get_last_action()
+        for target in action.targets:
+            buff_list = ["ranshao"]
+            position = target.position
+            terrain_buff = context.battlemap.get_terrain(position).buff
+            if "chiwuqi" == terrain_buff.temp.id:
+                buff_list.append("wangxiao")
+            Effects.add_buffs(buff_list, 2, actor_instance, target, context)
+
+    @staticmethod
+    def take_effect_of_buqi(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        target_position = context.get_last_action().action_point
+        Effects.add_terrain_by_target_position(
+            "chiwuqi", 15, 2, target_position, context
+        )
+        context.battlemap.set_terrain_type(target_position, TerrainType.CHIWUQI)
+
+    @staticmethod
+    def take_effect_of_yanranchuanyun(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        action = context.get_last_action()
+        Effects.add_self_buffs(["ranyan"], 2, actor_instance, None, context, skill)
+        action.update_additional_action(3, context)
+
+    @staticmethod
+    def take_effect_of_diyuzhizhen(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        action = context.get_last_action()
+        for target in action.targets:
+            Effects.add_buffs(["pijia"], 3, actor_instance, target, context)
+
+    @staticmethod
+    def take_effect_of_shiguizhaohuan(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        pass
+
+    @staticmethod
+    def take_effect_of_jingangfalun(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        action = context.get_last_action()
+        for target in action.targets:
+            Effects.add_certain_buff_with_level(actor_instance, target, "luanshen", 2, 2, context)
+            if target.temp.element in {Elements.DARK, Elements.WATER}:
+                Effects.add_buffs(["yazhi"], 1, actor_instance, target, context)
+
+    @staticmethod
+    def take_effect_of_luohouzhenfa(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        skill: Skill,
+    ):
+        for other_skill in actor_instance.enabled_skills:
+            if other_skill.temp.id in {"tianshuangxuewu", "wutianheiyan", "lihuoshenjue"}:
+                other_skill.cool_down = skill.cool_down

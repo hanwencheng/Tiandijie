@@ -17,7 +17,7 @@ class Talent:
         if event_listeners is None:
             event_listeners = []
         self.id = talent_id
-        self.hero_id = hero_id
+        self.caster_id = hero_id
         self.modifier_effects = effects
         self.trigger: int = 0
         self.cooldown: int = 0

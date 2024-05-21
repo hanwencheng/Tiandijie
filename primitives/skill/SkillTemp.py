@@ -31,7 +31,7 @@ class SkillTemp:
         target_type: SkillTargetTypes,
         max_cool_down: int,
         distance: Distance,
-        range_vale: Range,
+        range_instance: Range,
         multiplier: float,
         effects: List[ModifierEffect] = None,
         event_listeners: List[EventListener] = None,
@@ -47,7 +47,7 @@ class SkillTemp:
         self.skill_type = skill_type
         self.target_type = target_type
         self.distance = distance
-        self.range_value = range_vale
+        self.range_instance = range_instance
         self.multiplier = multiplier
         self.modifier_effects = effects
         self.event_listeners = event_listeners
@@ -116,7 +116,7 @@ def create_normal_attack_skill(
         0,
         element,
         skill_type,
-        SkillTargetTypes.ENEMY_SINGLE,
+        SkillTargetTypes.ENEMY,
         0,
         distance_profession_dict[profession],
         Range(RangeType.POINT, 1),

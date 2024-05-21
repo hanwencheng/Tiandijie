@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from primitives.Action import Action
 
 from calculation.attribute_calculator import *
-from primitives.hero import Hero
 from calculation.event_calculator import event_listener_calculator
 from primitives.effects.Event import EventTypes
 

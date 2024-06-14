@@ -25,6 +25,7 @@ from calculation.Range import (
 class Hero:
     def __init__(self, player_id: int, hero_temp: HeroTemp, init_position):
         self.id = hero_temp.temp_id + str(player_id)
+        self.name = hero_temp.name + str(player_id)
         self.player_id = player_id
         self.temp: HeroTemp = hero_temp
         self.equipments = []
@@ -47,6 +48,7 @@ class Hero:
         self.actionable_list: [Hero] = []
         self.energy: int = 0
         self.shield: int = 0
+        self.receive_damage: int = 0
 
     def initialize_attributes(self):
         initial_attributes = generate_max_level_attributes(
@@ -62,6 +64,7 @@ class Hero:
         if harm_value > 0:
             damage = max(harm_value - self.shield, 0)
             self.shield = max(self.shield - harm_value, 0)
+            self.receive_damage += damage
             self.current_life = max(self.current_life - damage, 0)
 
     def take_healing(self, healing_value: float):
@@ -87,8 +90,10 @@ class Hero:
 
     def reset_actionable(self, context, move_range=None):
         self.actionable = True
-        if context.get_last_action().has_additional_action:
-            print("再动后的", self.id, move_range)
+        # if context.get_last_action().has_additional_action:
+        #     print("再动后的", self.id, move_range)
+        # else:
+        #     print("calculation new action")
         self.initialize_actionable_hero(context, move_range)
 
     def initialize_movable_range(self, battlemap, hero_list, move_range):
@@ -119,6 +124,8 @@ class Hero:
             move_range = self.temp.hide_professions.value[2] + get_level2_modifier(self, None, "move_range", context)
 
         self.initialize_movable_range(context.battlemap, hero_list, move_range)
+        if self.id == "mohuahuangfushen1":
+            print(0, len(self.actionable_list))
 
         # 处理可移动的Action
         for position in self.movable_range:
@@ -158,7 +165,7 @@ class Hero:
                         hero_in_skill.extend(partner for partner in partner_list if skill.temp.range_instance.check_if_target_in_range(moveable_position, moveable_position, partner.position))
 
                         new_action = Action(self, hero_in_skill, skill, moveable_position, moveable_position)
-                        new_action.update_action_type(ActionTypes.SUPPORT)
+                        new_action.update_action_type(ActionTypes.SELF)
                         self.actionable_list.append(new_action)
                     elif skill.temp.skill_type in {SkillType.Physical, SkillType.Magical}:
                         enemy_list = [hero for hero in hero_list if hero.player_id != self.player_id]
@@ -166,27 +173,55 @@ class Hero:
 
                         if hero_in_skill:
                             new_action = Action(self, hero_in_skill, skill, moveable_position, moveable_position)
-                            new_action.update_action_type(ActionTypes.SKILL_ATTACK)
+                            new_action.update_action_type(ActionTypes.SELF)
                             self.actionable_list.append(new_action)
                 else:
-                    target_hero_list = [hero for hero in hero_list if (skill.temp.target_type == SkillTargetTypes.ENEMY and hero.player_id != self.player_id) or (skill.temp.target_type != SkillTargetTypes.ENEMY and hero.player_id == self.player_id)]
+                    def get_new_action(self, hero_in_skill, skill, moveable_position, target_position):
+                        new_action = Action(self, hero_in_skill, skill, moveable_position, target_position)
+                        if skill.temp.skill_type == SkillType.Support:
+                            new_action.update_action_type(ActionTypes.SUPPORT)
+                        elif skill.temp.skill_type == SkillType.Heal:
+                            new_action.update_action_type(ActionTypes.HEAL)
+                        elif skill.temp.skill_type in {SkillType.Physical, SkillType.Magical}:
+                            new_action.update_action_type(ActionTypes.SKILL_ATTACK)
+                        return new_action
+
+                    def get_hero_in_skill(target, target_hero_list, skill, moveable_position):
+                        return [target] + [
+                            effect_hero for effect_hero in target_hero_list
+                            if effect_hero != target and skill.temp.range_instance.check_if_target_in_range(
+                                moveable_position, target.position, effect_hero.position
+                            )
+                        ]
+
+                    target_hero_list = [
+                        hero for hero in hero_list if
+                        (skill.temp.target_type == SkillTargetTypes.ENEMY and hero.player_id != self.player_id) or
+                        (skill.temp.target_type != SkillTargetTypes.ENEMY and hero.player_id == self.player_id)
+                    ]
+
+                    skill_new_distance = (
+                            skill.temp.distance.distance_value +
+                            get_level2_modifier(self, None, "active_skill_range", context) +
+                            get_level2_modifier(
+                                self,
+                                None,
+                                "single_skill_range" if skill.temp.range_instance.range_value == 0 else "range_skill_range",
+                                context
+                            )
+                    )
 
                     for target in target_hero_list:
-                        skill_new_distance = skill.temp.distance.distance_value + get_level2_modifier(self, None, "active_skill_range", context)
-                        skill_new_distance += get_level2_modifier(self, None, "single_skill_range" if skill.temp.range_instance.range_value == 0 else "range_skill_range", context)
+                        hero_in_skill = get_hero_in_skill(target, target_hero_list, skill, moveable_position)
 
-                        if calculate_if_targe_in_diamond_range(moveable_position, target.position, int(skill_new_distance)):
-                            hero_in_skill = [target] + [effect_hero for effect_hero in target_hero_list if effect_hero != target and skill.temp.range_instance.check_if_target_in_range(moveable_position, target.position, effect_hero.position)]
-
-                            new_action = Action(self, hero_in_skill, skill, moveable_position, target.position)
-                            if skill.temp.skill_type == SkillType.Support:
-                                new_action.update_action_type(ActionTypes.SUPPORT)
-                            elif skill.temp.skill_type == SkillType.Heal:
-                                new_action.update_action_type(ActionTypes.HEAL)
-                            elif skill.temp.skill_type in {SkillType.Physical, SkillType.Magical}:
-                                new_action.update_action_type(ActionTypes.SKILL_ATTACK)
+                        if self == target:
+                            new_action = get_new_action(self, hero_in_skill, skill, moveable_position,
+                                                        moveable_position)
                             self.actionable_list.append(new_action)
-
+                        elif calculate_if_targe_in_diamond_range(moveable_position, target.position,
+                                                                 int(skill_new_distance)):
+                            new_action = get_new_action(self, hero_in_skill, skill, moveable_position, target.position)
+                            self.actionable_list.append(new_action)
 
     def transfor_enable_skill(
         self, old_skill_name: str, new_skill_name: str, init_skill_cooldown: int = 0
@@ -194,15 +229,7 @@ class Hero:
         for skill in self.enabled_skills:
             if skill.temp.id == old_skill_name:
                 self.enabled_skills.remove(skill)
+                self.enabled_skills.append(
+                    Skill(init_skill_cooldown, Skills.get_skill_by_id(new_skill_name))
+                )
                 break
-        self.enabled_skills.append(
-            Skill(init_skill_cooldown, Skills.get_skill_by_id(new_skill_name))
-        )
-        # for skill in self.enabled_skills:
-        #     print(22222, skill.temp.id)
-        # if skill.temp.id == "leiyinwanyu" and self.player_id == 0:
-        #     print(moveable_position, target.position, int(skill_new_distance),  calculate_if_targe_in_diamond_range(
-        #         moveable_position,
-        #         target.position,
-        #         int(skill_new_distance),
-        #     ))

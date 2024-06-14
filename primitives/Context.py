@@ -29,7 +29,7 @@ from calculation.Range import (
 
 from primitives.map.Terrain import Terrain
 
-type TerrainMap = List[List[Terrain]]
+TerrainMap = List[List[Terrain]]
 
 
 class Context:
@@ -37,11 +37,12 @@ class Context:
         self.heroes: List[Hero] = []
         self.formation: List[Formation] = []
         self.actions: List[Action] = []
-        self.harm_buffs_temps: Dict[str, BuffTemp] = {}
+        self.harm_buffs_temps: List[BuffTemp] = []
         self.benefit_buffs_temps: Dict[str, BuffTemp] = {}
         self.fieldbuffs_temps: Dict[str, FieldBuffTemp] = {}
         self.all_buffs_temps: Dict[str, BuffTemp] = {}
         self.battlemap = None
+        self.cemetery = []
 
     def add_action(self, action):
         self.actions.append(action)
@@ -106,13 +107,13 @@ class Context:
         from primitives.buff.buffs import BuffTemps
 
         all_buffs = {}
-        harm_buffs = {}
+        harm_buffs = []
         benefit_buffs = {}
         fieldbuffs = {}
         for buff in BuffTemps:
             all_buffs[buff.value.id] = buff.value
             if buff.value.type == BuffTypes.Harm:
-                harm_buffs[buff.value.id] = buff.value
+                harm_buffs.append(buff.value)
             elif buff.value.type == BuffTypes.Benefit:
                 benefit_buffs[buff.value.id] = buff.value
         self.all_buffs_temps = all_buffs
@@ -147,9 +148,12 @@ class Context:
         return [hero for hero in self.heroes if hero.player_id != player_id]
 
     def set_hero_died(self, hero: Hero):
+        if not hero.is_alive:
+            return
         hero.is_alive = False
-        print(hero.id, "死亡")
+        # print(hero.id, "died in position", hero.position)
         self.heroes.remove(hero)
+        self.cemetery.append(hero)
         self.battlemap.remove_hero(hero.position)
 
     def get_actor_by_side_in_battle(self, is_attacker: bool) -> Hero:
@@ -167,7 +171,14 @@ class Context:
             return [current_action.actor]
 
     def get_hero_by_id(self, hero_id: str) -> Hero:
-        return [hero for hero in self.heroes if hero.id == hero_id][0]
+        target = None
+        for hero in self.heroes:
+            if hero.id == hero_id:
+                target = hero
+        for hero in self.cemetery:
+            if hero.id == hero_id:
+                target = hero
+        return target
 
     def get_hero_list_by_id(self, hero_id: str) -> List[Hero]:
         return [hero for hero in self.heroes if hero.id == hero_id]
@@ -175,7 +186,7 @@ class Context:
     def teleport_hero(self, hero, new_position):
         old_position = hero.position
         hero.position = new_position
-        print(hero.id, old_position, new_position)
+        # print(hero.id, old_position, new_position)
         self.battlemap.hero_move(old_position, new_position)
 
     def init_formation(self):
@@ -245,7 +256,7 @@ class Context:
         mohuahuangfushen = Hero(
             0,
             HeroeTemps.mohuahuangfushen.value,
-            (8, 8),
+            (8, 2),
         )
         mohuahuangfushen.equipments = [Equipments.bingchanchuanzhu_chen.value, Equipments.yurenjinpei.value,
                                        Equipments.xuanqueyaodai.value, Equipments.zanghaijie.value]
@@ -259,6 +270,7 @@ class Context:
             0,
             HeroeTemps.fuyayu.value,
             (8, 1),
+            # (8, 9),
         )
         fuyayu.equipments = [Equipments.longguxianglian_chen.value, Equipments.pixieyupei_yan.value,
                              Equipments.jiaorenbeige_yan.value, Equipments.youyaoxiuhuan.value]
@@ -324,6 +336,7 @@ class Context:
             1,
             HeroeTemps.fuyayu.value,
             (2, 9),
+            # (7, 10),
         )
         fuyayu.equipments = [Equipments.longguxianglian_chen.value, Equipments.pixieyupei_yan.value,
                              Equipments.jiaorenbeige_yan.value, Equipments.youyaoxiuhuan.value]
@@ -352,6 +365,7 @@ class Context:
             1,
             HeroeTemps.zhenyin.value,
             (1, 8),
+            # (7, 9),
         )
         zhenyin.equipments = [Equipments.feiquanmingyu.value, Equipments.lingyuepeihuan_yan.value,
                               Equipments.yanshanpei.value, Equipments.huanniaojie.value]
@@ -378,6 +392,20 @@ class Context:
         for hero in self.heroes:
             self.battlemap.add_hero(hero.position)
 
-    # def refresh_heroes_attackabled(self):
-    #     for hero in self.heroes:
-    #         hero.initialize_attackable_hero(self.heroes)
+    def calculate_score(self, player: int) -> float:
+        score = 0.0
+        for hero in self.cemetery:
+            if hero.player_id != player:
+                score += 50000
+                score += hero.receive_damage
+        for hero in self.heroes:
+            if hero.player_id != player:
+                score += hero.receive_damage
+        return score
+
+    def get_hero_by_hero_id(self, id: str) -> Hero:
+        return [hero for hero in self.heroes if hero.id == id][0]
+
+def transform_map_id(map_id: str):
+    transform_rule = {"妖山幻境": "yaoshanhuanjing"}
+    return transform_rule[map_id]

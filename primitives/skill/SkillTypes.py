@@ -4,8 +4,8 @@ import enum
 class SkillTargetTypes(enum.Enum):
     ENEMY = 0
     PARTNER = 1
-    TERRAIN = 3
-    SELF = 4
+    TERRAIN = 2
+    SELF = 3
 
 
 class SkillType(enum.IntEnum):

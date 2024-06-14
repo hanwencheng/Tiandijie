@@ -25,6 +25,7 @@ class SkillTemp:
     def __init__(
         self,
         skill_temp_id: str,
+        chinese_name: str,
         cost: int,
         skill_element: Elements,
         skill_type: SkillType,
@@ -41,6 +42,7 @@ class SkillTemp:
         if event_listeners is None:
             event_listeners = []
         self.id = skill_temp_id
+        self.chinese_name = chinese_name
         self.max_cool_down = max_cool_down
         self.cost = cost
         self.element = skill_element

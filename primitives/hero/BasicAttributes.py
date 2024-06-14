@@ -1,7 +1,7 @@
 import enum
 
-type MoveRange = (int, int)  # (move_type, move_range, attack_range)
-type AttributesTuple = (
+MoveRange = (int, int)  # (move_type, move_range, attack_range)
+AttributesTuple = (
     float, float, float, float, float, float)  # (life, attack, defense, magic_attack, magic_defense, luck)
 
 

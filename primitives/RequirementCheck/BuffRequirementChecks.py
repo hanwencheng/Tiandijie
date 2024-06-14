@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from primitives.Context import Context
     from primitives.hero.Hero import Hero
     from primitives.buff.Buff import Buff
-    from primitives.buff.BuffTemp import BuffTypes
+from primitives.buff.BuffTemp import BuffTypes
 
 
 class BuffRequirementChecks:
@@ -131,7 +131,7 @@ class BuffRequirementChecks:
 
     @staticmethod
     def self_harm_buff_count_smaller_than(
-        count: int, actor_hero: Hero, target_hero: Hero, context: Context
+        count: int, actor_hero: Hero, target_hero: Hero, context: Context, primitive
     ) -> int:
         harm_buff_count = 0
         for buff in actor_hero.buffs:

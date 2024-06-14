@@ -197,7 +197,7 @@ class RequirementCheck:
 
     @staticmethod
     def is_battle_attack_target(
-        actor_hero: Hero, target_hero: Hero, context: Context
+        actor_hero: Hero, target_hero: Hero, context: Context, primitive
     ) -> int:
         action = context.get_last_action()
         return _is_attacker(target_hero, context) and action.is_in_battle
@@ -255,7 +255,7 @@ class RequirementCheck:
     ) -> int:
         action = context.get_last_action()
         if _is_attacker(actor_hero, context):
-            if action.skill.temp.element == element_value:
+            if action.skill and action.skill.temp.element == element_value:
                 return 1
         return 0
 

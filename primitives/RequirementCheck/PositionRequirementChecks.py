@@ -232,6 +232,7 @@ class PositionRequirementChecks:
         actor_hero: Hero,
         target_hero: Hero,
         context: Context,
+        primitive
     ) -> int:
         actor_position = actor_hero.position
         count = 0
@@ -395,7 +396,7 @@ class PositionRequirementChecks:
         actor_hero: Hero,
         target_hero: Hero,
         context: Context,
-        passive: Passive,
+        passive
     ) -> int:
         action = context.get_last_action()
         actor_position = action.move_point

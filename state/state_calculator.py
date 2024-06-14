@@ -46,19 +46,19 @@ def check_if_in_battle(action: Action, context: Context):
     ):
         defender = action.get_defender_hero_in_battle()
         be_protected = action.targets[0]
-        if check_if_counterattack(action.actor, defender, context):
-            if (
-                action.type == ActionTypes.NORMAL_ATTACK
-                and calculate_if_targe_in_diamond_range(
-                    # action.action_point, be_protected.position, action.actor.temp.hide_professions.value[1]
+        # if check_if_counterattack(action.actor, defender, context):
+        if (
+            action.type == ActionTypes.NORMAL_ATTACK
+            and calculate_if_targe_in_diamond_range(
+                # action.action_point, be_protected.position, action.actor.temp.hide_professions.value[1]
                 action.action_point, be_protected.position, get_attack_range(action.actor, context)
-                )
-                or (action.skill and check_if_target_in_skill_attack_range(
-                    action.actor, be_protected, action.skill
-                ))
-            ):
-                action.update_is_in_battle(True)
-                return True
+            )
+            or (action.skill and check_if_target_in_skill_attack_range(
+                action.actor, be_protected, action.skill
+            ))
+        ):
+            action.update_is_in_battle(True)
+            return True
     else:
         return False
 

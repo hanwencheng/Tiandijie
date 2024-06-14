@@ -149,7 +149,7 @@ def check_in_battle(context: Context) -> bool:
 def get_max_life(
     hero_instance: Hero, target_instance: Hero, context: Context, is_basic: bool = False
 ) -> float:
-    life_attribute = hero_instance.initial_attribute.life
+    life_attribute = hero_instance.initial_attributes.life
     basic_life = get_level1_modified_result(hero_instance, ma.life, life_attribute)
     return basic_life * (
         1

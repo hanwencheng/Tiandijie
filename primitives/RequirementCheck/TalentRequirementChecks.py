@@ -78,7 +78,7 @@ class TalentRequirementChecks:
 
     @staticmethod
     def linqiqiongyu_requires_check(
-        actor_hero: Hero, target_hero: Hero, context: Context
+        actor_hero: Hero, target_hero: Hero, context: Context, primitive
     ) -> int:
         enemies = context.get_enemies_in_diamond_range(actor_hero, 3)
         if not enemies:

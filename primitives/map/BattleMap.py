@@ -4,7 +4,7 @@ from primitives.map.Terrain import Terrain
 from primitives.map.TerrainType import TerrainType
 from primitives.map.TerrainBuff import TerrainBuff
 
-type TerrainMap = List[List[Terrain]]
+TerrainMap = List[List[Terrain]]
 
 
 class BattleMap:

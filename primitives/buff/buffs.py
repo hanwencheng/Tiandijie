@@ -104,8 +104,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.add_fixed_damage_with_attack_and_defense,
-                    multiplier=0.3,
-                    is_magic=False,
+                    0.3,
+                    False,
                 ),
             ),
             EventListener(
@@ -113,7 +113,7 @@ class BuffTemps(Enum):
                 2,
                 RS.always_true,
                 partial(
-                    Effects.add_target_harm_buffs, buff_temp=["chihuan"], duration=2
+                    Effects.add_target_harm_buffs, ["chihuan"], 2
                 ),
             ),
         ],
@@ -138,14 +138,14 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(
-                    Effects.add_partner_harm_buffs, buff_number=1, range=2, duration=2
+                    Effects.add_partner_harm_buffs, 1, 2, 2
                 ),
             ),
             EventListener(
                 EventTypes.partner_action_end,
                 1,
                 partial(RS.PositionChecks.has_partner_in_range, 1),
-                partial(Effects.remove_target_certain_buff, buff_id="jinbi"),
+                partial(Effects.remove_target_certain_buff, "jinbi"),
             ),
         ],
     )
@@ -186,7 +186,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_magic_damage_by_caster_magic_attack,
-                    multiplier=0.5,
+                    0.5,
                 ),
             )
         ],
@@ -206,7 +206,7 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(
-                    Effects.receive_fixed_damage_by_max_life_percentage, percentage=0.1
+                    Effects.receive_fixed_damage_by_max_life_percentage, 0.1
                 ),
             ),
             EventListener(
@@ -215,8 +215,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.take_fixed_damage_by_percentage_per_each_move,
-                    percentage=0.05,
-                    max_percentage=0.15,
+                    0.05,
+                    0.15,
                 ),
             ),
         ],
@@ -249,6 +249,7 @@ class BuffTemps(Enum):
                 )
             ],
         ],
+        [],
     )
 
     # 云隐	其他	不可驱散	不可扩散	不可偷取	无法作为目标被选中，主动造成伤害或者承受1次范围伤害后状态消失
@@ -344,7 +345,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 3,
                 partial(RS.is_battle_attack_target),
-                partial(Effects.heal_self, multiplier=0.5),
+                partial(Effects.heal_self, 0.5),
             ),
         ],
     )
@@ -362,7 +363,7 @@ class BuffTemps(Enum):
                 EventTypes.skill_for_partner_end,
                 1,
                 partial(RS.LifeChecks.life_not_full),
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=1),
+                partial(Effects.heal_self_by_caster_magic_attack, 1),
             )
         ],
     )
@@ -379,7 +380,7 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                partial(RS.BuffChecks.self_buff_stack_reach, 3, buff_id="xiayi"),
+                partial(RS.BuffChecks.self_buff_stack_reach, 3, "xiayi"),
                 partial(Effects.take_effect_of_xiayi),
             ),
         ],
@@ -844,13 +845,13 @@ class BuffTemps(Enum):
                 EventTypes.normal_attack_end,
                 1,
                 RS.always_true,
-                partial(Effects.increase_target_harm_buff_level, buff_level=1),
+                partial(Effects.increase_target_harm_buff_level, 1),
             ),
             EventListener(
                 EventTypes.skill_end,
                 1,
                 partial(RS.target_is_enemy),
-                partial(Effects.increase_target_harm_buff_level, buff_level=1),
+                partial(Effects.increase_target_harm_buff_level, 1),
             ),
         ],
     )
@@ -1034,7 +1035,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.add_fixed_damage_with_physical_and_magic_attack,
-                    multiplier=0.5,
+                    0.5,
                 ),
             ),
             EventListener(
@@ -1099,8 +1100,8 @@ class BuffTemps(Enum):
                 partial(RS.jianjue_requires_check),
                 partial(
                     Effects.reduce_actor_certain_buff_stack,
-                    buff_id="jianjue",
-                    stack_value=2,
+                    "jianjue",
+                    2,
                 ),
             ),
         ],
@@ -1253,7 +1254,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self, multiplier=0.2),
+                partial(Effects.heal_self, 0.2),
             )
         ],
     )
@@ -1284,7 +1285,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.battle_with_caster),
-                partial(Effects.stolen_self_benefit_buff_by_caster, buff_count=3),
+                partial(Effects.stolen_self_benefit_buff_by_caster, 3),
             )
         ],
     )
@@ -1393,13 +1394,13 @@ class BuffTemps(Enum):
                 EventTypes.damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_fixed_damage_with_physical_attack, multiplier=0.5),
+                partial(Effects.add_fixed_damage_with_physical_attack, 0.5),
             ),
             EventListener(
                 EventTypes.damage_end,
                 1,
                 partial(RS.LifeChecks.target_life_is_below, 50),
-                partial(Effects.add_fixed_damage_with_physical_attack, multiplier=0.5),
+                partial(Effects.add_fixed_damage_with_physical_attack, 0.5),
             ),
         ],
     )
@@ -1422,7 +1423,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.heal_self, multiplier=0.5),
+                partial(Effects.heal_self, 0.5),
             )
         ],
     )
@@ -1491,7 +1492,7 @@ class BuffTemps(Enum):
                 partial(RS.PositionChecks.in_range, 3),
                 partial(
                     Effects.receive_fixed_damage_by_current_life_percentage,
-                    multiplier=0.3,
+                    0.3,
                 ),
             ),
             EventListener(
@@ -1517,7 +1518,7 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.PositionChecks.in_range, 3),
                 partial(
-                    Effects.heal_partner_and_add_benefit_buff_by_caster, multiplier=0.5
+                    Effects.heal_partner_and_add_benefit_buff_by_caster, 0.5
                 ),
             ),
         ],
@@ -1644,7 +1645,7 @@ class BuffTemps(Enum):
                 EventTypes.buff_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.7),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.7),
             ),
         ],
     )
@@ -1785,7 +1786,7 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 partial(
                     Effects.receive_fixed_damage_by_current_life_percentage,
-                    multiplier=0.5,
+                    0.5,
                 ),
             )
         ],
@@ -1828,7 +1829,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self, multiplier=0.15),
+                partial(Effects.heal_self, 0.15),
             )
         ],
     )
@@ -1921,7 +1922,7 @@ class BuffTemps(Enum):
                 EventTypes.under_critical_damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self, multiplier=0.3),
+                partial(Effects.heal_self, 0.3),
             )
         ],
     )
@@ -2151,9 +2152,7 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(
-                    Effects.receive_fixed_damage_by_caster_physical_attack,
-                    multiplier=0.7,
-                    is_magic=False,
+                    Effects.receive_fixed_damage_by_caster_physical_attack, 0.7
                 ),
             ),
             EventListener(
@@ -2457,8 +2456,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.heal_least_partner_health_by_physical_attack_in_range,
-                    multiplier=0.7,
-                    range_value=2,
+                    0.7,
+                    2,
                 ),
             ),
         ],
@@ -2509,7 +2508,7 @@ class BuffTemps(Enum):
                 EventTypes.under_damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_and_caster_damage, multiplier=0.3),
+                partial(Effects.heal_self_and_caster_damage, 0.3),
             ),
         ],
     )
@@ -2527,7 +2526,7 @@ class BuffTemps(Enum):
                 EventTypes.damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_and_transfer_self_harm_buff, multiplier=0.4),
+                partial(Effects.heal_self_and_transfer_self_harm_buff, 0.4),
             ),
         ],
     )
@@ -2580,7 +2579,7 @@ class BuffTemps(Enum):
                 partial(RS.self_is_used_active_skill),
                 partial(
                     Effects.add_fixed_damage_in_range_by_caster_physical_attack,
-                    multiplier=0.15,
+                    0.15,
                 ),
             ),
         ],
@@ -2736,8 +2735,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_damage_with_maxlife_and_losslife,
-                    multiplier=0.08,
-                    multiplier2=0.2,
+                    0.08,
+                    0.2,
                 ),
             ),
         ],
@@ -2756,7 +2755,7 @@ class BuffTemps(Enum):
                 EventTypes.skill_for_partner_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_buffs, buff_temp=["nique"], duration=1),
+                partial(Effects.add_buffs, ["nique"], 1),
             ),
             EventListener(
                 EventTypes.skill_for_partner_end,
@@ -2780,7 +2779,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 partial(RS.BuffChecks.buff_stack_bigger_than, 4),
-                partial(Effects.add_buffs, buff_temp=["yunxuan"], duration=1),
+                partial(Effects.add_buffs, ["yunxuan"], 1),
             ),
         ],
     )
@@ -2812,7 +2811,7 @@ class BuffTemps(Enum):
                     EventTypes.action_end,
                     1,
                     partial(RS.PositionChecks.in_range, 2),
-                    partial(Effects.heal_self_and_remove_harm_buffs, multiplier=0.5),
+                    partial(Effects.heal_self_and_remove_harm_buffs, 0.5),
                 )
             ],
             [
@@ -2820,7 +2819,7 @@ class BuffTemps(Enum):
                     EventTypes.action_end,
                     1,
                     partial(RS.PositionChecks.in_range, 3),
-                    partial(Effects.heal_self_and_remove_harm_buffs, multiplier=0.5),
+                    partial(Effects.heal_self_and_remove_harm_buffs, 0.5),
                 )
             ],
             [
@@ -2828,7 +2827,7 @@ class BuffTemps(Enum):
                     EventTypes.action_end,
                     1,
                     partial(RS.PositionChecks.in_range, 3),
-                    partial(Effects.heal_self_and_remove_harm_buffs, multiplier=0.5),
+                    partial(Effects.heal_self_and_remove_harm_buffs, 0.5),
                 ),
                 EventListener(
                     EventTypes.action_end,
@@ -2853,7 +2852,7 @@ class BuffTemps(Enum):
                 EventTypes.under_magic_damage_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self, multiplier=0.3),
+                partial(Effects.heal_self, 0.3),
             ),
         ],
     )
@@ -2932,7 +2931,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_damage_by_caster_physical_attack,
-                    multiplier=0.3,
+                    0.3,
                 ),
             ),
         ],
@@ -2962,7 +2961,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.5),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.5),
             ),
         ],
     )
@@ -3125,7 +3124,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.heal_self_by_damage, multiplier=0.5),
+                partial(Effects.heal_self_by_damage, 0.5),
             ),
             EventListener(
                 EventTypes.battle_end,
@@ -3160,7 +3159,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.is_battle_attack_target),
-                partial(Effects.heal_self, multiplier=0.2),
+                partial(Effects.heal_self, 0.2),
             ),
             EventListener(
                 EventTypes.battle_start,
@@ -3184,7 +3183,7 @@ class BuffTemps(Enum):
                 EventTypes.under_damage_end,
                 1,
                 partial(RS.is_attack_target),
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.5),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.5),
             ),
             EventListener(
                 EventTypes.under_damage_end,
@@ -3192,8 +3191,8 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.add_fixed_damage_in_diamond_range_by_caster_magic_attack,
-                    rangevalue=2,
-                    multiplier=0.4,
+                    2,
+                    0.4,
                 ),
             ),
         ],
@@ -3272,8 +3271,8 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 partial(
                     Effects.add_fixed_damage_in_range_by_caster_magic_attack,
-                    rangevalue=2,
-                    multiplier=0.3,
+                    2,
+                    0.3,
                 ),
             ),
         ],
@@ -3291,9 +3290,9 @@ class BuffTemps(Enum):
             EventListener(
                 EventTypes.action_end,
                 1,
-                RS.always_true,
+               RS.always_true,
                 partial(
-                    Effects.receive_fixed_damage_by_max_life_percentage, multiplier=0.12
+                    Effects.receive_fixed_damage_by_max_life_percentage, 0.12
                 ),
             ),
         ],
@@ -3427,7 +3426,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.wangzhezitai_requires_check),
-                partial(Effects.add_shield, multiplier=1),
+                partial(Effects.add_shield, 1),
             )
         ],
     )
@@ -3445,7 +3444,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.5),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.5),
             ),
             EventListener(
                 EventTypes.battle_end,
@@ -3486,7 +3485,7 @@ class BuffTemps(Enum):
                 1,
                 partial(RS.is_attacker),
                 partial(
-                    Effects.add_fixed_damage_by_caster_physical_attack, multiplier=0.3
+                    Effects.add_fixed_damage_by_caster_physical_attack, 0.3
                 ),
             ),
             EventListener(
@@ -3550,7 +3549,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.3),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.3),
             ),
         ],
     )
@@ -3746,15 +3745,15 @@ class BuffTemps(Enum):
                 partial(RS.is_attack_target),
                 partial(
                     Effects.add_fixed_damage_in_range_by_physical_defense,
-                    rangevalue=1,
-                    multiplier=1,
+                    1,
+                    1,
                 ),
             ),
             EventListener(
                 EventTypes.battle_start,
                 1,
                 partial(RS.is_attack_target),
-                partial(Effects.add_buffs, buff_temp=["fengjin"], duration=1),
+                partial(Effects.add_buffs, ["fengjin"], 1),
             ),
         ],
     )
@@ -3904,7 +3903,7 @@ class BuffTemps(Enum):
                 1,
                 RS.always_true,
                 partial(
-                    Effects.receive_fixed_damage_by_max_life_percentage, multiplier=0.2
+                    Effects.receive_fixed_damage_by_max_life_percentage, 0.2
                 ),
             ),
         ],
@@ -3956,7 +3955,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_damage, multiplier=0.5),
+                partial(Effects.heal_self_by_damage, 0.5),
             ),
             EventListener(
                 EventTypes.action_end,
@@ -3964,7 +3963,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_damage_by_current_life_percentage,
-                    multiplier=0.25,
+                    0.25,
                 ),
             ),
         ],
@@ -4003,8 +4002,8 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 partial(
                     Effects.add_fixed_damage_in_range_by_caster_magic_attack,
-                    rangevalue=2,
-                    multiplier=0.4,
+                    2,
+                    0.4,
                 ),
             ),
         ],
@@ -4025,7 +4024,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_damage_by_current_life_percentage,
-                    multiplier=0.15,
+                    0.15,
                 ),
             ),
             EventListener(
@@ -4077,7 +4076,7 @@ class BuffTemps(Enum):
                 RS.always_true,
                 partial(
                     Effects.receive_fixed_damage_by_physical_defense_and_magic_defense,
-                    multiplier=0.2,
+                    0.2,
                 ),
             ),
         ],
@@ -4134,13 +4133,13 @@ class BuffTemps(Enum):
                 EventTypes.skill_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_caster, multiplier=0.3),
+                partial(Effects.heal_caster, 0.3),
             ),
             EventListener(
                 EventTypes.skill_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_buffs, buff_temp=["random_benefit"]),
+                partial(Effects.add_caster_benefit_buffs, 1),
             ),
         ],
     )
@@ -4365,7 +4364,7 @@ class BuffTemps(Enum):
                 partial(RS.is_battle_attack_target),
                 partial(
                     Effects.receive_fixed_damage_by_caster_magic_attack,
-                    multiplier=0.3,
+                    0.3,
                 ),
             ),
         ],
@@ -4431,8 +4430,8 @@ class BuffTemps(Enum):
                     RS.always_true,
                     partial(
                         Effects.add_fixed_damage_in_range_by_max_life,
-                        multiplier=0.25,
-                        range_value=1,
+                        0.25,
+                        1,
                     ),
                 ),
             ],
@@ -4443,8 +4442,8 @@ class BuffTemps(Enum):
                     RS.always_true,
                     partial(
                         Effects.add_fixed_damage_in_range_by_max_life,
-                        multiplier=0.25,
-                        range_value=1,
+                        0.25,
+                        1,
                     ),
                 ),
             ],
@@ -4499,7 +4498,7 @@ class BuffTemps(Enum):
             #     EventTypes.heal_end,
             #     1,
             #     RS.always_true,
-            #     partial(Effects.heal_to_damage, multiplier=0.5),
+            #     partial(Effects.heal_to_damage, 0.5),
             # ),
         ],
     )
@@ -4654,7 +4653,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_buffs, buff_temp=["nique"], duration=1),
+                partial(Effects.add_buffs, ["nique"], 1),
             ),
             EventListener(
                 EventTypes.battle_start,
@@ -4662,8 +4661,8 @@ class BuffTemps(Enum):
                 partial(RS.is_attacker),
                 partial(
                     Effects.add_fixed_damage_in_range_by_caster_physical_attack,
-                    multiplier=0.2,
-                    rangevalue=2,
+                    0.2,
+                    2,
                 ),
             ),
         ],
@@ -4687,7 +4686,7 @@ class BuffTemps(Enum):
                 EventTypes.damage_end,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_buffs, buff_temp=["dianliu"], duration=2),
+                partial(Effects.add_buffs, ["dianliu"], 2),
             ),
         ],
     )
@@ -4891,7 +4890,7 @@ class BuffTemps(Enum):
                 EventTypes.buff_end,
                 1,
                 RS.always_true,
-                partial(Effects.add_buffs, buff_temp=["xusun"]),
+                partial(Effects.add_buffs, ["xusun"], 1),
             ),
         ],
     )
@@ -4920,7 +4919,7 @@ class BuffTemps(Enum):
                 EventTypes.buff_start,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self, multiplier=0.15),
+                partial(Effects.heal_self, 0.15),
             ),
         ],
     )
@@ -4975,7 +4974,7 @@ class BuffTemps(Enum):
                 EventTypes.skill_end,
                 1,
                 RS.always_true,
-                partial(Effects.heal_self_by_caster_magic_attack, multiplier=0.2),
+                partial(Effects.heal_self_by_caster_magic_attack, 0.2),
             ),
         ],
     )
@@ -5069,13 +5068,13 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.attacked_by_melee_attack),
-                partial(Effects.heal_self, multiplier=0.2),
+                partial(Effects.heal_self, 0.2),
             ),
             EventListener(
                 EventTypes.battle_start,
                 1,
                 partial(RS.is_in_terrain, "zhenyan"),
-                partial(Effects.add_buffs, buff_temp=["xiangong"], duration=1),
+                partial(Effects.add_buffs, ["xiangong"], 1),
             ),
         ],
     )
@@ -5142,7 +5141,7 @@ class BuffTemps(Enum):
                 EventTypes.buff_start,
                 1,
                 partial(RS.BuffChecks.self_buff_stack_reach, 6, "juexingzhili"),
-                partial(Effects.add_buffs, buff_temp=["shengqiangzhili"], duration=2),
+                partial(Effects.add_buffs, ["shengqiangzhili"], 2),
             ),
         ],
     )
@@ -5208,7 +5207,7 @@ class BuffTemps(Enum):
                 EventTypes.buff_start,
                 1,
                 partial(RS.BuffChecks.self_buff_stack_reach, 2, "xinnian"),
-                partial(Effects.add_buffs, buff_temp=["boxunjianglin"]),
+                partial(Effects.add_buffs, ["boxunjianglin"]),
             ),
         ],
     )
@@ -5231,7 +5230,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 partial(RS.PositionChecks.in_range_of_enemy_caster, 3),
-                partial(Effects.add_buffs, buff_temp=["jinbi"], duration=1),
+                partial(Effects.add_buffs, ["jinbi"], 1),
             ),
         ],
     )
@@ -5259,7 +5258,7 @@ class BuffTemps(Enum):
                 EventTypes.battle_start,
                 1,
                 partial(RS.is_attacker),
-                partial(Effects.add_fixed_damage_by_target_max_life, multiplier=0.1),
+                partial(Effects.add_fixed_damage_by_target_max_life, 0.1),
             ),
         ],
     )
@@ -5297,7 +5296,7 @@ class BuffTemps(Enum):
                 EventTypes.action_end,
                 1,
                 partial(RS.PositionChecks.in_range_of_enemy_caster, 3),
-                partial(Effects.add_buffs, buff_temp=["xunji"], duration=1),
+                partial(Effects.add_buffs, ["xunji"], 1),
             ),
         ],
     )
@@ -5348,7 +5347,7 @@ class BuffTemps(Enum):
                     EventTypes.battle_end,
                     1,
                     partial(RS.is_battle_attack_target),
-                    partial(Effects.add_buffs, buff_temp=["chihuan"], duration=1),
+                    partial(Effects.add_buffs, ["chihuan"], 1),
                 ),
             ],
         ],
@@ -5863,6 +5862,24 @@ class BuffTemps(Enum):
         False,
         [],
         [],
+    )
+    
+    # 微澜   其他 不可驱散  不可扩散  不可偷取 行动结束时,为3格范围内所有友方驱散1个「有害状态」, 并恢复气血（恢复量为施术者法攻的0.4倍）
+    weilan = BuffTemp(
+        "weilan",
+        BuffTypes.Benefit,
+        False,
+        False,
+        False,
+        [],
+        [
+            EventListener(
+                EventTypes.action_end,
+                1,
+                RS.always_true,
+                partial(Effects.take_effect_of_weilan),
+            )
+        ],
     )
 
     # 火源	其他	不可驱散	不可扩散	不可偷取	最多储存「梦种灯」最大气血的100%，行动结束时消化50%储存总量为3格内其他友方恢复气血（必定在2回合内消化储存总量）

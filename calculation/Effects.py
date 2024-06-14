@@ -3,7 +3,11 @@ from __future__ import annotations
 from random import random
 from typing import TYPE_CHECKING
 
-
+from calculation.damage_calculator import (
+    calculate_fix_damage,
+    calculate_magic_damage,
+    calculate_physical_damage,
+)
 from calculation.OtherlCalculation import (
     calculate_fix_heal,
     calculate_reset_hero_actionable,
@@ -20,11 +24,6 @@ if TYPE_CHECKING:
     from primitives.equipment.Equipments import Equipment
     from primitives.skill.Skill import Skill
     from primitives.formation.Formation import Formation
-    from calculation.damage_calculator import (
-        calculate_fix_damage,
-        calculate_magic_damage,
-        calculate_physical_damage,
-    )
 from primitives.buff.Buff import Buff
 
 from primitives.map.TerrainType import TerrainType
@@ -114,9 +113,9 @@ def _increase_actor_certain_buff_max_stack(buff_temp_id: str, actor: Hero):
 
 
 def _reserve_buffs(
-    actor: Hero, target: Hero, is_benfit: bool, buff_count: int, context: Context
+    actor: Hero, target: Hero, is_benefit: bool, buff_count: int, context: Context
 ):
-    if is_benfit:
+    if is_benefit:
         target_buffs = [
             buff for buff in target.buffs if buff.temp.type == BuffTypes.Benefit
         ]
@@ -127,7 +126,7 @@ def _reserve_buffs(
     if not target_buffs:
         return
     selected_buffs = random_select(target_buffs, buff_count)
-    new_opposite_buffs = random_select(context.harm_buffs, buff_count)
+    new_opposite_buffs = random_select(context.harm_buffs_temps, buff_count)
 
     for i in range(buff_count):
         _remove_actor_certain_buff(selected_buffs[i].temp.id, target)
@@ -185,9 +184,9 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
-        buff: Buff,
+        primary,
     ):
-        caster = context.get_hero_by_id(buff.caster_id)
+        caster = context.get_hero_by_id(primary.caster_id)
         selected_buffs = random_select(caster.buffs, buff_count)
         for selected_buff in selected_buffs:
             _remove_actor_certain_buff(selected_buff.temp.id, caster)
@@ -203,7 +202,7 @@ class Effects:
         context: Context,
     ):
         targets = context.get_enemies_in_square_range(actor_instance, square_range)
-        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
+        selected_harm_buff_temps = random_select(context.harm_buffs_temps, buff_number)
         selected_heroes = random_select(targets, enemy_number)
         for enemy_hero in selected_heroes:
             _add_buffs(
@@ -218,9 +217,10 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
+        primary,
     ):
         targets = context.get_enemies_in_square_range(actor_instance, square_range)
-        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
+        selected_harm_buff_temps = random_select(context.harm_buffs_temps, buff_number)
         for enemy_hero in targets:
             _add_buffs(
                 actor_instance, enemy_hero, selected_harm_buff_temps, duration, context
@@ -232,7 +232,7 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
-        primitive
+        primary,
     ):
         skill_id = context.get_last_action().skill.temp.id
         for skills in actor_instance.enabled_skills:
@@ -291,20 +291,20 @@ class Effects:
 
     @staticmethod
     def take_effect_of_xiayi(
-        actor_instance: Hero, target_instance: Hero, context: Context
+        actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
         context.get_last_action().update_additional_move(actor_instance, 4, context)
         _reduce_actor_certain_buff_stack("xiayi", actor_instance, 2)
 
     @staticmethod
     def increase_actor_certain_buff_stack(
-        buff_id: str, actor_instance: Hero, target_instance: Hero, context: Context
+        buff_id: str, actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
         _increase_actor_certain_buff_stack(buff_id, actor_instance, 1)
 
     @staticmethod
     def increase_actor_certain_buff_max_stack(
-        buff_id: str, actor_instance: Hero, target_instance: Hero, context: Context
+        buff_id: str, actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
         _increase_actor_certain_buff_max_stack(buff_id, actor_instance)
 
@@ -315,12 +315,13 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
+        primary
     ):
         _reduce_actor_certain_buff_stack(buff_id, actor_instance, stack_value)
 
     @staticmethod
     def heal_self(
-        multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context
+        multiplier: float, actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
         actor_max_life = get_max_life(actor_instance, target_instance, context)
         calculate_fix_heal(
@@ -380,10 +381,11 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
+        primary,
     ):
         partners = context.get_partners_in_diamond_range(actor_instance, range_value)
         for partner in partners:
-            selected_harm_buffs = random_select(context.harm_buffs, buff_count)
+            selected_harm_buffs = random_select(context.harm_buffs_temps, buff_count)
             for selected_harm_buff in selected_harm_buffs:
                 partner.buffs = [
                     buff
@@ -398,6 +400,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
+        primary,
     ):
         _add_buffs(
             actor,
@@ -457,6 +460,25 @@ class Effects:
             caster,
             [context.get_buff_by_id(buff_temp_id) for buff_temp_id in buff_list],
             duration,
+            context,
+        )
+
+    @staticmethod
+    def add_caster_benefit_buffs(
+        count: int,
+        actor: Hero,
+        target: Hero,
+        context: Context,
+        primary
+    ):
+        caster = context.get_hero_by_id(primary.caster_id)
+        benefit_buffs = random_select(context.benefit_buffs, count)
+        actor = context.actor
+        _add_buffs(
+            caster,
+            caster,
+            benefit_buffs,
+            2,
             context,
         )
 
@@ -643,7 +665,6 @@ class Effects:
     @staticmethod
     def receive_fixed_damage_by_max_life_percentage(
         multiplier: float,
-        is_magic: bool,
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
@@ -746,7 +767,7 @@ class Effects:
     ):
         actor = context.get_actor_by_side_in_battle(is_attacker)
         partners = context.get_partners_in_diamond_range(actor, range_value)
-        selected_harm_buff_temps = random_select(context.harm_buffs, buff_number)
+        selected_harm_buff_temps = random_select(context.harm_buffs_temps, buff_number)
         for partner in partners:
             _add_buffs(actor, partner, selected_harm_buff_temps, duration, context)
 
@@ -831,7 +852,7 @@ class Effects:
         buff: Buff,
     ):
         caster_hero = context.get_hero_by_id(buff.caster_id)
-        if caster_hero.alive:
+        if caster_hero.is_alive:
             caster_magic_attack = get_attack(
                 actor_instance, target_instance, context, True, True
             )
@@ -865,18 +886,18 @@ class Effects:
 
     @staticmethod
     def take_fixed_damage_by_percentage_per_each_move(
-        percentage: float, max_percentage: int, is_attacker: bool, context: Context
+        percentage: float, max_percentage: int, actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
-        action = context.get_action_by_side(is_attacker)
-        actor = context.get_actor_by_side_in_battle(is_attacker)
+        caster = context.get_hero_by_id(primary.caster_id)
+        action = context.get_last_action()
         move_count = len(action.moves)
-        actor_max_life = get_max_life(actor, is_attacker, context)
+        actor_max_life = get_max_life(actor_instance, caster, context)
         multiplier = min(percentage * move_count, max_percentage)
-        calculate_fix_damage(actor_max_life * multiplier, is_attacker, actor, context)
+        calculate_fix_damage(actor_max_life * multiplier, caster, actor_instance, context)
 
     @staticmethod
     def remove_actor_certain_buff(
-        buff_temp_id: str, actor: Hero, target: Hero, context: Context, primitive
+        buff_temp_id: str, actor: Hero, target: Hero, context: Context, primary
     ):
         _remove_actor_certain_buff(buff_temp_id, actor)
 
@@ -903,10 +924,10 @@ class Effects:
 
     @staticmethod
     def remove_target_harm_buffs_in_range(
-        count: int, range_value: int, actor: Hero, target: Hero, context: Context
+        count: int, range_value: int, actor: Hero, target: Hero, context: Context, primary
     ):
 
-        enemies = context.get_enemies_in_square_range(actor, range_value)
+        enemies = context.get_enemies_in_diamond_range(actor, range_value)
         for enemy in enemies:
             harm_buffs = [
                 buff for buff in enemy.buffs if buff.temp.type == BuffTypes.Harm
@@ -919,7 +940,7 @@ class Effects:
         count: int, range_value: int, actor: Hero, target: Hero, context: Context
     ):
 
-        partners = context.get_enemies_in_square_range(actor, range_value)
+        partners = context.get_enemies_in_diamond_range(actor, range_value)
         for partner in partners:
             harm_buffs = [
                 buff for buff in partner.buffs if buff.temp.type == BuffTypes.Harm
@@ -963,8 +984,6 @@ class Effects:
         actor: Hero, target: Hero, is_attacker: bool, context: Context, buff: Buff
     ):
         partners = context.get_partners_in_diamond_range(actor, 3)
-        if not partners:
-            return
         damage = get_current_action(context).total_damage
         if damage > 0:  # 为3格范围内其他友方恢复气血（恢复量为施术者法攻的0.5倍）
             for partner in partners:
@@ -985,13 +1004,28 @@ class Effects:
             )
 
     @staticmethod
+    def take_effect_of_weilan(
+        actor: Hero, target: Hero, context: Context, buff: Buff
+    ):
+        partners = context.get_partners_in_diamond_range(actor, 3)
+        for partner in partners:
+            Effects.heal_self_by_caster_magic_attack(
+                multiplier=0.4,
+                actor_instance=actor,
+                target_instance=partner,
+                context=context,
+                buff=buff,
+            )
+        Effects.remove_partner_harm_buffs(1, 3, actor, target, context, buff)
+
+    @staticmethod
     def reverse_target_harm_buffs(
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
         _reserve_buffs(actor, target, False, buff_count, context)
 
     @staticmethod
-    def reverse_target_benfit_buffs(
+    def reverse_target_benefit_buffs(
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
         _reserve_buffs(actor, target, True, buff_count, context)
@@ -1011,7 +1045,7 @@ class Effects:
         _reserve_buffs(actor, actor, False, buff_count, context)
 
     @staticmethod
-    def reverse_self_benfit_buffs(
+    def reverse_self_benefit_buffs(
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
         _reserve_buffs(actor, actor, True, buff_count, context)
@@ -1020,7 +1054,7 @@ class Effects:
     def add_self_random_harm_buff(
         buff_count: int, actor: Hero, target: Hero, context: Context
     ):
-        harm_buffs = random_select(context.harm_buffs, buff_count)
+        harm_buffs = random_select(context.harm_buffs_temps, buff_count)
         _add_buffs(actor, actor, harm_buffs, 2, context)
 
     @staticmethod
@@ -1038,7 +1072,7 @@ class Effects:
         context: Context,
         buff: Buff or Skill
     ):
-        harm_buffs = random_select(context.harm_buffs, buff_count)
+        harm_buffs = random_select(context.harm_buffs_temps, buff_count)
         _add_buffs(actor, target, harm_buffs, 2, context)
 
     @staticmethod
@@ -1051,7 +1085,7 @@ class Effects:
         buff: Buff,
     ):
         if random() < probability:
-            harm_buffs = random_select(context.harm_buffs, buff_count)
+            harm_buffs = random_select(context.harm_buffs_temps, buff_count)
             _add_buffs(actor, target, harm_buffs, 2, context)
 
     @staticmethod
@@ -1089,14 +1123,14 @@ class Effects:
 
     @staticmethod
     def increase_self_loongest_skill_cooldown(
-        cooldown_reduction: int, actor: Hero, target: Hero, context: Context
+        cooldown_reduction: int, actor: Hero, target: Hero, context: Context, primary
     ):
         longest_skill = max(actor.enabled_skills, key=lambda x: x.cool_down)
         longest_skill.cool_down += cooldown_reduction
 
     @staticmethod
     def reduce_self_all_skill_cooldown(
-        cooldown_reduction: int, actor: Hero, target: Hero, context: Context
+        cooldown_reduction: int, actor: Hero, target: Hero, context: Context, primary
     ):
         for skill in actor.enabled_skills:
             skill.cool_down -= cooldown_reduction
@@ -1105,7 +1139,7 @@ class Effects:
 
     @staticmethod
     def reduce_self_ramdon_damage_skill_cooldown(
-        cooldown_reduction: int, actor: Hero, target: Hero, context: Context
+        cooldown_reduction: int, actor: Hero, target: Hero, context: Context, primary
     ):
         pass
         # for skill in actor.enabled_skills:
@@ -1115,7 +1149,7 @@ class Effects:
 
     @staticmethod
     def steal_target_benefit_buff(
-        buff_count: int, actor: Hero, target: Hero, context: Context
+        buff_count: int, actor: Hero, target: Hero, context: Context, primary
     ):
         benefit_buffs = [
             buff for buff in target.buffs if buff.temp.type == BuffTypes.Benefit
@@ -1155,6 +1189,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
+        primary,
     ):
         targets = context.get_enemies_in_diamond_range(actor, range_value)
         for enemy in targets:
@@ -1170,6 +1205,7 @@ class Effects:
         actor: Hero,
         target: Hero,
         context: Context,
+        primary,
     ):
         partners = context.get_partners_in_diamond_range(actor, range_value)
         for partner in partners:
@@ -1179,7 +1215,7 @@ class Effects:
 
     @staticmethod
     def transfer_self_harm_buff_to_attacker(
-        buff_count: int, actor: Hero, target: Hero, context: Context
+        buff_count: int, actor: Hero, target: Hero, context: Context, primary
     ):
         harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
         selected_buffs = random_select(harm_buffs, buff_count)
@@ -1200,8 +1236,6 @@ class Effects:
         buff: Buff,
     ):
         partners = context.get_partners_in_diamond_range(actor, range_value)
-        if not partners:
-            return
         min_heal_actor = partners[0]
         for partner in partners:
             if partner.current_life < min_heal_actor.current_life:
@@ -1237,14 +1271,14 @@ class Effects:
 
     @staticmethod
     def heal_self_and_remove_harm_buffs(
-        multiplier: float, buff_count: int, actor: Hero, target: Hero, context: Context
+        multiplier: float, buff_count: int, actor: Hero, target: Hero, context: Context, primary
     ):
         harm_buffs = [buff for buff in actor.buffs if buff.temp.type == BuffTypes.Harm]
         for i in range(buff_count):
             harm_buff = random_select(harm_buffs, 1)
             _remove_actor_certain_buff(harm_buff.temp.id, actor)
             harm_buffs.remove(harm_buff)
-        Effects.heal_self(multiplier, actor, actor, context)
+        Effects.heal_self(multiplier, actor, actor, context, primary)
 
     @staticmethod
     def receive_fixed_damage_with_maxlife_and_losslife(
@@ -1267,8 +1301,6 @@ class Effects:
     def take_effect_of_qingliu(actor: Hero, target: Hero, context: Context, buff: Buff):
         Effects.heal_self_by_caster_magic_attack(0.4, actor, target, context, buff)
         partners = context.get_partners_in_diamond_range(actor, 2)
-        if not partners:
-            return
         min_life_percentage = 1
         min_life_percentage_partner = partners[0]
         for partner in partners:
@@ -1287,7 +1319,7 @@ class Effects:
 
     @staticmethod
     def heal_self_by_damage(
-        multiplier: float, actor: Hero, target: Hero, context: Context
+        multiplier: float, actor: Hero, target: Hero, context: Context, primary
     ):
         damage = get_current_action(context).total_damage
         calculate_fix_heal(damage * multiplier, actor, actor, context)
@@ -1295,13 +1327,13 @@ class Effects:
     # energy
     @staticmethod
     def increase_self_energy(
-        energy_value: int, actor: Hero, target: Hero, context: Context
+        energy_value: int, actor: Hero, target: Hero, context: Context, primary
     ):
         _increase_actor_energy(actor, energy_value)
 
     @staticmethod
     def increase_target_energy(
-        energy_value: int, actor: Hero, target: Hero, context: Context
+        energy_value: int, actor: Hero, target: Hero, context: Context, primary
     ):
         _increase_actor_energy(target, energy_value)
 
@@ -1313,7 +1345,7 @@ class Effects:
 
     @staticmethod
     def reduce_target_energy_in_range(
-        range_value: int, energy_value: int, actor: Hero, target: Hero, context: Context
+        range_value: int, energy_value: int, actor: Hero, target: Hero, context: Context, primary
     ):
         enemies = context.get_enemies_in_diamond_range(actor, range_value)
         for enemy in enemies:
@@ -1350,7 +1382,7 @@ class Effects:
         if buff.trigger >= max_trigger:
             return
         buff.trigger += 1
-        Effects.heal_self(0.25, actor, actor, context)
+        Effects.heal_self(0.25, actor, actor, context, buff)
         Effects.remove_actor_harm_buffs(1, actor, actor, context)
 
     # 以3格范围内物攻/法攻最高的敌人为中心，对其2格范围内所有敌方造成1次「固定伤害」伤害（最大气血的12%），并施加1层「燃烧」状态，持续2回合。
@@ -1415,13 +1447,13 @@ class Effects:
         buff: Buff,
     ):
         caster = context.get_hero_by_id(buff.caster_id)
-        benfit_buffs = [
+        benefit_buffs = [
             buff for buff in actor.buffs if buff.temp.type == BuffTypes.Benefit
         ]
-        if len(benfit_buffs) <= 2:
+        if len(benefit_buffs) <= 2:
             return
-        transfer_buffs_count = min(6, len(benfit_buffs) - 2)
-        transfer_buffs = random_select(benfit_buffs, transfer_buffs_count)
+        transfer_buffs_count = min(6, len(benefit_buffs) - 2)
+        transfer_buffs = random_select(benefit_buffs, transfer_buffs_count)
         for transfer_buff in transfer_buffs:
             _remove_actor_certain_buff(transfer_buff.temp.id, actor)
             _add_buffs(
@@ -1463,30 +1495,30 @@ class Effects:
     def take_effect_of_longyan(actor: Hero, target: Hero, context: Context, buff: Buff):
         action = context.get_last_action()
         caster = context.get_hero_by_id(buff.caster_id)
-        Effects.increase_target_energy(action.targets, actor, caster, context)
+        Effects.increase_target_energy(action.targets, actor, caster, context, buff)
 
     @staticmethod
     def take_effect_of_ruizou(actor: Hero, target: Hero, context: Context, buff: Buff):
         action = context.get_last_action()
         caster = context.get_hero_by_id(buff.caster_id)
-        Effects.increase_self_energy(1, actor, actor, context)
-        Effects.increase_target_energy(1, actor, caster, context)
+        Effects.increase_self_energy(1, actor, actor, context, buff)
+        Effects.increase_target_energy(1, actor, caster, context, buff)
 
     @staticmethod
     def take_effect_of_feiyu(
-        actor_instance: Hero, target_instance: Hero, context: Context
+        actor_instance: Hero, target_instance: Hero, context: Context, primary
     ):
         context.get_last_action().update_additional_move(2)
 
     # 反转自身2个「有害状态」，恢复自身气血（最大气血的30%），并将自身最多2个「有益状态」复制给3格内的其他友方。（每回合只能触发1次）
     @staticmethod
     def take_effect_of_xunxue(
-        actor_instance: Hero, target_instance: Hero, context: Context, buff: Buff
+        actor_instance: Hero, target_instance: Hero, context: Context, buff
     ):
         if buff.trigger >= 1:
             return
         Effects.reverse_self_harm_buffs(2, actor_instance, actor_instance, context)
-        Effects.heal_self(0.3, actor_instance, target_instance, context)
+        Effects.heal_self(0.3, actor_instance, target_instance, context, buff)
 
         benefit_buffs = [
             buff for buff in actor_instance.buffs if buff.temp.type == BuffTypes.Benefit
@@ -1513,7 +1545,7 @@ class Effects:
             if buff.temp.type == BuffTypes.Benefit
         ]
         buff_count = len(benefit_buffs)
-        Effects.steal_target_benefit_buff(2, actor_instance, target_instance, context)
+        Effects.steal_target_benefit_buff(2, actor_instance, target_instance, context, buff)
         benefit_buffs = [
             buff
             for buff in target_instance.buffs
@@ -1524,7 +1556,7 @@ class Effects:
                 0.1, actor_instance, target_instance, context, buff
             )
             Effects.remove_actor_certain_buff(
-                "youkai", actor_instance, target_instance, context
+                "youkai", actor_instance, target_instance, context, buff
             )
 
     @staticmethod
@@ -1554,7 +1586,7 @@ class Effects:
             return
         buff.trigger += 1
         Effects.add_buffs(
-            ["shenrui", "yumo"], 1, actor_instance, target_instance, context
+            ["shenrui", "yumo"], 1, actor_instance, target_instance, context, buff
         )
 
     @staticmethod
@@ -1583,7 +1615,7 @@ class Effects:
 
     @staticmethod
     def add_extra_skill(
-        skill_value: str, actor_hero: Hero, target_hero: Hero, context: Context
+        skill_value: str, actor_hero: Hero, target_hero: Hero, context: Context, primary
     ) -> int:
         skill = context.get_skill_by_id(skill_value)
         action = context.get_last_action()
@@ -1605,8 +1637,6 @@ class Effects:
             for partner in context.get_enemies_in_cross_range(actor_instance, 7)
             if not partner.actionable
         ]
-        if not partners:
-            return
         target_hero = partners[0]
         for partner in partners:
             if get_attack(target_hero, target_instance, context, True) / get_attack(
@@ -1659,7 +1689,7 @@ class Effects:
                 context,
             )
             Effects.reduce_self_all_skill_cooldown(
-                1, actor_instance, actor_instance, context
+                1, actor_instance, actor_instance, context, buff
             )
         max_trigger_limit = get_buff_max_trigger_limit("songqingming")
         if buff.trigger >= max_trigger_limit:
@@ -1730,24 +1760,6 @@ class Effects:
     # Weapons Effects
 
     @staticmethod
-    def take_effect_of_shenwuhanwei(
-        actor_instance: Hero,
-        target_instance: Hero,
-        context: Context,
-    ):
-        partners = context.get_partners_in_diamond_range(actor_instance, 3)
-        if not partners:
-            return
-        for partner in partners:
-            if (
-                partner.current_life / get_max_life(partner, actor_instance, context)
-                > 0.8
-            ):
-                Effects.add_buffs(["shuangkai"], 15, actor_instance, partner, context)
-
-    # Equipment Effects
-
-    @staticmethod
     def take_effect_of_xuanqueyaodai(
         actor_instance: Hero,
         target_instance: Hero,
@@ -1755,8 +1767,25 @@ class Effects:
         equipment: Equipment,
     ):
         equipment.cooldown = 2
-        Effects.heal_self(0.35, actor_instance, actor_instance, context)
+        Effects.heal_self(0.35, actor_instance, actor_instance, context, equipment)
         Effects.remove_actor_harm_buffs(1, actor_instance, actor_instance, context)
+
+    # Equipment Effects
+
+    @staticmethod
+    def take_effect_of_shenwuhanwei(
+        actor_instance: Hero,
+        target_instance: Hero,
+        context: Context,
+        weapon
+    ):
+        partners = context.get_partners_in_diamond_range(actor_instance, 3)
+        for partner in partners:
+            if (
+                partner.current_life / get_max_life(partner, actor_instance, context)
+                > 0.8
+            ):
+                Effects.add_buffs(["shuangkai"], 15, actor_instance, partner, context, weapon)
 
     @staticmethod
     def take_effect_of_jiaorenbeige(
@@ -1764,10 +1793,9 @@ class Effects:
         actor_instance: Hero,
         target_instance: Hero,
         context: Context,
+        equipment: Equipment,
     ):
         partners = context.get_partners_in_diamond_range(actor_instance, 2)
-        if not partners:
-            return
         target_partner = partners[0]
         temp_buff = []
         if state == "wu":
@@ -1805,7 +1833,7 @@ class Effects:
                 ):
                     target_partner = partner
             temp_buff = ["cigu"]
-        Effects.add_buffs(temp_buff, 1, actor_instance, target_partner, context)
+        Effects.add_buffs(temp_buff, 1, actor_instance, target_partner, context, equipment)
 
     @staticmethod
     def take_effect_of_lingyuepeihuan(
@@ -1825,7 +1853,7 @@ class Effects:
             buff_name = "shiyu"
         else:
             buff_name = "shimo"
-        Effects.add_buffs([buff_name], 1, actor_instance, target_enemy, context)
+        Effects.add_buffs([buff_name], 1, actor_instance, target_enemy, context, equipment)
 
     # skill effects
 
@@ -1897,7 +1925,7 @@ class Effects:
 
         now_enemies = context.get_enemies_in_square_range(actor_instance, action.action_point, 2)
         if len(now_enemies) >= 3:
-            action.update_additional_action(0, context)
+            Effects.update_self_additional_action(0, actor_instance, target_instance, context, skill)
 
     @staticmethod
     def take_effect_of_tianshanluanhun(
@@ -1947,9 +1975,9 @@ class Effects:
             buff_list = ["ranshao"]
             position = target.position
             terrain_buff = context.battlemap.get_terrain(position).buff
-            if "chiwuqi" == terrain_buff.temp.id:
+            if terrain_buff and "chiwuqi" == terrain_buff.temp.id:
                 buff_list.append("wangxiao")
-            Effects.add_buffs(buff_list, 2, actor_instance, target, context)
+            Effects.add_buffs(buff_list, 2, actor_instance, target, context, skill)
 
     @staticmethod
     def take_effect_of_buqi(
@@ -1984,7 +2012,7 @@ class Effects:
     ):
         action = context.get_last_action()
         for target in action.targets:
-            Effects.add_buffs(["pijia"], 3, actor_instance, target, context)
+            Effects.add_buffs(["pijia"], 3, actor_instance, target, context, skill)
 
     @staticmethod
     def take_effect_of_shiguizhaohuan(
@@ -2006,7 +2034,7 @@ class Effects:
         for target in action.targets:
             Effects.add_certain_buff_with_level(actor_instance, target, "luanshen", 2, 2, context)
             if target.temp.element in {Elements.DARK, Elements.WATER}:
-                Effects.add_buffs(["yazhi"], 1, actor_instance, target, context)
+                Effects.add_buffs(["yazhi"], 1, actor_instance, target, context, skill)
 
     @staticmethod
     def take_effect_of_luohouzhenfa(

@@ -43,7 +43,7 @@ class ProfessionAttributes:
         self.xingpan_amp: AttributesTuple = xingpan_amp
 
 
-def get_profession_values(profession_identifier: string, temp_id: string) -> ProfessionAttributes:
+def get_profession_values(profession_identifier: string, temp_id: string = None) -> ProfessionAttributes:
     if temp_id == "mohuahuangfushen":
         wunei = get_enum_value(WuneiProfessions, "MOHUAHUANGFUSHEN")
     elif temp_id == "jianxie":
@@ -113,7 +113,8 @@ def calculate_max_added_value(
 
     calculated_values = tuple(
         jishen_profession[i]
-        + shenbin_profession[i] * (69 / 10 + 1)
+        + shenbin_profession
+        [i] * (69 / 10 + 1)
         + huazhen_profession[i]
         + sum(wunei_profession[i])
         + xingpan_profession[i]

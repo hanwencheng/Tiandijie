@@ -1,15 +1,7 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from primitives.buff.buffs import BuffTemps
-    from primitives.fieldbuff.fieldbuffs import FieldBuffsTemps
-    from primitives import Action
-    from primitives.formation.Formation import Formation
-    from primitives.buff.BuffTemp import BuffTemp
-    from primitives.fieldbuff.FieldBuffTemp import FieldBuffTemp
 from primitives.hero.HeroBasics import Gender, Professions, HideProfessions
-from primitives.hero.Hero import Hero
 from primitives.hero.HeroTemp import HeroTemp
 from primitives.formation.formations import Formations
 from primitives.hero.Element import Elements
@@ -93,6 +85,24 @@ class HeroeTemps(Enum):
 
     zhenyin = HeroTemp(
         name="真胤",
+        temp_id="zhenyin",
+        basicInfo=None,
+        flyable=False,
+        has_formation=True,
+        formation_temp=Formations.sanshentongzhi,
+        gender=Gender.MALE,
+        element=Elements.ETHEREAL,
+        profession=Professions.GUARD,
+        hide_professions=HideProfessions.GUARD_PROTECT,
+        level0_attributes=Attributes(200, 81, 41, 20, 19, 45),
+        growth_coefficients=(30.06, 12.21, 6.17, 3.05, 2.82, 0.45),
+        talent=Talents.jinlunfatian.value,
+        weapons=Weapons.budaoshensen.value,
+        skills=None,
+    )
+
+    zhenyin1 = HeroTemp(
+        name="真胤1",
         temp_id="zhenyin",
         basicInfo=None,
         flyable=False,

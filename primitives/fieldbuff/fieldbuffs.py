@@ -258,8 +258,7 @@ class FieldBuffsTemps(Enum):
                 1,
                 partial(RS.self_and_caster_is_enemy),
                 partial(
-                    Effects.receive_fixed_damage_by_caster_physical_attack,
-                    multiplier=0.15,
+                    Effects.receive_fixed_damage_by_caster_physical_attack, 0.15,
                 ),
             ),
         ],
@@ -298,7 +297,7 @@ class FieldBuffsTemps(Enum):
                 EventTypes.skill_start,
                 1,
                 partial(RS.self_and_caster_is_enemy),
-                partial(Effects.reverse_self_benfit_buffs, 2),
+                partial(Effects.reverse_self_benefit_buffs, 2),
             ),
             EventListener(
                 EventTypes.skill_start,

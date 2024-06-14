@@ -1,1 +1,1 @@
-type Position = (int, int)
+Position = (int, int)

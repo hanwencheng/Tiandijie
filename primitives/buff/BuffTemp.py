@@ -24,7 +24,7 @@ class BuffTemp:
         expandable,
         stealable,
         modifier_effects: List[List[ModifierEffect]] or List[ModifierEffect] = None,
-        on_event: List[EventListener] = None,
+        on_event: List[List[ModifierEffect]] or List[EventListener] = None,
     ):
         if modifier_effects is None:
             modifier_effects = [[]]
@@ -34,8 +34,14 @@ class BuffTemp:
         else:
             modifier_effects = [modifier_effects]
             self.upgradable = False
+
         if on_event is None:
-            on_event = []
+            on_event = [[]]
+        elif all(isinstance(item, list) for item in on_event):
+            pass
+        else:
+            on_event = [on_event]
+
         self.id = buff_id
         self.type: BuffTypes = buff_type
         self.dispellable: bool = dispellable

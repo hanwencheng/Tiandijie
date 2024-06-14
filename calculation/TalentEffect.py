@@ -151,7 +151,7 @@ class TalentEffects:
     ):
         action = context.get_last_action()
         Effects.reduce_actor_certain_buff_stack(
-            "changming", 2, actor_instance, target_instance, context
+            "changming", 2, actor_instance, target_instance, context, talent
         )
         talent.cooldown = 3
 
@@ -236,7 +236,7 @@ class TalentEffects:
         talent: Talent,
     ):
         if state == 1:
-            Effects.add_extra_skill("buqi", actor_instance, target_instance, context)
+            Effects.add_extra_skill("buqi", actor_instance, target_instance, context, talent)
         elif state == 2:
             Effects.clear_terrain_by_buff_name("chiwuqi", context)
             Effects.add_self_buffs(
@@ -350,7 +350,7 @@ class TalentEffects:
                 if count > 1:
                     for i in range(count - 1):
                         Effects.increase_actor_certain_buff_stack(
-                            "yingwei", actor_instance, actor_instance, context
+                            "yingwei", actor_instance, actor_instance, context, talent
                         )
         elif state == 2:
             buff = actor_instance.get_buff_by_id("yingwei")

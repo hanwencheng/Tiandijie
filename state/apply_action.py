@@ -228,7 +228,6 @@ def apply_action(context: Context, action: Action):
             battle_events(action.actor, target, action, context)
             is_hero_live(action.actor, True, context)
         else:
-            print("range_skill_events")
             range_skill_events(actor, action.targets, action, context, apply_damage)
             # for target in action.targets:
             #     attack_or_skill_events(actor, target, action, context, apply_damage)
@@ -247,13 +246,14 @@ def apply_action(context: Context, action: Action):
         attack_or_skill_events(actor, None, action, context, apply_summon)
 
     elif action.type == ActionTypes.SELF:
-        attack_or_skill_events(actor, None, action, context, apply_self)
+        for target in action.targets:
+            attack_or_skill_events(actor, target, action, context, apply_self)
 
     elif action.type == ActionTypes.TELEPORT:
         attack_or_skill_events(actor, None, action, context, apply_teleport)
 
     elif action.type == ActionTypes.SUPPORT:
-        test(actor, None, action, context, apply_support)
+        test(actor, action.targets[0], action, context, apply_support)
     #
     # elif action.type == ActionTypes.PASS:
     #     pass
@@ -269,6 +269,7 @@ def apply_action(context: Context, action: Action):
     #         )
     #     else:
     #         event_listener_calculator(hero, actor, EventTypes.enemy_action_end, context)
+    # context.battlemap.display_map()
 
 
 def generate_legal_actions():

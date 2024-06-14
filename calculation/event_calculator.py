@@ -51,7 +51,12 @@ def event_listener_calculator(
         return
     # Calculated Buffs
     for buff in actor_instance.buffs:
-        buff_event_listeners: List[EventListener] = buff.temp.event_listeners
+        buff_event_levels_listeners = buff.temp.event_listeners
+        if len(buff_event_levels_listeners) == 0:
+            continue
+        buff_event_listeners: List[EventListener] = buff_event_levels_listeners[
+            buff.level - 1
+            ]
         for event_listener in buff_event_listeners:
             if event_listener.event_type == event_type:
                 event_listener_containers.append(
@@ -60,12 +65,18 @@ def event_listener_calculator(
 
     if event_type == EventTypes.battle_start or event_type == EventTypes.battle_end:
         for buff in counter_instance.buffs:
-            buff_event_listeners: List[EventListener] = buff.temp.event_listeners
+            buff_event_levels_listeners = buff.temp.event_listeners
+            if len(buff_event_levels_listeners) == 0:
+                continue
+            buff_event_listeners: List[EventListener] = buff_event_levels_listeners[
+                buff.level - 1
+            ]
             for event_listener in buff_event_listeners:
                 if event_listener.event_type == event_type:
                     event_listener_containers.append(
                         EventListenerContainer(event_listener, buff)
                     )
+
     # Calculated FieldBuffs
     for field_buff in context.fieldbuffs_temps.values():
         target_instance = context.get_hero_by_id(field_buff.caster_id)
@@ -128,13 +139,13 @@ def event_listener_calculator(
     event_listener_containers.sort(key=lambda x: x.event_listener.priority)
 
     for event_listener_container in event_listener_containers:
-        multiplier = event_listener_container.event_listener.requirement(
+        probability = event_listener_container.event_listener.requirement(
             actor_instance,
             counter_instance,
             context,
             event_listener_container.instance_self,
         )
-        if multiplier > 0 and random() < multiplier:
+        if probability > 0 and random() < probability:
             event_listener_container.event_listener.listener_effects(
                 actor_instance,
                 counter_instance,
@@ -143,7 +154,7 @@ def event_listener_calculator(
             )
     if event_type == EventTypes.skill_start:
         skill = current_action.skill
-        skill.cool_down = skill.temp.max_cool_down
+        skill.cool_down = skill.temp.max_cool_down+1
     if event_type == EventTypes.action_end:
         action_end_event(actor_instance, context)
     if event_type == EventTypes.turn_start:
@@ -182,7 +193,9 @@ def action_end_event(actor_instance: 'Hero', context):
     if actor_instance.temp.talent.cooldown < 0:
         actor_instance.temp.talent.cooldown = 0
 
-    actor_instance.actionable = False
+    action = context.get_last_action()
+    if not action.has_additional_action:
+        actor_instance.actionable = False
 
 
 def new_turn_event(actor_instance: 'Hero', context):
@@ -192,10 +205,3 @@ def new_turn_event(actor_instance: 'Hero', context):
         buff.temp.trigger = 0
     for buff in actor_instance.field_buffs:
         buff.temp.trigger = 0
-
-    for y in context.battlemap:
-        for x in y:
-            terrain_buff = context.battlemap.get_terrain(x).buff
-            terrain_buff.duration -= 1
-            if terrain_buff.duration == 0:
-                context.battlemap.get_terrain(x).buff = None

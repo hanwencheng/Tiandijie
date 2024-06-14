@@ -23,10 +23,14 @@ def setup_context() -> Context:
 
     game_context.load_buffs()
 
-    game_context.init_heroes([])
-
     game_context.init_formation()
 
-    game_context.init_battlemap("jiejiehuanjing")
+    game_context.init_battlemap("yaoshanhuanjing")
+
+    game_context.init_game_heroes()
+
+    game_context.init_heroes_position()
+
+    # game_context.battlemap.display_map()
 
     return game_context

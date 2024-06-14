@@ -14,3 +14,6 @@ class Terrain:
         self.terrain_type = terrain_type
         self.buff: 'TerrainBuff' or None = None
         self.collectable: 'Collectable' or None = None
+
+    def remove_buff(self):
+        self.buff = None

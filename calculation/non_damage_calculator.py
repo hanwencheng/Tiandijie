@@ -27,7 +27,7 @@ def apply_additional_skill(
 
 
 def apply_heal(actor: Hero, target: Hero or None, action: Action, context: Context):
-    target.heal(action.total_damage)
+    target.take_healing(action.total_damage)
     pass
 
 
